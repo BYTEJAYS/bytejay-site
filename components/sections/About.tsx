@@ -2,6 +2,14 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import {
+  sfxFarewell,
+  sfxGreet,
+  sfxReact,
+  startMotor,
+  stopMotor,
+  unlockAudio,
+} from "@/lib/robotSfx";
 import PixelIcon from "../PixelIcon";
 import SectionHeading from "../SectionHeading";
 
@@ -346,6 +354,10 @@ export default function About() {
   const [visited, setVisited] = useState(0);
   const [bubble, setBubble] = useState<string | null>(null);
   const [waving, setWaving] = useState(false);
+  const [sound, setSound] = useState(true);
+  const soundRef = useRef(true);
+  soundRef.current = sound;
+  const motorOnRef = useRef(false);
   const visitedSet = useRef(new Set<number>());
   const bubbleTO = useRef<ReturnType<typeof setTimeout>>();
   const greetedRef = useRef(false);
@@ -373,6 +385,16 @@ export default function About() {
       }
       setWalking(dir !== 0);
 
+      // tread motor follows movement
+      const wantMotor = dir !== 0 && soundRef.current;
+      if (wantMotor && !motorOnRef.current) {
+        motorOnRef.current = true;
+        startMotor();
+      } else if (!wantMotor && motorOnRef.current) {
+        motorOnRef.current = false;
+        stopMotor();
+      }
+
       const vw = viewportRef.current?.clientWidth ?? 0;
       const camX = Math.min(Math.max(xRef.current - vw / 2, 0), Math.max(0, WORLD_W - vw));
       if (worldRef.current)
@@ -391,20 +413,29 @@ export default function About() {
         visitedSet.current.add(near);
         setVisited(visitedSet.current.size);
         sayRef.current(REACTIONS[visitedSet.current.size % REACTIONS.length]);
+        if (soundRef.current) sfxReact();
       }
       if (!exitToldRef.current && xRef.current > WORLD_W - 320) {
         exitToldRef.current = true;
         sayRef.current("that was the tour — go say hi! ✌", 2600);
+        if (soundRef.current) sfxFarewell();
       }
 
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
+    const cleanupMotor = () => {
+      if (motorOnRef.current) {
+        motorOnRef.current = false;
+        stopMotor();
+      }
+    };
 
     const down = (e: KeyboardEvent) => {
       if (!inViewRef.current) return;
       if (e.key === "ArrowRight" || e.key === "d") keys.current.right = true;
       if (e.key === "ArrowLeft" || e.key === "a") keys.current.left = true;
+      unlockAudio();
     };
     const up = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === "d") keys.current.right = false;
@@ -414,6 +445,7 @@ export default function About() {
     window.addEventListener("keyup", up);
     return () => {
       cancelAnimationFrame(raf);
+      cleanupMotor();
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };
@@ -421,6 +453,7 @@ export default function About() {
 
   const hold = (side: "left" | "right", on: boolean) => () => {
     keys.current[side] = on;
+    if (on) unlockAudio();
   };
 
   return (
@@ -432,6 +465,7 @@ export default function About() {
           greetedRef.current = true;
           setWaving(true);
           say("hi! i'm WALL·E — your guide ✦", 2800);
+          if (soundRef.current) sfxGreet();
           setTimeout(() => setWaving(false), 2600);
         }
       }}
@@ -703,10 +737,33 @@ export default function About() {
             <span className="rounded border border-ink/20 bg-surface/60 px-1.5 py-0.5">→</span>
             or A / D to walk
           </p>
-          <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            <PixelIcon name="spark" className="h-2.5 w-2.5 text-accent" />
-            seen {visited}/{PAINTINGS.length}
-          </p>
+          <span className="pointer-events-auto flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                unlockAudio();
+                const next = !sound;
+                setSound(next);
+                if (next) sfxReact();
+                else if (motorOnRef.current) {
+                  motorOnRef.current = false;
+                  stopMotor();
+                }
+              }}
+              aria-label={sound ? "Mute WALL·E" : "Unmute WALL·E"}
+              className={`rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] transition-colors ${
+                sound
+                  ? "border-accent/50 bg-accent/10 text-accent"
+                  : "border-ink/20 bg-surface/60 text-muted"
+              }`}
+            >
+              {sound ? "sfx on" : "sfx off"}
+            </button>
+            <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+              <PixelIcon name="spark" className="h-2.5 w-2.5 text-accent" />
+              seen {visited}/{PAINTINGS.length}
+            </span>
+          </span>
         </div>
 
         {/* touch controls */}
