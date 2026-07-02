@@ -78,6 +78,26 @@ const rotXAt = (p: V3, oy: number, t: number): V3 => {
 
 const WOOFS = ["WOOF!", "WOOF WOOF!", "BORF!", "AROOO!"];
 
+const HEART_BMP = ["0110110", "1111111", "1111111", "0111110", "0011100", "0001000"];
+
+function drawPixelHeart(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  px: number,
+  color: string
+) {
+  ctx.fillStyle = color;
+  const w = HEART_BMP[0].length * px;
+  for (let y = 0; y < HEART_BMP.length; y++) {
+    for (let x = 0; x < HEART_BMP[y].length; x++) {
+      if (HEART_BMP[y][x] === "1") {
+        ctx.fillRect(cx - w / 2 + x * px, cy + y * px, px + 0.5, px + 0.5);
+      }
+    }
+  }
+}
+
 type Mode = "walk" | "pause" | "sniff" | "bark" | "sit" | "lick" | "turn";
 
 export default function SaintBernard({ dark = false }: { dark?: boolean }) {
@@ -96,6 +116,9 @@ export default function SaintBernard({ dark = false }: { dark?: boolean }) {
     const caveat =
       getComputedStyle(document.body).getPropertyValue("--font-caveat").trim() ||
       "cursive";
+    const mono =
+      getComputedStyle(document.body).getPropertyValue("--font-mono").trim() ||
+      "monospace";
 
     let w = 0, h = 0, S = 46, groundY = 0;
     const resize = () => {
@@ -136,6 +159,8 @@ export default function SaintBernard({ dark = false }: { dark?: boolean }) {
     let last = performance.now();
     let raf = 0;
     let running = true;
+    let tagUntil = -10; // nametag shows only after the dog is clicked
+    let tagA = 0;
     const bubbles: Bubble[] = [];
     let noseAnchor = { x: 0, y: 0 };
 
@@ -353,6 +378,27 @@ export default function SaintBernard({ dark = false }: { dark?: boolean }) {
         ctx.stroke();
       }
 
+      // player nametag — only while recently clicked (game-console style)
+      if (tagA > 0.02) {
+        let p: V3 = [-0.1, 2.5, 0];
+        p = rotZ(p, SIT_PIVOT, sitRotA);
+        p = rotY(p, [0, 0, 0], yaw);
+        p = rotXAt(p, 0, camPitch);
+        const tx = posX + p[0] * S;
+        const ty = groundY - p[1] * S - 6 + Math.sin(clock * 2) * 2.5;
+        ctx.textAlign = "center";
+        ctx.globalAlpha = 0.9 * tagA;
+        ctx.font = `700 ${Math.max(9, S * 0.22)}px ${mono}, monospace`;
+        ctx.fillStyle = isDark ? "rgba(251,248,242,0.8)" : "rgba(87,83,78,0.9)";
+        ctx.fillText("BRUNO · Lv.3", tx, ty - S * 0.3);
+        const px = Math.max(1.4, S * 0.032);
+        const gap = px * 7 + Math.max(3, S * 0.09);
+        for (const k of [-1, 0, 1]) {
+          drawPixelHeart(ctx, tx + k * gap, ty - S * 0.18, px, "#FF4D24");
+        }
+        ctx.globalAlpha = 1;
+      }
+
       // speech bubbles (WOOF! / sniff sniff… / lick lick…)
       for (let i = bubbles.length - 1; i >= 0; i--) {
         const bb = bubbles[i];
@@ -414,6 +460,9 @@ export default function SaintBernard({ dark = false }: { dark?: boolean }) {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       clock += dt;
+
+      // nametag fades in/out around clicks
+      tagA += ((clock < tagUntil ? 1 : 0) - tagA) * Math.min(1, dt * 8);
 
       // blinking + random ear flicks (any mode)
       if (clock > nextBlink) {
@@ -523,10 +572,36 @@ export default function SaintBernard({ dark = false }: { dark?: boolean }) {
     };
     window.addEventListener("resize", onResize);
 
+    // click Bruno → his nametag appears for a few seconds (+ ear flick)
+    const onClick = (e: MouseEvent) => {
+      if (e.target instanceof Element && e.target.closest("a, button")) return;
+      const r = canvas.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      const hit =
+        Math.abs(x - posX) < S * 2.1 &&
+        y > groundY - S * 2.7 &&
+        y < groundY + S * 0.4;
+      if (!hit) return;
+      tagUntil = clock + 4;
+      flickUntil = clock + 0.18;
+      flickLeft = Math.random() < 0.5;
+      if (reduced) {
+        tagA = 1;
+        drawFrame();
+        setTimeout(() => {
+          tagA = 0;
+          drawFrame();
+        }, 4000);
+      }
+    };
+    window.addEventListener("click", onClick);
+
     return () => {
       cancelAnimationFrame(raf);
       observer.disconnect();
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("click", onClick);
     };
   }, []);
 

@@ -117,6 +117,65 @@ body {
   animation: star-spin 12s linear infinite;
 }
 
+/* Gallery character walk cycle */
+@keyframes limb-swing {
+  from {
+    transform: rotate(17deg);
+  }
+  to {
+    transform: rotate(-17deg);
+  }
+}
+@keyframes char-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
+}
+.char .limb {
+  transition: transform 0.25s ease-out;
+}
+.char.walking .limb-a {
+  animation: limb-swing 0.3s ease-in-out infinite alternate;
+}
+.char.walking .limb-b {
+  animation: limb-swing 0.3s ease-in-out infinite alternate-reverse;
+}
+.char.walking .char-body {
+  animation: char-bob 0.15s ease-in-out infinite alternate;
+}
+@keyframes tread-roll {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+.char.walking .tread-line {
+  animation: tread-roll 0.45s linear infinite;
+}
+@keyframes wave-arm {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(-125deg);
+  }
+  50% {
+    transform: rotate(-100deg);
+  }
+  65% {
+    transform: rotate(-125deg);
+  }
+  80% {
+    transform: rotate(-100deg);
+  }
+}
+.char.waving .arm-wave {
+  animation: wave-arm 1.7s ease-in-out infinite;
+}
+
 /* Lenis smooth scroll */
 html.lenis,
 html.lenis body {
@@ -136,6 +195,11 @@ html.lenis body {
   .blink,
   .sweep-bar,
   .spin-star,
+  .char.walking .limb-a,
+  .char.walking .limb-b,
+  .char.walking .char-body,
+  .char.walking .tread-line,
+  .char.waving .arm-wave,
   .animate-marquee {
     animation: none !important;
   }

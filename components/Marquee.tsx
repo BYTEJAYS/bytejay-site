@@ -1,3 +1,5 @@
+import PixelIcon from "./PixelIcon";
+
 const items = [
   "graph intelligence",
   "backend systems",
@@ -20,7 +22,7 @@ export default function Marquee() {
             className="flex items-center pr-10 font-display text-sm uppercase tracking-[0.2em] text-muted"
           >
             {item}
-            <span className="ml-10 text-accent">✳</span>
+            <PixelIcon name="spark" className="ml-10 h-3 w-3 text-accent" />
           </span>
         ))}
       </div>

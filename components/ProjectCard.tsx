@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { Project } from "@/lib/data";
+import PixelIcon from "./PixelIcon";
 import RollingText from "./RollingText";
 import AthViz from "./visuals/AthViz";
 import BackendViz from "./visuals/BackendViz";
@@ -37,6 +38,11 @@ export default function ProjectCard({
         }`}
       >
         <div className="absolute inset-0 bg-dots opacity-40" />
+        {/* pixel viewfinder brackets, like a game screen recording */}
+        <PixelIcon name="corner" className="absolute left-3 top-3 h-3.5 w-3.5 text-ink/20 transition-colors duration-300 group-hover:text-accent/60" />
+        <PixelIcon name="corner" className="absolute right-3 top-3 h-3.5 w-3.5 rotate-90 text-ink/20 transition-colors duration-300 group-hover:text-accent/60" />
+        <PixelIcon name="corner" className="absolute bottom-3 right-3 h-3.5 w-3.5 rotate-180 text-ink/20 transition-colors duration-300 group-hover:text-accent/60" />
+        <PixelIcon name="corner" className="absolute bottom-3 left-3 h-3.5 w-3.5 -rotate-90 text-ink/20 transition-colors duration-300 group-hover:text-accent/60" />
         <div className="relative">{vizMap[project.viz]}</div>
       </div>
 

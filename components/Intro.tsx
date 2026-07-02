@@ -1,28 +1,83 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+
+const SEGS = 18;
 
 /**
- * One-time intro curtain: the wordmark appears on an ink panel,
- * then the whole panel lifts to reveal the site. Plays once on load.
+ * Game-style boot screen: the wordmark, a chunky segmented progress bar
+ * that fills with a loading stutter, then the whole panel lifts away.
  */
 export default function Intro() {
+  const reduced = useReducedMotion();
+  const [progress, setProgress] = useState(0);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (reduced) {
+      setProgress(100);
+      setDone(true);
+      return;
+    }
+    let p = 0;
+    const id = setInterval(() => {
+      p = Math.min(100, p + 3 + Math.random() * 7); // stutters like a real loader
+      setProgress(Math.floor(p));
+      if (p >= 100) {
+        clearInterval(id);
+        setTimeout(() => setDone(true), 350);
+      }
+    }, 46);
+    return () => clearInterval(id);
+  }, [reduced]);
+
+  const filled = Math.round((progress / 100) * SEGS);
+
   return (
     <motion.div
       initial={{ y: 0 }}
-      animate={{ y: "-100%" }}
-      transition={{ duration: 0.75, delay: 1.0, ease: [0.76, 0, 0.24, 1] }}
-      className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center bg-ink"
+      animate={{ y: done ? "-100%" : 0 }}
+      transition={{ duration: reduced ? 0 : 0.75, ease: [0.76, 0, 0.24, 1] }}
+      className="pointer-events-none fixed inset-0 z-[80] flex flex-col items-center justify-center gap-8 bg-ink"
       aria-hidden
     >
       <motion.p
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
+        transition={{ duration: 0.55, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
         className="font-display text-3xl font-bold tracking-tight text-cream"
       >
         Byte<span className="text-accent">Jay.</span>
       </motion.p>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.25 }}
+        className="flex flex-col items-center gap-3"
+      >
+        {/* segmented bar */}
+        <div className="flex gap-[3px] rounded-md border border-cream/20 p-[5px]">
+          {Array.from({ length: SEGS }, (_, i) => (
+            <span
+              key={i}
+              className={`h-2.5 w-2 rounded-[2px] transition-colors duration-100 ${
+                i < filled ? "bg-accent" : "bg-cream/10"
+              }`}
+            />
+          ))}
+        </div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-cream/50">
+          {progress < 100 ? (
+            <>
+              loading world… <span className="tabular-nums text-cream/80">{progress}%</span>
+            </>
+          ) : (
+            <span className="text-accent">ready ▶</span>
+          )}
+        </p>
+      </motion.div>
     </motion.div>
   );
 }

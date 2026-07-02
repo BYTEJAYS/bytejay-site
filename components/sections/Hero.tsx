@@ -9,8 +9,8 @@ import MagneticButton from "../MagneticButton";
 import RollingText from "../RollingText";
 
 const EASE: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
-// Reveals start as the intro curtain lifts (curtain leaves at ~1.0s).
-const BASE = 0.85;
+// Reveals start as the boot screen lifts (loader hits 100% around ~1.2s).
+const BASE = 1.05;
 const NAME = "ByteJay".split("");
 const TAGLINE =
   "Building intelligent systems where AI, graphs, memory & imagination collide.".split(
