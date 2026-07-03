@@ -34,7 +34,9 @@ import {
   Bloom,
   BrightnessContrast,
   ChromaticAberration,
+  DepthOfField,
   EffectComposer,
+  GodRays,
   HueSaturation,
   Noise,
   Vignette,
@@ -159,6 +161,9 @@ const UI_SUB = MOOD.night ? "text-cream/75" : "text-ink/70";
 
 /* one celestial body drives the sky disc, ocean glints and cloud shading */
 const SUN_DIR = new THREE.Vector3(-0.5, 0.42, -0.76).normalize();
+
+/* layer 1 = "skip in water reflections" (grass, rain — too dense to mirror) */
+const NO_REFLECT_LAYER = 1;
 
 /* ── island heightfield ─────────────────────────────────────────── */
 
@@ -432,6 +437,10 @@ function Rain({ store, count }: { store: Store; count: number }) {
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const slant = useMemo(() => new THREE.Euler(0, 0, -0.20), []);
 
+  useEffect(() => {
+    ref.current?.layers.set(NO_REFLECT_LAYER);
+  }, []);
+
   useFrame((_, dtRaw) => {
     const dt = Math.min(dtRaw, 0.05);
     if (!ref.current) return;
@@ -462,8 +471,63 @@ function Rain({ store, count }: { store: Store; count: number }) {
 
 /* ── ocean ──────────────────────────────────────────────────────── */
 
-function Ocean() {
+function Ocean({ quality }: { quality: "high" | "low" }) {
   const mat = useRef<THREE.ShaderMaterial>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
+  const { gl, scene, camera } = useThree();
+
+  /* live planar reflection: the island, lights and sky mirrored in the sea */
+  const reflTarget = useMemo(() => {
+    const t = new THREE.WebGLRenderTarget(512, 512, { depthBuffer: true });
+    t.texture.generateMipmaps = true;
+    t.texture.minFilter = THREE.LinearMipmapLinearFilter;
+    t.texture.magFilter = THREE.LinearFilter;
+    return t;
+  }, []);
+  useEffect(() => () => reflTarget.dispose(), [reflTarget]);
+
+  /* tileable ripple normal field, baked once — far finer than per-pixel noise */
+  const waterNormals = useMemo(() => {
+    const S = 256;
+    const c = document.createElement("canvas");
+    c.width = c.height = S;
+    const ctx = c.getContext("2d")!;
+    const img = ctx.createImageData(S, S);
+    const h = new Float32Array(S * S);
+    const FR = [
+      [1, 3], [2, -1], [4, 3], [3, 5], [7, -2], [5, 8], [9, 4], [11, -7],
+    ];
+    for (let y = 0; y < S; y++)
+      for (let x = 0; x < S; x++) {
+        let v = 0;
+        for (let k = 0; k < FR.length; k++) {
+          const amp = 1 / Math.hypot(FR[k][0], FR[k][1]);
+          v += Math.sin(((FR[k][0] * x + FR[k][1] * y) / S) * Math.PI * 2 + k * 2.399) * amp;
+        }
+        h[y * S + x] = v;
+      }
+    let mx = 0;
+    const g = new Float32Array(S * S * 2);
+    for (let y = 0; y < S; y++)
+      for (let x = 0; x < S; x++) {
+        const gx = h[y * S + ((x + 1) % S)] - h[y * S + ((x - 1 + S) % S)];
+        const gy = h[((y + 1) % S) * S + x] - h[((y - 1 + S) % S) * S + x];
+        g[(y * S + x) * 2] = gx;
+        g[(y * S + x) * 2 + 1] = gy;
+        mx = Math.max(mx, Math.abs(gx), Math.abs(gy));
+      }
+    for (let i = 0; i < S * S; i++) {
+      img.data[i * 4] = 127.5 + (g[i * 2] / mx) * 127;
+      img.data[i * 4 + 1] = 127.5 + (g[i * 2 + 1] / mx) * 127;
+      img.data[i * 4 + 2] = 255;
+      img.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  }, []);
+
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
@@ -474,14 +538,101 @@ function Ocean() {
       skyHorizon: { value: new THREE.Color(MOOD.skyHorizon) },
       sunDir: { value: SUN_DIR.clone() },
       sunCol: { value: new THREE.Color(MOOD.celColor) },
+      tReflect: { value: reflTarget.texture },
+      tWaterN: { value: waterNormals },
+      uTexMatrix: { value: new THREE.Matrix4() },
+      uRefl: { value: 0 },
+    }),
+    [reflTarget, waterNormals]
+  );
+
+  const rig = useMemo(
+    () => ({
+      cam: new THREE.PerspectiveCamera(),
+      pos: new THREE.Vector3(),
+      dir: new THREE.Vector3(),
+      up: new THREE.Vector3(),
+      tgt: new THREE.Vector3(),
+      cpt: new THREE.Vector3(),
+      rot: new THREE.Matrix4(),
+      plane: new THREE.Plane(),
+      clip: new THREE.Vector4(),
+      q: new THREE.Vector4(),
     }),
     []
   );
+
+  const frameNo = useRef(0);
   useFrame(({ clock }) => {
     uniforms.uTime.value = clock.elapsedTime;
+    const doRefl = quality === "high";
+    uniforms.uRefl.value = doRefl ? 1 : 0;
+    if (!doRefl || !meshRef.current) return;
+    // the mirror refreshes every other frame — the waves hide the lag
+    frameNo.current++;
+    if (frameNo.current % 2 === 0) return;
+
+    const cam = camera as THREE.PerspectiveCamera;
+    const m = rig.cam;
+    rig.pos.setFromMatrixPosition(cam.matrixWorld);
+    if (rig.pos.y < WATER_Y + 0.1) {
+      uniforms.uRefl.value = 0;
+      return;
+    }
+    // mirror the camera across the water plane
+    m.position.set(rig.pos.x, 2 * WATER_Y - rig.pos.y, rig.pos.z);
+    cam.getWorldDirection(rig.dir);
+    rig.tgt.set(
+      rig.pos.x + rig.dir.x * 10,
+      2 * WATER_Y - (rig.pos.y + rig.dir.y * 10),
+      rig.pos.z + rig.dir.z * 10
+    );
+    rig.rot.extractRotation(cam.matrixWorld);
+    rig.up.set(0, 1, 0).applyMatrix4(rig.rot);
+    rig.up.y = -rig.up.y;
+    m.up.copy(rig.up);
+    m.fov = cam.fov;
+    m.aspect = cam.aspect;
+    m.near = cam.near;
+    m.far = cam.far;
+    m.lookAt(rig.tgt);
+    m.updateProjectionMatrix();
+    m.updateMatrixWorld();
+    m.layers.set(0); // dense layer-1 stuff (grass, rain) skips the mirror
+
+    const tm = uniforms.uTexMatrix.value;
+    tm.set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+    tm.multiply(m.projectionMatrix);
+    tm.multiply(m.matrixWorldInverse);
+
+    // oblique near plane: clip everything under the water out of the mirror
+    rig.plane.setFromNormalAndCoplanarPoint(UP, rig.cpt.set(0, WATER_Y - 0.08, 0));
+    rig.plane.applyMatrix4(m.matrixWorldInverse);
+    rig.clip.set(rig.plane.normal.x, rig.plane.normal.y, rig.plane.normal.z, rig.plane.constant);
+    const pe = m.projectionMatrix.elements;
+    rig.q.x = (Math.sign(rig.clip.x) + pe[8]) / pe[0];
+    rig.q.y = (Math.sign(rig.clip.y) + pe[9]) / pe[5];
+    rig.q.z = -1;
+    rig.q.w = (1 + pe[10]) / pe[14];
+    rig.clip.multiplyScalar(2 / rig.clip.dot(rig.q));
+    pe[2] = rig.clip.x;
+    pe[6] = rig.clip.y;
+    pe[10] = rig.clip.z + 1;
+    pe[14] = rig.clip.w;
+
+    meshRef.current.visible = false;
+    const prevTarget = gl.getRenderTarget();
+    const prevShadowAuto = gl.shadowMap.autoUpdate;
+    gl.shadowMap.autoUpdate = false; // reuse the main pass's shadow maps
+    gl.setRenderTarget(reflTarget);
+    gl.clear();
+    gl.render(scene, m);
+    gl.setRenderTarget(prevTarget);
+    gl.shadowMap.autoUpdate = prevShadowAuto;
+    meshRef.current.visible = true;
   });
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, WATER_Y, 0]}>
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, WATER_Y, 0]}>
       <planeGeometry args={[900, 900, 128, 128]} />
       <shaderMaterial
         ref={mat}
@@ -489,8 +640,10 @@ function Ocean() {
         transparent
         vertexShader={`
           uniform float uTime;
+          uniform mat4 uTexMatrix;
           varying vec2 vXZ;
           varying float vWave;
+          varying vec4 vUv4;
           float waveH(vec2 q, float t) {
             return sin(q.x * 0.12 + t * 0.9) * 0.14
                  + sin(q.y * 0.16 - t * 0.7) * 0.12
@@ -505,7 +658,9 @@ function Ocean() {
             p.z += w;
             vWave = w;
             vXZ = q;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+            vec4 wpos = modelMatrix * vec4(p, 1.0);
+            vUv4 = uTexMatrix * wpos;
+            gl_Position = projectionMatrix * viewMatrix * wpos;
           }
         `}
         fragmentShader={`
@@ -513,8 +668,12 @@ function Ocean() {
           uniform vec3 deep; uniform vec3 shallow; uniform vec3 foam;
           uniform vec3 skyTop; uniform vec3 skyHorizon;
           uniform vec3 sunDir; uniform vec3 sunCol;
+          uniform sampler2D tReflect;
+          uniform sampler2D tWaterN;
+          uniform float uRefl;
           varying vec2 vXZ;
           varying float vWave;
+          varying vec4 vUv4;
           float hash21(vec2 p) {
             return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
           }
@@ -543,19 +702,28 @@ function Ocean() {
             // fine ripples fade with distance — far water stays glassy
             float da = clamp(1.0 - camd / 110.0, 0.0, 1.0);
             float r1 = vnoise(vXZ * 1.35 + vec2(t * 0.55, t * 0.30));
-            float r2 = vnoise(vXZ * 2.30 - vec2(t * 0.42, t * 0.66));
-            slope += (vec2(r1 - 0.5, r2 - 0.5)) * 0.55 * (0.08 + 0.92 * da);
+            // two scrolling taps of the baked ripple field, different scales
+            vec2 n1 = texture2D(tWaterN, vXZ * 0.045 + vec2(t * 0.014, t * 0.010)).xy * 2.0 - 1.0;
+            vec2 n2 = texture2D(tWaterN, vXZ * 0.115 - vec2(t * 0.017, t * 0.008)).xy * 2.0 - 1.0;
+            slope += (n1 * 0.85 + n2 * 0.55) * (0.10 + 0.90 * da);
             vec3 N = normalize(vec3(-slope.x, 1.0, -slope.y));
 
             // ── base color: depth gradient + wave-top subsurface glow
             vec3 col = mix(deep, shallow, shore);
             col += shallow * max(vWave, 0.0) * 0.35;
 
-            // ── fresnel sky reflection
+            // ── fresnel reflection: live mirrored scene, analytic sky fallback
             float fres = pow(1.0 - max(dot(N, V), 0.0), 5.0);
-            fres = 0.05 + 0.55 * fres;
+            fres = 0.09 + 0.55 * fres;
             vec3 R = reflect(-V, N);
             vec3 skyRef = mix(skyHorizon, skyTop, pow(clamp(R.y * 1.8, 0.0, 1.0), 0.6));
+            if (uRefl > 0.5) {
+              vec4 pj = vUv4;
+              pj.xy += N.xz * pj.w * 0.18; // waves smear the mirror
+              vec3 mirrorCol = texture2DProj(tReflect, pj).rgb;
+              // trust the mirror near shore, fall back to sky gradient far out
+              skyRef = mix(skyRef, mirrorCol, clamp(1.0 - camd / 180.0, 0.15, 1.0));
+            }
             col = mix(col, skyRef, fres);
 
             // ── the light's glitter path: tight spec + broad streak
@@ -686,6 +854,23 @@ function Terrain() {
           float grain = tnoise(vWPos.xz * 3.1) * 0.6 + tnoise(vWPos.xz * 9.7) * 0.4;
           float dfade = clamp(1.0 - length(vWPos.xz - cameraPosition.xz) / 70.0, 0.0, 1.0);
           diffuseColor.rgb *= 1.0 + (grain - 0.5) * 0.16 * dfade;`
+        )
+        .replace(
+          "#include <normal_fragment_begin>",
+          `#include <normal_fragment_begin>
+          {
+            // hand-carved bump: strong on rock faces, gentle on dirt
+            vec3 nw = (vec4(normal, 0.0) * viewMatrix).xyz;
+            float rockM = smoothstep(0.25, 0.55, 1.0 - nw.y);
+            float bfade = clamp(1.0 - length(vWPos.xz - cameraPosition.xz) / 90.0, 0.0, 1.0);
+            vec2 buv = vWPos.xz * 2.3;
+            float bC = tnoise(buv);
+            float bX = tnoise(buv + vec2(0.22, 0.0));
+            float bZ = tnoise(buv + vec2(0.0, 0.22));
+            float bAmp = (0.5 + 2.6 * rockM) * bfade;
+            vec3 bumpW = vec3(-(bX - bC), 0.0, -(bZ - bC)) * bAmp;
+            normal = normalize(normal + (viewMatrix * vec4(bumpW, 0.0)).xyz);
+          }`
         );
     };
     return m;
@@ -823,32 +1008,32 @@ function Trees() {
   return (
     <>
       {/* conifers */}
-      <instancedMesh ref={trunkC} args={[undefined, undefined, CONIFERS.length]} castShadow>
+      <instancedMesh ref={trunkC} args={[undefined, undefined, CONIFERS.length]} castShadow frustumCulled={false}>
         <cylinderGeometry args={[0.08, 0.16, 1.2, 6]} />
         <meshStandardMaterial color="#6E4A2C" roughness={0.9} />
       </instancedMesh>
-      <instancedMesh ref={tier1} args={[undefined, undefined, CONIFERS.length]} castShadow>
+      <instancedMesh ref={tier1} args={[undefined, undefined, CONIFERS.length]} castShadow frustumCulled={false}>
         <coneGeometry args={[0.95, 1.5, 8]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} flatShading />
       </instancedMesh>
-      <instancedMesh ref={tier2} args={[undefined, undefined, CONIFERS.length]} castShadow>
+      <instancedMesh ref={tier2} args={[undefined, undefined, CONIFERS.length]} castShadow frustumCulled={false}>
         <coneGeometry args={[0.95, 1.5, 8]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} flatShading />
       </instancedMesh>
-      <instancedMesh ref={tier3} args={[undefined, undefined, CONIFERS.length]} castShadow>
+      <instancedMesh ref={tier3} args={[undefined, undefined, CONIFERS.length]} castShadow frustumCulled={false}>
         <coneGeometry args={[0.95, 1.5, 8]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} flatShading />
       </instancedMesh>
       {/* leafy trees */}
-      <instancedMesh ref={trunkL} args={[undefined, undefined, LEAFY.length]} castShadow>
+      <instancedMesh ref={trunkL} args={[undefined, undefined, LEAFY.length]} castShadow frustumCulled={false}>
         <cylinderGeometry args={[0.07, 0.13, 1.7, 6]} />
         <meshStandardMaterial color="#7A5A38" roughness={0.9} />
       </instancedMesh>
-      <instancedMesh ref={blob1} args={[undefined, undefined, LEAFY.length]} castShadow>
+      <instancedMesh ref={blob1} args={[undefined, undefined, LEAFY.length]} castShadow frustumCulled={false}>
         <icosahedronGeometry args={[0.85, 1]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} flatShading />
       </instancedMesh>
-      <instancedMesh ref={blob2} args={[undefined, undefined, LEAFY.length]} castShadow>
+      <instancedMesh ref={blob2} args={[undefined, undefined, LEAFY.length]} castShadow frustumCulled={false}>
         <icosahedronGeometry args={[0.85, 1]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} flatShading />
       </instancedMesh>
@@ -1199,6 +1384,7 @@ function Grass({ dense }: { dense: boolean }) {
       mesh.count = n;
       mesh.instanceMatrix.needsUpdate = true;
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.layers.set(NO_REFLECT_LAYER);
     });
   }, [dense]);
 
@@ -1251,6 +1437,7 @@ function Flowers() {
     });
     ref.current.instanceMatrix.needsUpdate = true;
     if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
+    ref.current.layers.set(NO_REFLECT_LAYER);
   }, []);
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, FLOWER_SPOTS.length]} frustumCulled={false}>
@@ -2039,6 +2226,9 @@ function World({
   const light = useRef<THREE.DirectionalLight>(null);
   const aberration = useMemo(() => new THREE.Vector2(0.0004, 0.00035), []);
   const { scene } = useThree();
+  /* occludable sun/moon disc — the god-rays light source */
+  const [sunMesh, setSunMesh] = useState<THREE.Mesh | null>(null);
+  const dofRef = useRef<{ cocMaterial?: { worldFocusDistance: number } } | null>(null);
 
   useEffect(() => {
     scene.fog = new THREE.Fog(new THREE.Color(MOOD.fog), MOOD.fogNear, MOOD.fogFar);
@@ -2047,10 +2237,29 @@ function World({
     };
   }, [scene]);
 
+  /* rack focus: island during the cinematic, the hiker while playing */
+  useFrame((_, dt) => {
+    const coc = dofRef.current?.cocMaterial;
+    if (coc) {
+      const goal = store.playT > 0.5 ? 9 : 58;
+      coc.worldFocusDistance += (goal - coc.worldFocusDistance) * Math.min(1, dt * 1.5);
+    }
+  });
+
   return (
     <>
       {quality === "high" && <SoftShadows size={16} samples={12} focus={0.55} />}
       <SkyDome />
+      {!MOOD.rainy && (
+        <mesh
+          ref={setSunMesh}
+          position={[SUN_DIR.x * 430, SUN_DIR.y * 430, SUN_DIR.z * 430]}
+          frustumCulled={false}
+        >
+          <sphereGeometry args={[MOOD.night ? 13 : 17, 24, 16]} />
+          <meshBasicMaterial color={MOOD.celColor} fog={false} toneMapped={false} />
+        </mesh>
+      )}
       <Clouds />
       {!MOOD.night && <Birds />}
       <DistantIsles />
@@ -2060,7 +2269,7 @@ function World({
         castShadow
         intensity={MOOD.keyIntensity}
         color={MOOD.keyColor}
-        shadow-mapSize={quality === "high" ? [4096, 4096] : [2048, 2048]}
+        shadow-mapSize={[2048, 2048]}
         shadow-camera-near={1}
         shadow-camera-far={80}
         shadow-camera-left={-30}
@@ -2086,7 +2295,7 @@ function World({
       <CameraRig store={store} light={light} />
       <Bridge store={store} onActive={onActive} onPizza={onPizza} />
 
-      <Ocean />
+      <Ocean quality={quality} />
       <Terrain />
       <IslandBase />
       <Grass dense={quality === "high"} />
@@ -2108,6 +2317,26 @@ function World({
 
       {quality === "high" ? (
         <EffectComposer multisampling={4}>
+          {sunMesh ? (
+            <GodRays
+              sun={sunMesh}
+              samples={32}
+              density={0.94}
+              decay={0.95}
+              weight={MOOD.night ? 0.22 : 0.4}
+              exposure={0.28}
+              clampMax={1}
+              blur
+            />
+          ) : (
+            <></>
+          )}
+          <DepthOfField
+            ref={dofRef as never}
+            worldFocusDistance={58}
+            worldFocusRange={46}
+            bokehScale={2.2}
+          />
           <Bloom intensity={0.55} luminanceThreshold={0.78} luminanceSmoothing={0.25} mipmapBlur />
           <ChromaticAberration offset={aberration} radialModulation modulationOffset={0.42} />
           <HueSaturation saturation={0.14} />
@@ -2286,9 +2515,10 @@ export default function JourneyWorld() {
         dpr={quality === "high" ? [1, 2] : 1}
         camera={{ position: [30, 16, 55], fov: 40, near: 0.1, far: 900 }}
         gl={{ antialias: false, powerPreference: "high-performance" }}
-        onCreated={({ gl }) => {
+        onCreated={({ gl, camera }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = MOOD.night ? 1.02 : 1.12;
+          camera.layers.enable(NO_REFLECT_LAYER);
         }}
       >
         <PerformanceMonitor onDecline={() => setQuality("low")}>
