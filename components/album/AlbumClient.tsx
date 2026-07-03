@@ -19,7 +19,7 @@ type Photo = {
 };
 
 const PHOTOS: Photo[] = [
-  { alt: "placeholder 01", orientation: "horizontal", tone: "paper" },
+  { src: "/album/jay-01.jpg", alt: "Jay — hallway selfie", orientation: "horizontal", tone: "paper" },
   { alt: "placeholder 02", orientation: "vertical", tone: "sand" },
   { alt: "placeholder 03", orientation: "vertical", tone: "ink" },
   { alt: "placeholder 04", orientation: "horizontal", tone: "blush" },
@@ -28,7 +28,7 @@ const PHOTOS: Photo[] = [
   { alt: "placeholder 07", orientation: "horizontal", tone: "ink" },
   { alt: "placeholder 08", orientation: "vertical", tone: "paper" },
   { alt: "placeholder 09", orientation: "vertical", tone: "accent" },
-  { alt: "placeholder 10", orientation: "horizontal", tone: "sage" },
+  { src: "/album/jay-02.jpg", alt: "Jay — corridor grin", orientation: "horizontal", tone: "sage" },
   { alt: "placeholder 11", orientation: "vertical", tone: "sand" },
   { alt: "placeholder 12", orientation: "horizontal", tone: "paper" },
   { alt: "placeholder 13", orientation: "vertical", tone: "blush" },
