@@ -32,7 +32,7 @@ const PAINTINGS: Painting[] = [
   {
     title: "Portrait of the Builder",
     medium: "oil on ambition, 2007 —",
-    body: "Jay, 19. College student, aspiring AI engineer, professional asker of “what if?”. Painted mid-refactor, as always.",
+    body: "Jay, 19. First PC at five, first line of code at fifteen, IDEA 2.0 hackathon finalist at eighteen. Painted mid-refactor, as always.",
     art: (
       <svg viewBox="0 0 120 90" className="h-full w-full">
         <circle cx="60" cy="34" r="20" fill="none" stroke={INK} strokeWidth="2.5" />
@@ -64,8 +64,8 @@ const PAINTINGS: Painting[] = [
   },
   {
     title: "Boy with Guitar",
-    medium: "six strings, mostly tuned",
-    body: "Self-taught riffs between compile times. Knows enough chords to be dangerous. The neighbours describe the genre as “experimental”.",
+    medium: "six strings & one voice",
+    body: "Plays properly, sings properly too — the rare developer whose live demo works. Takes requests between compile times.",
     art: (
       <svg viewBox="0 0 120 90" className="h-full w-full">
         <ellipse cx="42" cy="58" rx="21" ry="17" fill="none" stroke={INK} strokeWidth="2.5" />
@@ -82,7 +82,7 @@ const PAINTINGS: Painting[] = [
   {
     title: "The Curiosity Room",
     medium: "found objects, ongoing",
-    body: "Chess openings, thick books about the origins of the universe, rabbit holes of every diameter. The artist refuses to specialise in being bored.",
+    body: "Chess games he usually wins, thick books he actually finishes, rabbit holes of every diameter. The artist refuses to specialise in being bored.",
     art: (
       <svg viewBox="0 0 120 90" className="h-full w-full">
         <text x="14" y="64" fontSize="44" fill={INK}>♞</text>

@@ -91,7 +91,7 @@ export const skillGroups = [
 
 export const interests = [
   { icon: "♞", name: "Chess", quip: "long thinks, occasional brilliancies" },
-  { icon: "🎸", name: "Guitar", quip: "riffs between compile times" },
+  { icon: "🎸", name: "Guitar & Vocals", quip: "riffs and choruses between compile times" },
   { icon: "📚", name: "Books", quip: "sci-fi, physics & big ideas" },
   { icon: "💻", name: "Coding", quip: "yes, this also counts as fun" },
 ];
