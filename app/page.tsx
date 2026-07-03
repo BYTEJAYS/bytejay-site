@@ -2,7 +2,6 @@ import CursorGlow from "@/components/CursorGlow";
 import CustomCursor from "@/components/CustomCursor";
 import Footer from "@/components/Footer";
 import Intro from "@/components/Intro";
-import Marquee from "@/components/Marquee";
 import MorphBlob from "@/components/MorphBlob";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
@@ -27,7 +26,6 @@ export default function Home() {
       <Navbar />
       <main className="relative z-10">
         <Hero />
-        <Marquee />
         <About />
         <Projects />
         <Skills />

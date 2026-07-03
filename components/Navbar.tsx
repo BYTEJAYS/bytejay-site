@@ -8,6 +8,7 @@ const links = [
   { label: "About", hover: "who?", href: "#about" },
   { label: "Projects", hover: "the builds", href: "#projects" },
   { label: "Skills", hover: "the tools", href: "#skills" },
+  { label: "Journey", hover: "play it!", href: "/journey" },
 ];
 
 const SECTION_IDS = ["top", "about", "projects", "skills", "interests", "contact"];

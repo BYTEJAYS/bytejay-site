@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import {
   sfxFarewell,
@@ -12,6 +13,8 @@ import {
 } from "@/lib/robotSfx";
 import PixelIcon from "../PixelIcon";
 import SectionHeading from "../SectionHeading";
+
+const BB8Visitor = dynamic(() => import("../BB8Visitor"), { ssr: false });
 
 /* ── the collection: the person, not the projects ───────────────── */
 
@@ -131,152 +134,6 @@ const WORLD_W = FIRST_X + (PAINTINGS.length - 1) * SPACING + END_PAD;
 const NEAR = 155;
 const SPEED = 270;
 const FLOOR_H = 150;
-
-/* ── the visitor: WALL·E, gallery guide ─────────────────────────── */
-
-function Visitor({
-  walking,
-  facing,
-  waving = false,
-}: {
-  walking: boolean;
-  facing: 1 | -1;
-  waving?: boolean;
-}) {
-  return (
-    <div
-      className={`char ${walking ? "walking" : ""} ${waving ? "waving" : ""}`}
-      style={{ transform: `scaleX(${facing})` }}
-    >
-      <svg viewBox="0 0 80 108" className="h-[108px] w-[80px]">
-        <defs>
-          <linearGradient id="w-body" x1="0" y1="0" x2="0.6" y2="1">
-            <stop offset="0%" stopColor="#F4E09A" />
-            <stop offset="100%" stopColor="#D6B357" />
-          </linearGradient>
-          <linearGradient id="w-metal" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#F0ECDE" />
-            <stop offset="100%" stopColor="#C7C0AC" />
-          </linearGradient>
-          <linearGradient id="w-arm" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#E5C877" />
-            <stop offset="100%" stopColor="#C4A24E" />
-          </linearGradient>
-          <linearGradient id="w-track" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#9A8C6E" />
-            <stop offset="100%" stopColor="#796C52" />
-          </linearGradient>
-          <radialGradient id="w-lens" cx="0.35" cy="0.35" r="1">
-            <stop offset="0%" stopColor="#4A4238" />
-            <stop offset="60%" stopColor="#2E2A24" />
-            <stop offset="100%" stopColor="#1C1917" />
-          </radialGradient>
-        </defs>
-
-        <g className="char-body">
-          {/* segmented periscope neck */}
-          <line x1="45" y1="37" x2="42" y2="27" stroke="#BBAC8C" strokeWidth="4.5" strokeLinecap="round" />
-          <line x1="42" y1="27" x2="40" y2="17" stroke="#BBAC8C" strokeWidth="3.8" strokeLinecap="round" />
-          <circle cx="42" cy="27" r="2.2" fill="#D8CCAE" stroke={INK} strokeWidth="1.2" />
-
-          {/* binocular head: hinge + slanted housings + ringed lenses */}
-          <rect x="36" y="8.5" width="8" height="6" rx="2" fill="url(#w-metal)" stroke={INK} strokeWidth="1.3" />
-          <g transform="rotate(-8 28 12)">
-            <rect x="15" y="4.5" width="22" height="14" rx="6.5" fill="url(#w-metal)" stroke={INK} strokeWidth="1.7" />
-            <line x1="17.5" y1="7.5" x2="34" y2="7" stroke="#FFFFFF" strokeWidth="1.4" opacity="0.7" />
-            <circle cx="24" cy="11.5" r="5.2" fill="url(#w-lens)" stroke="#8F8672" strokeWidth="1.6" />
-            <circle cx="24" cy="11.5" r="2.4" fill="none" stroke="#6B6152" strokeWidth="0.8" />
-            <circle cx="25.8" cy="9.6" r="1.2" fill="#FFFFFF" opacity="0.9" />
-            <circle cx="34.5" cy="15.5" r="0.8" fill={INK} opacity="0.4" />
-          </g>
-          <g transform="rotate(8 52 12)">
-            <rect x="43" y="4.5" width="22" height="14" rx="6.5" fill="url(#w-metal)" stroke={INK} strokeWidth="1.7" />
-            <line x1="45.5" y1="7" x2="62" y2="7.5" stroke="#FFFFFF" strokeWidth="1.4" opacity="0.7" />
-            <circle cx="54" cy="11.5" r="5.2" fill="url(#w-lens)" stroke="#8F8672" strokeWidth="1.6" />
-            <circle cx="54" cy="11.5" r="2.4" fill="none" stroke="#6B6152" strokeWidth="0.8" />
-            <circle cx="55.8" cy="9.6" r="1.2" fill="#FFFFFF" opacity="0.9" />
-            <circle cx="45.5" cy="15.5" r="0.8" fill={INK} opacity="0.4" />
-          </g>
-
-          {/* far arm */}
-          <g className="limb limb-b" style={{ transformOrigin: "12px 50px" }}>
-            <rect x="6" y="47" width="6.5" height="13" rx="2.5" fill="url(#w-arm)" stroke={INK} strokeWidth="1.4" />
-            <rect x="4.5" y="58.5" width="9.5" height="8" rx="2" fill="url(#w-metal)" stroke={INK} strokeWidth="1.3" />
-            <rect x="4.5" y="66" width="2.4" height="4.5" rx="1" fill="#BBAC8C" stroke={INK} strokeWidth="0.9" />
-            <rect x="8" y="66" width="2.4" height="4.5" rx="1" fill="#BBAC8C" stroke={INK} strokeWidth="0.9" />
-            <rect x="11.5" y="66" width="2.4" height="4.5" rx="1" fill="#BBAC8C" stroke={INK} strokeWidth="0.9" />
-          </g>
-
-          {/* compactor body */}
-          <rect x="12" y="37" width="56" height="36" rx="4.5" fill="url(#w-body)" stroke={INK} strokeWidth="1.8" />
-          <line x1="12" y1="43" x2="68" y2="43" stroke={INK} strokeWidth="1" opacity="0.25" />
-          {/* front door, recessed */}
-          <rect x="21" y="47" width="38" height="22" rx="2.5" fill="#EEDA92" stroke={INK} strokeWidth="1.3" opacity="0.9" />
-          <rect x="24" y="50" width="32" height="16" rx="1.5" fill="none" stroke={INK} strokeWidth="0.9" opacity="0.3" />
-          <text
-            x="40"
-            y="64"
-            textAnchor="middle"
-            fontSize="5.5"
-            letterSpacing="1.5"
-            fill={INK}
-            opacity="0.5"
-            fontFamily="var(--font-mono)"
-          >
-            WALL·E
-          </text>
-          {/* solar charge meter */}
-          <rect x="21" y="39" width="12" height="5" rx="1" fill="#F7F0D8" stroke={INK} strokeWidth="0.9" opacity="0.8" />
-          <line x1="23.5" y1="40" x2="23.5" y2="43" stroke={ACCENT} strokeWidth="1.4" />
-          <line x1="26.5" y1="40" x2="26.5" y2="43" stroke={ACCENT} strokeWidth="1.4" />
-          <line x1="29.5" y1="40" x2="29.5" y2="43" stroke={ACCENT} strokeWidth="1.4" opacity="0.35" />
-          {/* status light */}
-          <circle cx="61" cy="41.5" r="2" fill={ACCENT}>
-            <animate attributeName="opacity" values="1;0.35;1" dur="2s" repeatCount="indefinite" />
-          </circle>
-          {/* corner bolts + weathering */}
-          <circle cx="15.5" cy="40.5" r="1" fill={INK} opacity="0.35" />
-          <circle cx="15.5" cy="69.5" r="1" fill={INK} opacity="0.35" />
-          <circle cx="64.5" cy="69.5" r="1" fill={INK} opacity="0.35" />
-          <path d="M17 62 l3 3 M57 45 l4 -2" stroke={INK} strokeWidth="0.8" opacity="0.15" />
-
-          {/* near arm (the waving one) */}
-          <g className="limb limb-a arm-wave" style={{ transformOrigin: "68px 50px" }}>
-            <rect x="67.5" y="47" width="6.5" height="13" rx="2.5" fill="url(#w-arm)" stroke={INK} strokeWidth="1.4" />
-            <rect x="66" y="58.5" width="9.5" height="8" rx="2" fill="url(#w-metal)" stroke={INK} strokeWidth="1.3" />
-            <rect x="66" y="66" width="2.4" height="4.5" rx="1" fill="#BBAC8C" stroke={INK} strokeWidth="0.9" />
-            <rect x="69.5" y="66" width="2.4" height="4.5" rx="1" fill="#BBAC8C" stroke={INK} strokeWidth="0.9" />
-            <rect x="73" y="66" width="2.4" height="4.5" rx="1" fill="#BBAC8C" stroke={INK} strokeWidth="0.9" />
-          </g>
-        </g>
-
-        {/* treads: track, animated belt, road wheels + return roller */}
-        {[13, 43].map((tx, i) => (
-          <g key={tx}>
-            <rect x={tx} y="75" width="24" height="23" rx="11.5" fill="url(#w-track)" stroke={INK} strokeWidth="1.8" />
-            <rect
-              x={tx + 3.5}
-              y="78.5"
-              width="17"
-              height="16"
-              rx="8"
-              fill="none"
-              stroke="#4E463A"
-              strokeWidth="2.2"
-              strokeDasharray="4 4"
-              className="tread-line"
-            />
-            <circle cx={tx + 7} cy="87.5" r="2.8" fill="#CFC5A6" stroke={INK} strokeWidth="1" />
-            <circle cx={tx + 17} cy="87.5" r="2.8" fill="#CFC5A6" stroke={INK} strokeWidth="1" />
-            <circle cx={tx + 12} cy="79.5" r="1.7" fill="#CFC5A6" stroke={INK} strokeWidth="0.9" />
-            <circle cx={tx + 7} cy="87.5" r="0.9" fill={INK} opacity={0.5} />
-            <circle cx={tx + 17} cy="87.5" r="0.9" fill={INK} opacity={0.5} />
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-}
 
 const REACTIONS = [
   "ooh!",
@@ -402,7 +259,7 @@ export default function About() {
       if (fgRef.current)
         fgRef.current.style.transform = `translate3d(${-camX * 1.32}px,0,0)`;
       if (playerRef.current)
-        playerRef.current.style.transform = `translate3d(${xRef.current - 38}px,0,0)`;
+        playerRef.current.style.transform = `translate3d(${xRef.current - 62}px,0,0)`;
 
       let near: number | null = null;
       PAINTINGS.forEach((_, i) => {
@@ -464,7 +321,7 @@ export default function About() {
         if (!greetedRef.current) {
           greetedRef.current = true;
           setWaving(true);
-          say("hi! i'm WALL·E — your guide ✦", 2800);
+          say("*beep-boop!* i'm BB-8 — your guide ✦", 2800);
           if (soundRef.current) sfxGreet();
           setTimeout(() => setWaving(false), 2600);
         }
@@ -696,10 +553,10 @@ export default function About() {
                 </motion.div>
               )}
             </AnimatePresence>
-            <Visitor walking={walking} facing={facing} waving={waving} />
-            <div className="mx-auto -mt-1.5 h-2.5 w-12 rounded-[50%] bg-ink/20 blur-[3px]" />
-            <div className="pointer-events-none -mt-2 -scale-y-100 opacity-[0.14] blur-[2px] [mask-image:linear-gradient(to_top,black,transparent_70%)]">
-              <Visitor walking={walking} facing={facing} />
+            <BB8Visitor walking={walking} facing={facing} waving={waving} />
+            <div className="mx-auto -mt-4 h-2.5 w-16 rounded-[50%] bg-ink/20 blur-[3px]" />
+            <div className="pointer-events-none -mt-3 -scale-y-100 opacity-[0.14] blur-[2px] [mask-image:linear-gradient(to_top,black,transparent_70%)]">
+              <BB8Visitor walking={walking} facing={facing} />
             </div>
           </div>
         </div>
@@ -750,7 +607,7 @@ export default function About() {
                   stopMotor();
                 }
               }}
-              aria-label={sound ? "Mute WALL·E" : "Unmute WALL·E"}
+              aria-label={sound ? "Mute BB-8" : "Unmute BB-8"}
               className={`rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] transition-colors ${
                 sound
                   ? "border-accent/50 bg-accent/10 text-accent"
