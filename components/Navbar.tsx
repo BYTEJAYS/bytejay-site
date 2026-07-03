@@ -27,10 +27,10 @@ export default function Navbar() {
       >
         <a
           href="#top"
-          className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-ink font-display text-xs font-bold text-cream transition-transform hover:rotate-[-8deg]"
+          className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent font-display text-[10px] font-bold text-white transition-transform hover:rotate-[-8deg]"
           aria-label="ByteJay — back to top"
         >
-          ME
+          HIM
         </a>
         <div className="hidden items-center sm:flex">
           {links.map((link) => {
