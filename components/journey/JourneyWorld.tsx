@@ -705,6 +705,24 @@ const FLOWER_SPOTS = (() => {
   return out;
 })();
 
+/* dandelions standing above the turf: some yellow blooms, some white
+   seed puffs, on thin stems that bow with the wind */
+const DANDELION_SPOTS = (() => {
+  const out: { x: number; y: number; z: number; h: number; c: number; ph: number }[] = [];
+  for (let k = 137; k < GRASS_TOTAL && out.length < 320; k += 1700) {
+    const o = k * GRASS_STRIDE;
+    out.push({
+      x: GRASS_DATA[o],
+      y: GRASS_DATA[o + 1],
+      z: GRASS_DATA[o + 2],
+      h: 0.34 + hash2(k, 51) * 0.22, // stem height
+      c: hash2(k, 57), // < 0.55 → white puff, else yellow bloom
+      ph: hash2(k, 63) * Math.PI * 2,
+    });
+  }
+  return out;
+})();
+
 /* spatial chunks so off-screen / far grass is skipped entirely */
 const GRASS_CHUNK_GRID = 5;
 const GRASS_CHUNKS = (() => {
@@ -876,6 +894,59 @@ function Grass({ dense }: { dense: boolean }) {
           frustumCulled={false}
         />
       ))}
+    </>
+  );
+}
+
+function Dandelions() {
+  const stems = useRef<THREE.InstancedMesh>(null);
+  const heads = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useEffect(() => {
+    if (!heads.current) return;
+    const col = new THREE.Color();
+    DANDELION_SPOTS.forEach((p, i) => {
+      col.set(p.c < 0.55 ? "#EFEDE4" : "#E8C63E").multiplyScalar(0.85 + p.c * 0.25);
+      heads.current!.setColorAt(i, col);
+    });
+    if (heads.current.instanceColor) heads.current.instanceColor.needsUpdate = true;
+  }, []);
+
+  /* stems bow with the same wind that rolls through the grass */
+  useFrame(({ clock }) => {
+    if (!stems.current || !heads.current) return;
+    const t = clock.elapsedTime;
+    const amp = MOOD.rainy ? 0.16 : 0.08;
+    DANDELION_SPOTS.forEach((p, i) => {
+      const lean = Math.sin(t * 1.6 + p.x * 0.38 + p.z * 0.3 + p.ph) * amp + amp * 0.6;
+      const lz = Math.cos(t * 1.2 + p.z * 0.5 + p.ph) * amp * 0.4;
+      dummy.position.set(p.x, p.y + p.h / 2, p.z);
+      dummy.rotation.set(lz, 0, -lean);
+      dummy.scale.set(1, p.h, 1);
+      dummy.updateMatrix();
+      stems.current!.setMatrixAt(i, dummy.matrix);
+      // head rides the bowed stem tip
+      dummy.position.set(p.x + lean * p.h * 0.9, p.y + p.h * (1 - lean * lean * 0.4), p.z + lz * p.h * 0.9);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.setScalar(p.c < 0.55 ? 1 : 0.72);
+      dummy.updateMatrix();
+      heads.current!.setMatrixAt(i, dummy.matrix);
+    });
+    stems.current.instanceMatrix.needsUpdate = true;
+    heads.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <>
+      <instancedMesh ref={stems} args={[undefined, undefined, DANDELION_SPOTS.length]} frustumCulled={false}>
+        <cylinderGeometry args={[0.008, 0.012, 1, 5]} />
+        <meshStandardMaterial color="#5F8A3C" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={heads} args={[undefined, undefined, DANDELION_SPOTS.length]} frustumCulled={false}>
+        <icosahedronGeometry args={[0.055, 1]} />
+        <meshStandardMaterial color="#ffffff" flatShading roughness={0.75} emissive="#6B6248" emissiveIntensity={0.25} />
+      </instancedMesh>
     </>
   );
 }
@@ -1702,6 +1773,7 @@ function World({
       <IslandBase />
       <Grass dense={quality === "high"} />
       <Flowers />
+      <Dandelions />
       <Trees />
       <Rocks />
       {MILESTONES.map((m, i) => (
