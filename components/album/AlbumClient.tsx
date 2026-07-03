@@ -19,22 +19,16 @@ type Photo = {
 };
 
 const PHOTOS: Photo[] = [
-  { alt: "placeholder 01", orientation: "horizontal", tone: "paper" },
-  { alt: "placeholder 02", orientation: "vertical", tone: "sand" },
-  { alt: "placeholder 03", orientation: "vertical", tone: "ink" },
-  { alt: "placeholder 04", orientation: "horizontal", tone: "blush" },
-  { alt: "placeholder 05", orientation: "vertical", tone: "sage" },
-  { alt: "placeholder 06", orientation: "horizontal", tone: "sand" },
-  { alt: "placeholder 07", orientation: "horizontal", tone: "ink" },
-  { alt: "placeholder 08", orientation: "vertical", tone: "paper" },
-  { alt: "placeholder 09", orientation: "vertical", tone: "accent" },
-  { alt: "placeholder 10", orientation: "horizontal", tone: "sage" },
-  { alt: "placeholder 11", orientation: "vertical", tone: "sand" },
-  { alt: "placeholder 12", orientation: "horizontal", tone: "paper" },
-  { alt: "placeholder 13", orientation: "vertical", tone: "blush" },
-  { alt: "placeholder 14", orientation: "horizontal", tone: "ink" },
-  { alt: "placeholder 15", orientation: "vertical", tone: "sage" },
-  { alt: "placeholder 16", orientation: "horizontal", tone: "blush" },
+  { src: "/album/jay-01.jpg", alt: "moon crescents", orientation: "horizontal", tone: "paper" },
+  { src: "/album/jay-02.jpg", alt: "mirror fit check", orientation: "vertical", tone: "sand" },
+  { src: "/album/jay-04.jpg", alt: "beach, back turned", orientation: "horizontal", tone: "sage" },
+  { src: "/album/jay-07.jpg", alt: "grey fit, mirror", orientation: "vertical", tone: "paper" },
+  { src: "/album/jay-03.jpg", alt: "webcam grin", orientation: "horizontal", tone: "blush" },
+  { src: "/album/jay-05.jpg", alt: "white shirt, marble", orientation: "vertical", tone: "sand" },
+  { src: "/album/jay-06.jpg", alt: "petting the station cat", orientation: "horizontal", tone: "ink" },
+  { src: "/album/jay-08.jpg", alt: "hallway selfie", orientation: "vertical", tone: "sage" },
+  { src: "/album/jay-09.jpg", alt: "corridor grin", orientation: "horizontal", tone: "paper" },
+  { src: "/album/jay-10.jpg", alt: "flowers in the curls", orientation: "horizontal", tone: "blush" },
 ];
 
 const HERO_LINES = [
