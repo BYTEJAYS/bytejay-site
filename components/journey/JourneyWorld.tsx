@@ -1138,6 +1138,72 @@ function Birds() {
   );
 }
 
+/* ── fireflies: blinking wanderers over the night meadow ────────── */
+
+const FIREFLY_COUNT = MOOD.rainy ? 70 : 150;
+const FIREFLIES = Array.from({ length: FIREFLY_COUNT }, (_, i) => {
+  // anchor on grassy ground, clear of the waterline
+  let x = 0;
+  let z = 0;
+  let h = -1;
+  let guard = 0;
+  while (h < 0.7 && guard < 40) {
+    x = (hash2(i * 7 + guard, 91) - 0.5) * 2 * (ISLAND_R - 6);
+    z = (hash2(i * 13 + guard * 3, 57) - 0.5) * 2 * (ISLAND_R - 6);
+    h = terrainHeight(x, z);
+    guard++;
+  }
+  return {
+    x,
+    z,
+    y: h,
+    r1: 1.2 + hash2(i, 92) * 2.6, // wander radii
+    r2: 0.8 + hash2(i, 93) * 1.6,
+    s1: 0.15 + hash2(i, 94) * 0.35, // wander speeds
+    s2: 0.2 + hash2(i, 95) * 0.4,
+    ph: hash2(i, 96) * Math.PI * 2,
+    blink: 0.35 + hash2(i, 97) * 0.9,
+  };
+});
+
+function Fireflies() {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const col = useMemo(() => new THREE.Color(), []);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    const m = ref.current;
+    if (!m) return;
+    FIREFLIES.forEach((f, i) => {
+      const wx =
+        f.x + Math.sin(t * f.s1 + f.ph) * f.r1 + Math.sin(t * f.s2 * 1.7 + f.ph * 2.0) * 0.5;
+      const wz =
+        f.z + Math.cos(t * f.s2 + f.ph * 1.3) * f.r2 + Math.cos(t * f.s1 * 2.1 + f.ph) * 0.5;
+      const wy =
+        f.y + 0.55 + Math.sin(t * 0.5 + f.ph * 3.1) * 0.45 + Math.sin(t * 1.7 + f.ph) * 0.12;
+      // slow pulse with long dark gaps — each bug on its own rhythm
+      const p = Math.sin(t * f.blink + f.ph * 5.0);
+      const glow = THREE.MathUtils.smoothstep(p, 0.15, 0.75);
+      dummy.position.set(wx, wy, wz);
+      dummy.scale.setScalar(0.02 + glow * 0.05);
+      dummy.updateMatrix();
+      m.setMatrixAt(i, dummy.matrix);
+      // >1 values push past the bloom threshold: lit bugs get halos
+      m.setColorAt(i, col.set("#D9FF7E").multiplyScalar(0.3 + glow * 3.4));
+    });
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, FIREFLIES.length]} frustumCulled={false}>
+      <sphereGeometry args={[1, 6, 5]} />
+      <meshBasicMaterial color="#ffffff" toneMapped={false} />
+    </instancedMesh>
+  );
+}
+
 /* ── faraway sister islands, mostly eaten by the haze ───────────── */
 
 const FAR_ISLES = [
@@ -2311,9 +2377,7 @@ function World({
       <Dog store={store} />
 
       {MOOD.rainy && <Rain store={store} count={quality === "high" ? 750 : 320} />}
-      {MOOD.night && !MOOD.rainy && (
-        <Sparkles count={90} scale={[55, 5, 55]} position={[0, 2.5, 0]} size={2.8} speed={0.35} color="#FFD98A" opacity={0.85} />
-      )}
+      {MOOD.night && <Fireflies />}
 
       {quality === "high" ? (
         <EffectComposer multisampling={4}>
