@@ -179,7 +179,36 @@ function Head({ gm }: { gm: THREE.DataTexture }) {
   );
 }
 
-/* ── droid: rolls when walking, head leans + wiggles ────────────── */
+/* ── idle behavior brain ────────────────────────────────────────── */
+type Mood =
+  | "rest"
+  | "look-viewer"
+  | "glance-back"
+  | "glance-ahead"
+  | "curious"
+  | "scan"
+  | "droop";
+
+const MOODS: [Mood, number][] = [
+  ["look-viewer", 0.3],
+  ["glance-back", 0.13],
+  ["glance-ahead", 0.13],
+  ["curious", 0.15],
+  ["scan", 0.12],
+  ["droop", 0.05],
+  ["rest", 0.12],
+];
+
+function pickMood(): Mood {
+  let r = Math.random();
+  for (const [m, w] of MOODS) {
+    r -= w;
+    if (r <= 0) return m;
+  }
+  return "rest";
+}
+
+/* ── droid: rolls when walking; idle he looks around & at you ───── */
 function Droid({
   gm,
   walking,
@@ -193,6 +222,9 @@ function Droid({
   const bodyRef = useRef<THREE.Group>(null);
   const headRef = useRef<THREE.Group>(null);
   const speed = useRef(0);
+  const mood = useRef<Mood>("look-viewer");
+  const moodUntil = useRef(2.5);
+  const wasWalking = useRef(false);
 
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime;
@@ -201,26 +233,89 @@ function Droid({
     speed.current = lerp(speed.current, walking ? 6.0 : 0, 0.08);
     if (bodyRef.current) bodyRef.current.rotation.z -= delta * speed.current;
 
+    // behavior scheduling
+    if (walking) {
+      wasWalking.current = true;
+    } else if (wasWalking.current) {
+      // just stopped: check in with the viewer
+      wasWalking.current = false;
+      mood.current = "look-viewer";
+      moodUntil.current = t + 1.6 + Math.random();
+    }
+    if (!walking && t > moodUntil.current) {
+      mood.current = pickMood();
+      moodUntil.current = t + 1.3 + Math.random() * 1.8;
+    }
+
+    // head pose from mood
+    const m = mood.current;
+    let yaw = 0; // rotation.y — photoreceptor toward viewer (-) / away (+)
+    let tilt = 0; // rotation.x — ear-to-shoulder
+    let lean = 0; // rotation.z — forward (-) / up (+)
+    let rise = 0; // magnetic hover height
+
+    if (walking) {
+      lean = -0.22;
+    } else if (waving) {
+      yaw = -0.85; // wave AT the viewer
+      lean = Math.sin(t * 9) * 0.22;
+    } else {
+      switch (m) {
+        case "look-viewer":
+          yaw = -0.95;
+          tilt = Math.sin(t * 1.3) * 0.05;
+          break;
+        case "glance-back":
+          yaw = 0.6;
+          lean = 0.05;
+          break;
+        case "glance-ahead":
+          yaw = -0.15;
+          lean = -0.06;
+          break;
+        case "curious":
+          yaw = -0.5;
+          tilt = 0.18;
+          lean = 0.05;
+          break;
+        case "scan":
+          rise = 0.07; // dome lifts off the ball a touch
+          yaw = Math.sin(t * 0.9) * 0.5;
+          lean = 0.1;
+          break;
+        case "droop":
+          lean = -0.2;
+          rise = -0.03;
+          break;
+        case "rest":
+          yaw = Math.sin(t * 0.5) * 0.1;
+          break;
+      }
+    }
+
     if (headRef.current) {
-      // lean into the motion, wiggle when waving, gentle bob otherwise
-      const lean = walking ? -0.22 : 0;
-      const wiggle = waving ? Math.sin(t * 9) * 0.22 : 0;
-      headRef.current.rotation.z = lerp(
-        headRef.current.rotation.z,
-        lean + wiggle,
-        0.1
-      );
-      headRef.current.position.x = lerp(headRef.current.position.x, walking ? 0.24 : 0, 0.1);
-      headRef.current.position.y =
-        1.93 -
-        headRef.current.position.x * headRef.current.position.x * 0.35 +
+      const h = headRef.current;
+      h.rotation.y = lerp(h.rotation.y, yaw, 0.07);
+      h.rotation.x = lerp(h.rotation.x, tilt, 0.08);
+      h.rotation.z = lerp(h.rotation.z, lean, 0.1);
+      h.position.x = lerp(h.position.x, walking ? 0.24 : 0, 0.1);
+      h.position.y =
+        1.93 +
+        rise -
+        h.position.x * h.position.x * 0.35 +
         Math.sin(t * (walking ? 9 : 1.6)) * (walking ? 0.02 : 0.012);
     }
 
-    // idle sway / rolling jitter
+    // idle sway / rolling jitter / excited wave rock
     if (droidRef.current) {
-      droidRef.current.position.y = walking ? Math.abs(Math.sin(t * 9)) * 0.03 : 0;
-      droidRef.current.rotation.z = walking ? 0 : Math.sin(t * 0.9) * 0.025;
+      const r = droidRef.current;
+      r.position.y = walking ? Math.abs(Math.sin(t * 9)) * 0.03 : 0;
+      const sway = Math.sin(t * 0.9) * 0.025;
+      const excite = waving ? Math.sin(t * 9) * 0.02 : 0;
+      r.rotation.z = walking ? 0 : sway + excite;
+      // the ball shuffles a little toward whoever he's looking at
+      const bodyYaw = !walking && (m === "look-viewer" || waving) ? -0.18 : 0;
+      r.rotation.y = lerp(r.rotation.y, bodyYaw, 0.05);
     }
   });
 

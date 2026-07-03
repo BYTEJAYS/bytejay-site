@@ -11,9 +11,10 @@ import { useEffect, useState } from "react";
 type Mode = "default" | "hover" | "label";
 
 /**
- * Heartbeat-style cursor: a quick accent dot plus a lagging ring.
- * The ring tightens over links/buttons and becomes a labelled ink
- * circle over elements carrying `data-cursor-label`.
+ * HUD-style cursor: a quick accent crosshair plus a lagging ring.
+ * Over links/buttons the crosshair spins into an × and the ring
+ * tightens into a rounded square; over elements carrying
+ * `data-cursor-label` it becomes a labelled accent circle.
  */
 export default function CustomCursor({ dark = false }: { dark?: boolean }) {
   const [enabled, setEnabled] = useState(false);
@@ -96,6 +97,8 @@ export default function CustomCursor({ dark = false }: { dark?: boolean }) {
             animate={{
               width: ringSize,
               height: ringSize,
+              borderRadius: mode === "hover" ? 12 : 999,
+              rotate: mode === "hover" ? 90 : 0,
               backgroundColor:
                 mode === "label"
                   ? "rgba(255,77,36,0.95)"
@@ -113,7 +116,7 @@ export default function CustomCursor({ dark = false }: { dark?: boolean }) {
               opacity: visible ? 1 : 0,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
-            className="flex items-center justify-center overflow-hidden rounded-full border"
+            className="flex items-center justify-center overflow-hidden border"
           >
             <AnimatePresence>
               {mode === "label" && (
@@ -132,7 +135,7 @@ export default function CustomCursor({ dark = false }: { dark?: boolean }) {
         </div>
       </motion.div>
 
-      {/* quick dot */}
+      {/* quick crosshair */}
       <motion.div
         aria-hidden
         style={{ x: dotX, y: dotY }}
@@ -141,12 +144,16 @@ export default function CustomCursor({ dark = false }: { dark?: boolean }) {
         <div className="-translate-x-1/2 -translate-y-1/2">
           <motion.div
             animate={{
-              scale: mode === "label" ? 0 : mode === "hover" ? 0.5 : 1,
+              scale: mode === "label" ? 0 : mode === "hover" ? 0.8 : 1,
+              rotate: mode === "hover" ? 135 : 0,
               opacity: visible ? 1 : 0,
             }}
             transition={{ type: "spring", stiffness: 500, damping: 28 }}
-            className="h-2 w-2 rounded-full bg-accent"
-          />
+            className="relative h-2.5 w-2.5"
+          >
+            <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 rounded-full bg-accent" />
+            <span className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 rounded-full bg-accent" />
+          </motion.div>
         </div>
       </motion.div>
     </>

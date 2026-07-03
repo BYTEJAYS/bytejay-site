@@ -9,6 +9,7 @@ const links = [
   { label: "Projects", hover: "the builds", href: "#projects" },
   { label: "Skills", hover: "the tools", href: "#skills" },
   { label: "Journey", hover: "play it!", href: "/journey" },
+  { label: "Hackathons", hover: "the badges!", href: "/hackathons" },
   { label: "Album", hover: "the pics", href: "/album" },
 ];
 

@@ -50,7 +50,6 @@ const MILESTONES: Milestone[] = [
   { year: "2022", title: "First Line of Code", text: "Age 15 — one “Hello, World” and reality forks. Backend follows fast: servers, routes, databases. The invisible half of the internet starts feeling like home.", era: 1 },
   { year: "2023", title: "Side Quests Unlocked", text: "Guitar riffs played properly, songs actually sung well, chess middlegames, stacks of books. Turns out the XP isn't only in the terminal.", era: 1 },
   { year: "2024", title: "Competitive Mode", text: "Age 17 — school-level bug-hunting competitions and online coding contests, one after another. Finding what breaks becomes a sport.", era: 2 },
-  { year: "2026", title: "IDEA 2.0 Finalist", text: "March 2026, age 18 — Union Bank's IDEA 2.0 hackathon. Jay walks in with an idea, walks out a national finalist. The badge stays equipped.", era: 2 },
   { year: "2026", title: "The Advanced Backend Arc", text: "Deeper into architecture, async systems and real engineering — and building this island you're rolling around. Just getting started…", era: 3 },
 ];
 

@@ -32,7 +32,7 @@ const PAINTINGS: Painting[] = [
   {
     title: "Portrait of the Builder",
     medium: "oil on ambition, 2007 —",
-    body: "Jay, 19. First PC at five, first line of code at fifteen, IDEA 2.0 hackathon finalist at eighteen. Painted mid-refactor, as always.",
+    body: "Jay, 19. First PC at five, first line of code at fifteen, professional asker of “what if?” ever since. Painted mid-refactor, as always.",
     art: (
       <svg viewBox="0 0 120 90" className="h-full w-full">
         <circle cx="60" cy="34" r="20" fill="none" stroke={INK} strokeWidth="2.5" />

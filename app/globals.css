@@ -204,3 +204,17 @@ html.lenis body {
     animation: none !important;
   }
 }
+
+/* playground badge cards turning on the endless plane */
+@keyframes card-turn {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+.card-turn {
+  animation: card-turn 9s linear infinite;
+  transform-style: preserve-3d;
+}
