@@ -1801,6 +1801,8 @@ export default function JourneyWorld() {
     return () => clearTimeout(t);
   }, []);
   const ready = minWait && !loading;
+  const readyRef = useRef(false);
+  readyRef.current = ready;
   const shownProgress = ready ? 100 : Math.max(progress, minWait ? 88 : 30);
 
   const [phase, setPhase] = useState<"load" | "cine" | "play">("load");
@@ -1829,7 +1831,8 @@ export default function JourneyWorld() {
       if (["ArrowLeft", "a"].includes(e.key)) KEYS.l = true;
       if (["ArrowRight", "d"].includes(e.key)) KEYS.r = true;
       if (e.key === "Shift") KEYS.boost = true;
-      if (e.key === "Enter" && store.phase === "cine") begin("play");
+      if (e.key === "Enter" && store.phase === "load" && readyRef.current) begin("cine");
+      else if (e.key === "Enter" && store.phase === "cine") begin("play");
       unlockAudio();
     };
     const up = (e: KeyboardEvent) => {
@@ -1884,6 +1887,10 @@ export default function JourneyWorld() {
 
   return (
     <div className="fixed inset-0 select-none" style={{ backgroundColor: MOOD.bg }}>
+      {/* the site-wide custom cursor hides the native one (cursor: none in
+          globals.css), but this page doesn't render CustomCursor — bring
+          the native cursor back while the world is mounted */}
+      <style>{`html, body, a, button { cursor: auto !important; } a, button { cursor: pointer !important; }`}</style>
       <Canvas
         shadows
         dpr={quality === "high" ? [1, 2] : 1}
