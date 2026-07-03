@@ -15,7 +15,7 @@ type Mode = "default" | "hover" | "label";
  * The ring tightens over links/buttons and becomes a labelled ink
  * circle over elements carrying `data-cursor-label`.
  */
-export default function CustomCursor() {
+export default function CustomCursor({ dark = false }: { dark?: boolean }) {
   const [enabled, setEnabled] = useState(false);
   const [visible, setVisible] = useState(false);
   const [mode, setMode] = useState<Mode>("default");
@@ -107,7 +107,9 @@ export default function CustomCursor() {
                   ? "rgba(28,25,23,0)"
                   : mode === "hover"
                     ? "rgba(255,77,36,0.6)"
-                    : "rgba(28,25,23,0.25)",
+                    : dark
+                      ? "rgba(251,248,242,0.35)"
+                      : "rgba(28,25,23,0.25)",
               opacity: visible ? 1 : 0,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
