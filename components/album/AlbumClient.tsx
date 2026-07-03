@@ -28,6 +28,7 @@ const PHOTOS: Photo[] = [
   { src: "/album/jay-06.jpg", alt: "petting the station cat", orientation: "horizontal", tone: "ink" },
   { src: "/album/jay-08.jpg", alt: "hallway selfie", orientation: "vertical", tone: "sage" },
   { src: "/album/jay-09.jpg", alt: "corridor grin", orientation: "horizontal", tone: "paper" },
+  { src: "/album/jay-11.jpg", alt: "deep in the laptop", orientation: "horizontal", tone: "sand" },
   { src: "/album/jay-10.jpg", alt: "flowers in the curls", orientation: "horizontal", tone: "blush" },
 ];
 
