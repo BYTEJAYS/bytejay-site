@@ -26,13 +26,16 @@ import {
   Lightformer,
   PerformanceMonitor,
   RoundedBox,
+  SoftShadows,
   Sparkles,
   useProgress,
 } from "@react-three/drei";
 import {
   Bloom,
+  BrightnessContrast,
   ChromaticAberration,
   EffectComposer,
+  HueSaturation,
   Noise,
   Vignette,
 } from "@react-three/postprocessing";
@@ -89,18 +92,25 @@ function noise2(x: number, y: number) {
    is seeded from the date, so some days/nights are rainy, some clear. */
 
 const NOW = new Date();
-const IS_NIGHT = NOW.getHours() < 6 || NOW.getHours() >= 18;
-const IS_RAINY =
-  hash2(
-    NOW.getFullYear() * 500 + (NOW.getMonth() + 1) * 40 + NOW.getDate(),
-    IS_NIGHT ? 7.3 : 3.7
-  ) < 0.5;
+/* ?mood=night|day and ?wx=rain|clear override the clock (handy for peeking
+   at the island's other faces) */
+const QS =
+  typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+const IS_NIGHT = QS?.get("mood")
+  ? QS.get("mood") === "night"
+  : NOW.getHours() < 6 || NOW.getHours() >= 18;
+const IS_RAINY = QS?.get("wx")
+  ? QS.get("wx") === "rain"
+  : hash2(
+      NOW.getFullYear() * 500 + (NOW.getMonth() + 1) * 40 + NOW.getDate(),
+      IS_NIGHT ? 7.3 : 3.7
+    ) < 0.5;
 
 const MOOD = (() => {
   const base = IS_NIGHT
     ? {
         skyTop: "#060D1C", skyHorizon: "#1D3550",
-        celColor: "#D9E8FF", disc: 0.9, halo: 0.28, stars: 0.8,
+        celColor: "#D9E8FF", disc: 0.9, halo: 0.28, stars: 1.05,
         fog: "#101F30", fogNear: 45, fogFar: 250,
         keyColor: "#9FB6E8", keyIntensity: 1.1,
         ambColor: "#7286A8", ambIntensity: 0.22,
@@ -111,11 +121,11 @@ const MOOD = (() => {
         windowGlow: 1.8, windowGlowActive: 5.2, lantern: 5,
       }
     : {
-        skyTop: "#7FB6D9", skyHorizon: "#F4DCB0",
+        skyTop: "#3E8EC9", skyHorizon: "#F4DCB0",
         celColor: "#FFF0D0", disc: 1.5, halo: 0.5, stars: 0,
         fog: "#D9E4E4", fogNear: 60, fogFar: 320,
         keyColor: "#FFE3B8", keyIntensity: 2.4,
-        ambColor: "#CBD8E4", ambIntensity: 0.45,
+        ambColor: "#CBD8E4", ambIntensity: 0.52,
         hemiSky: "#FFF2D8", hemiGround: "#7FA0A8", hemiIntensity: 0.6,
         envA: 2.0, envACol: "#FFEAC9", envB: 1.0, envBCol: "#BFD3E6",
         oceanDeep: "#3D9DBC", oceanShallow: "#8FD8DE", foam: "#F6FBF7", glint: 0.16,
@@ -146,6 +156,9 @@ const UI_CHIP = MOOD.night
 const UI_HINT = MOOD.night ? "text-cream/60" : "text-ink/60";
 const UI_TITLE = MOOD.night ? "text-cream" : "text-ink";
 const UI_SUB = MOOD.night ? "text-cream/75" : "text-ink/70";
+
+/* one celestial body drives the sky disc, ocean glints and cloud shading */
+const SUN_DIR = new THREE.Vector3(-0.5, 0.42, -0.76).normalize();
 
 /* ── island heightfield ─────────────────────────────────────────── */
 
@@ -238,19 +251,26 @@ function makeLabel(text: string, size = 256) {
 /* ── sky ────────────────────────────────────────────────────────── */
 
 function SkyDome() {
+  const mat = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(
     () => ({
+      uTime: { value: 0 },
       top: { value: new THREE.Color(MOOD.skyTop) },
       horizon: { value: new THREE.Color(MOOD.skyHorizon) },
-      moon: { value: new THREE.Vector3(-0.5, 0.42, -0.76).normalize() },
+      haze: { value: new THREE.Color(MOOD.fog) },
+      moon: { value: SUN_DIR.clone() },
       celCol: { value: new THREE.Color(MOOD.celColor) },
     }),
     []
   );
+  useFrame(({ clock }) => {
+    uniforms.uTime.value = clock.elapsedTime;
+  });
   return (
     <mesh scale={480}>
-      <sphereGeometry args={[1, 32, 20]} />
+      <sphereGeometry args={[1, 48, 28]} />
       <shaderMaterial
+        ref={mat}
         side={THREE.BackSide}
         depthWrite={false}
         uniforms={uniforms}
@@ -262,27 +282,135 @@ function SkyDome() {
           }
         `}
         fragmentShader={`
-          uniform vec3 top; uniform vec3 horizon; uniform vec3 moon; uniform vec3 celCol;
+          uniform float uTime;
+          uniform vec3 top; uniform vec3 horizon; uniform vec3 haze;
+          uniform vec3 moon; uniform vec3 celCol;
           varying vec3 vDir;
           float hash13(vec3 p) {
             return fract(sin(dot(p, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
           }
+          float hash21(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+          }
+          float vnoise(vec2 p) {
+            vec2 i = floor(p); vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(hash21(i), hash21(i + vec2(1, 0)), u.x),
+              mix(hash21(i + vec2(0, 1)), hash21(i + vec2(1, 1)), u.x), u.y);
+          }
+          float fbm(vec2 p) {
+            float v = 0.0; float a = 0.5;
+            for (int k = 0; k < 5; k++) { v += a * vnoise(p); p = p * 2.03 + 17.0; a *= 0.5; }
+            return v;
+          }
           void main() {
             vec3 nd = normalize(vDir);
-            float h = clamp(nd.y * 0.5 + 0.5, 0.0, 1.0);
-            vec3 col = mix(horizon, top, pow(h, 1.25));
-            // sun or moon disc + halo, per the current mood
+            // three-stop atmosphere: warm belt kept low, zenith saturating fast
+            float elev = clamp(nd.y, 0.0, 1.0);
+            vec3 col = mix(horizon, top, pow(elev, 0.55));
+            col = mix(haze, col, smoothstep(-0.05, 0.10, nd.y));
             float md = dot(nd, moon);
-            col += celCol * smoothstep(0.9990, 0.9996, md) * ${MOOD.disc.toFixed(2)};
-            col += celCol * 0.7 * smoothstep(0.992, 0.9996, md) * ${MOOD.halo.toFixed(2)};
-            // stars, fading toward the horizon
-            float st = step(0.9992, hash13(floor(nd * 220.0)));
-            col += vec3(0.8, 0.86, 1.0) * st * smoothstep(0.12, 0.45, nd.y) * ${MOOD.stars.toFixed(2)};
+            // forward-scattering glow wrapping the light — the "wet air" look
+            col += celCol * pow(max(md, 0.0), 6.0) * ${(MOOD.halo * 0.45).toFixed(3)};
+            // disc with a soft bloom-friendly core + tight halo
+            col += celCol * smoothstep(0.9985, 0.9997, md) * ${MOOD.disc.toFixed(2)};
+            col += celCol * 0.8 * smoothstep(0.990, 0.9995, md) * ${MOOD.halo.toFixed(2)};
+            // high drifting cirrus, sun-tinted on the lit side
+            if (nd.y > 0.02) {
+              vec2 cuv = nd.xz / (nd.y + 0.18);
+              float cl = fbm(cuv * 1.9 + vec2(uTime * 0.006, uTime * 0.0025));
+              float cover = smoothstep(${MOOD.rainy ? "0.40" : "0.62"}, ${MOOD.rainy ? "0.66" : "0.88"}, cl);
+              float fade = smoothstep(0.02, 0.24, nd.y);
+              vec3 cloudCol = mix(haze, celCol, 0.35 + 0.45 * pow(max(md, 0.0), 3.0));
+              col = mix(col, cloudCol, cover * fade * ${MOOD.rainy ? "0.75" : (MOOD.night ? "0.25" : "0.42")});
+            }
+            // stars: twinkling, fading toward the horizon and hiding behind clouds
+            vec3 sp = floor(nd * 240.0);
+            float st = step(0.9992, hash13(sp));
+            float tw = 0.6 + 0.4 * sin(uTime * (2.0 + hash13(sp + 1.0) * 4.0) + hash13(sp + 2.0) * 6.283);
+            col += vec3(0.82, 0.87, 1.0) * st * tw * smoothstep(0.10, 0.45, nd.y) * ${MOOD.stars.toFixed(2)};
             gl_FragColor = vec4(col, 1.0);
           }
         `}
       />
     </mesh>
+  );
+}
+
+/* ── volumetric-feeling puff clouds drifting over the sea ───────── */
+
+function makePuffTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const ctx = c.getContext("2d")!;
+  const g = ctx.createRadialGradient(64, 64, 8, 64, 64, 62);
+  g.addColorStop(0, "rgba(255,255,255,0.95)");
+  g.addColorStop(0.45, "rgba(255,255,255,0.55)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(c);
+  return tex;
+}
+
+const CLOUDS = Array.from({ length: MOOD.rainy ? 11 : 8 }, (_, i) => ({
+  a: (i / (MOOD.rainy ? 11 : 8)) * Math.PI * 2 + hash2(i, 51) * 1.2,
+  r: 110 + hash2(i, 52) * 130,
+  y: (MOOD.rainy ? 34 : 46) + hash2(i, 53) * 22,
+  speed: 0.7 + hash2(i, 54) * 0.9,
+  puffs: Array.from({ length: 6 + Math.floor(hash2(i, 55) * 4) }, (_, k) => ({
+    x: (hash2(i * 9 + k, 56) - 0.5) * 34,
+    y: (hash2(i * 9 + k, 57) - 0.5) * 7,
+    z: (hash2(i * 9 + k, 58) - 0.5) * 16,
+    s: 13 + hash2(i * 9 + k, 59) * 17,
+  })),
+}));
+
+function Clouds() {
+  const groups = useRef<(THREE.Group | null)[]>([]);
+  const tex = useMemo(() => makePuffTexture(), []);
+  const tint = MOOD.rainy
+    ? MOOD.night ? "#1E2836" : "#AEB6BE"
+    : MOOD.night ? "#2C3A52" : "#FFFFFF";
+  const opacity = MOOD.rainy ? 0.85 : MOOD.night ? 0.4 : 0.62;
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    CLOUDS.forEach((cl, i) => {
+      const g = groups.current[i];
+      if (!g) return;
+      // slow orbital drift so clouds never leave the dome
+      const a = cl.a + t * 0.0016 * cl.speed;
+      g.position.set(Math.cos(a) * cl.r, cl.y + Math.sin(t * 0.05 + i) * 1.5, Math.sin(a) * cl.r);
+    });
+  });
+
+  return (
+    <>
+      {CLOUDS.map((cl, i) => (
+        <group
+          key={i}
+          ref={(g) => {
+            groups.current[i] = g;
+          }}
+        >
+          {cl.puffs.map((p, k) => (
+            <sprite key={k} position={[p.x, p.y, p.z]} scale={[p.s * 1.4, p.s * 0.8, 1]}>
+              <spriteMaterial
+                map={tex}
+                color={tint}
+                transparent
+                opacity={opacity}
+                depthWrite={false}
+                fog={false}
+                rotation={hash2(i, k) * 0.6}
+              />
+            </sprite>
+          ))}
+        </group>
+      ))}
+    </>
   );
 }
 
@@ -342,6 +470,10 @@ function Ocean() {
       deep: { value: new THREE.Color(MOOD.oceanDeep) },
       shallow: { value: new THREE.Color(MOOD.oceanShallow) },
       foam: { value: new THREE.Color(MOOD.foam) },
+      skyTop: { value: new THREE.Color(MOOD.skyTop) },
+      skyHorizon: { value: new THREE.Color(MOOD.skyHorizon) },
+      sunDir: { value: SUN_DIR.clone() },
+      sunCol: { value: new THREE.Color(MOOD.celColor) },
     }),
     []
   );
@@ -350,44 +482,105 @@ function Ocean() {
   });
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, WATER_Y, 0]}>
-      <planeGeometry args={[900, 900, 96, 96]} />
+      <planeGeometry args={[900, 900, 128, 128]} />
       <shaderMaterial
         ref={mat}
         uniforms={uniforms}
+        transparent
         vertexShader={`
           uniform float uTime;
           varying vec2 vXZ;
           varying float vWave;
+          float waveH(vec2 q, float t) {
+            return sin(q.x * 0.12 + t * 0.9) * 0.14
+                 + sin(q.y * 0.16 - t * 0.7) * 0.12
+                 + sin((q.x + q.y) * 0.07 + t * 0.5) * 0.10
+                 + sin(q.x * 0.32 - q.y * 0.21 + t * 1.4) * 0.05
+                 + sin(q.y * 0.45 + q.x * 0.13 - t * 1.9) * 0.03;
+          }
           void main() {
             vec3 p = position;
-            float w = sin(p.x * 0.12 + uTime * 0.9) * 0.14
-                    + sin(p.y * 0.16 - uTime * 0.7) * 0.12
-                    + sin((p.x + p.y) * 0.07 + uTime * 0.5) * 0.1;
+            vec2 q = vec2(position.x, -position.y);
+            float w = waveH(q, uTime);
             p.z += w;
             vWave = w;
-            vXZ = vec2(position.x, -position.y);
+            vXZ = q;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
           }
         `}
         fragmentShader={`
           uniform float uTime;
           uniform vec3 deep; uniform vec3 shallow; uniform vec3 foam;
+          uniform vec3 skyTop; uniform vec3 skyHorizon;
+          uniform vec3 sunDir; uniform vec3 sunCol;
           varying vec2 vXZ;
           varying float vWave;
+          float hash21(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+          }
+          float vnoise(vec2 p) {
+            vec2 i = floor(p); vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(hash21(i), hash21(i + vec2(1, 0)), u.x),
+              mix(hash21(i + vec2(0, 1)), hash21(i + vec2(1, 1)), u.x), u.y);
+          }
           void main() {
             float d = length(vXZ);
             float shore = smoothstep(${(ISLAND_R + 16).toFixed(1)}, ${(ISLAND_R - 8).toFixed(1)}, d);
+
+            // ── surface normal: analytic swell slope + two scrolling detail layers
+            float e = 0.6;
+            float t = uTime;
+            #define WH(q) (sin((q).x * 0.12 + t * 0.9) * 0.14 + sin((q).y * 0.16 - t * 0.7) * 0.12 + sin(((q).x + (q).y) * 0.07 + t * 0.5) * 0.10 + sin((q).x * 0.32 - (q).y * 0.21 + t * 1.4) * 0.05)
+            float hC = WH(vXZ);
+            float hX = WH(vXZ + vec2(e, 0.0));
+            float hZ = WH(vXZ + vec2(0.0, e));
+            vec2 slope = vec2(hX - hC, hZ - hC) / e;
+            vec3 wp = vec3(vXZ.x, ${WATER_Y.toFixed(1)} + vWave, vXZ.y);
+            vec3 V = normalize(cameraPosition - wp);
+            float camd = distance(cameraPosition, wp);
+            // fine ripples fade with distance — far water stays glassy
+            float da = clamp(1.0 - camd / 110.0, 0.0, 1.0);
+            float r1 = vnoise(vXZ * 1.35 + vec2(t * 0.55, t * 0.30));
+            float r2 = vnoise(vXZ * 2.30 - vec2(t * 0.42, t * 0.66));
+            slope += (vec2(r1 - 0.5, r2 - 0.5)) * 0.55 * (0.08 + 0.92 * da);
+            vec3 N = normalize(vec3(-slope.x, 1.0, -slope.y));
+
+            // ── base color: depth gradient + wave-top subsurface glow
             vec3 col = mix(deep, shallow, shore);
-            col += vWave * 0.05;
-            // breathing foam ring hugging the shore
+            col += shallow * max(vWave, 0.0) * 0.35;
+
+            // ── fresnel sky reflection
+            float fres = pow(1.0 - max(dot(N, V), 0.0), 5.0);
+            fres = 0.05 + 0.55 * fres;
+            vec3 R = reflect(-V, N);
+            vec3 skyRef = mix(skyHorizon, skyTop, pow(clamp(R.y * 1.8, 0.0, 1.0), 0.6));
+            col = mix(col, skyRef, fres);
+
+            // ── the light's glitter path: tight spec + broad streak
+            vec3 H = normalize(V + sunDir);
+            float spec = pow(max(dot(N, H), 0.0), 340.0);
+            float streak = pow(max(dot(N, H), 0.0), 28.0);
+            col += sunCol * (spec * ${(MOOD.night ? 2.6 : 3.2).toFixed(1)} + streak * ${(MOOD.night ? 0.22 : 0.30).toFixed(2)}) * ${MOOD.rainy ? "0.35" : "1.0"};
+
+            // ── whitecaps riding the tallest swell crests only
+            float crest = smoothstep(0.24, 0.40, vWave + (r1 - 0.5) * 0.06 * da);
+            col = mix(col, foam, crest * ${MOOD.rainy ? "0.40" : "0.25"});
+
+            // ── breathing foam ring hugging the shore, broken up by noise
             float ang = atan(vXZ.y, vXZ.x);
             float wob = sin(ang * 7.0 + uTime * 0.6) * 1.3 + sin(ang * 17.0 - uTime * 0.4) * 0.6;
             float ring = abs(d - (${ISLAND_R.toFixed(1)} - 2.5 + wob + sin(uTime * 0.8) * 0.7));
-            col = mix(col, foam, smoothstep(1.6, 0.15, ring) * 0.85);
-            // sparse glints
-            float g = step(0.985, sin(vXZ.x * 2.1 + uTime) * sin(vXZ.y * 1.7 - uTime * 1.3));
-            col += g * ${MOOD.glint.toFixed(2)};
-            gl_FragColor = vec4(col, 1.0);
+            float lace = vnoise(vXZ * 1.7 + vec2(0.0, uTime * 0.25));
+            col = mix(col, foam, smoothstep(1.8, 0.15, ring) * smoothstep(0.25, 0.6, lace) * 0.9);
+            // a second, fainter ring further out
+            float ring2 = abs(d - (${ISLAND_R.toFixed(1)} + 2.6 + wob * 0.7 - sin(uTime * 0.55) * 1.1));
+            col = mix(col, foam, smoothstep(1.1, 0.1, ring2) * smoothstep(0.35, 0.7, lace) * 0.4);
+
+            // shallows go glassy so the sand reads through
+            float alpha = mix(0.97, 0.62, smoothstep(${(ISLAND_R - 2).toFixed(1)}, ${(ISLAND_R - 9).toFixed(1)}, d));
+            gl_FragColor = vec4(col, alpha);
           }
         `}
       />
@@ -398,20 +591,24 @@ function Ocean() {
 /* ── terrain ────────────────────────────────────────────────────── */
 
 const COL_SAND = new THREE.Color("#E9DCAE");
+const COL_SAND_WET = new THREE.Color("#B3A176");
 const COL_GRASS = new THREE.Color("#2F5C28");
 const COL_GRASS2 = new THREE.Color("#3D7031");
+const COL_GRASS3 = new THREE.Color("#5A8438");
 const COL_ROCK = new THREE.Color("#6E6052");
+const COL_ROCK2 = new THREE.Color("#847666");
 const COL_SNOW = new THREE.Color("#F7F4EC");
 
 function Terrain() {
   const geo = useMemo(() => {
     const size = 170;
-    const seg = 170;
+    const seg = 200;
     const g = new THREE.PlaneGeometry(size, size, seg, seg);
     g.rotateX(-Math.PI / 2);
     const pos = g.attributes.position as THREE.BufferAttribute;
     const colors = new Float32Array(pos.count * 3);
     const c = new THREE.Color();
+    const tmp = new THREE.Color();
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const z = pos.getZ(i);
@@ -426,11 +623,29 @@ function Terrain() {
       const h = pos.getY(i);
       const slope = 1 - nrm.getY(i);
       const n = noise2(x * 0.35, z * 0.35);
-      if (h < 0.55) c.copy(COL_SAND);
-      else if (h > 8.2 && slope < 0.45) c.copy(COL_SNOW);
-      else if (slope > 0.28 || h > 6.4) c.copy(COL_ROCK);
-      else c.copy(n > 0.5 ? COL_GRASS : COL_GRASS2);
-      c.multiplyScalar(0.92 + n * 0.13);
+      const n2 = noise2(x * 1.1 + 50, z * 1.1 - 30);
+      if (h < 0.55) {
+        // beach: dry sand fading into a dark wet band at the waterline
+        const wet = THREE.MathUtils.smoothstep(0.32 - h, 0, 0.45);
+        c.copy(COL_SAND).lerp(COL_SAND_WET, wet * (MOOD.rainy ? 1 : 0.85));
+      } else if (h > 8.2 && slope < 0.45) {
+        c.copy(COL_SNOW);
+        // blue-ish shadowed crevices in the snowfield
+        c.lerp(tmp.set("#C9D4E4"), THREE.MathUtils.clamp(slope * 1.6, 0, 0.5));
+      } else if (slope > 0.28 || h > 6.4) {
+        c.copy(COL_ROCK).lerp(COL_ROCK2, n2);
+        // sun-bleached striations on the steepest faces
+        if (slope > 0.5) c.multiplyScalar(0.82 + noise2(x * 2.4, z * 2.4) * 0.3);
+      } else {
+        // meadow: three-way grass blend + dry patches on knolls
+        c.copy(n > 0.5 ? COL_GRASS : COL_GRASS2).lerp(COL_GRASS3, n2 * n2 * 0.7);
+        if (h > 4.2) c.lerp(tmp.set("#6E7A38"), THREE.MathUtils.smoothstep(h, 4.2, 6.2) * 0.5);
+        // moist, darker grass right above the sand line
+        if (h < 1.1) c.multiplyScalar(0.86);
+      }
+      // large-scale valley shading fakes ambient occlusion
+      const ao = 0.86 + noise2(x * 0.06 + 90, z * 0.06 + 40) * 0.2;
+      c.multiplyScalar((0.92 + n * 0.13) * ao);
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
@@ -439,11 +654,44 @@ function Terrain() {
     return g;
   }, []);
 
-  return (
-    <mesh geometry={geo} receiveShadow castShadow>
-      <meshStandardMaterial vertexColors roughness={0.94} metalness={0.02} />
-    </mesh>
-  );
+  const mat = useMemo(() => {
+    const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.94, metalness: 0.02 });
+    // world-space micro grain so the ground has tooth up close
+    m.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          "#include <common>",
+          "#include <common>\nvarying vec3 vWPos;"
+        )
+        .replace(
+          "#include <begin_vertex>",
+          "#include <begin_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;"
+        );
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+          varying vec3 vWPos;
+          float thash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+          float tnoise(vec2 p) {
+            vec2 i = floor(p); vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(mix(thash(i), thash(i + vec2(1, 0)), u.x),
+                       mix(thash(i + vec2(0, 1)), thash(i + vec2(1, 1)), u.x), u.y);
+          }`
+        )
+        .replace(
+          "#include <color_fragment>",
+          `#include <color_fragment>
+          float grain = tnoise(vWPos.xz * 3.1) * 0.6 + tnoise(vWPos.xz * 9.7) * 0.4;
+          float dfade = clamp(1.0 - length(vWPos.xz - cameraPosition.xz) / 70.0, 0.0, 1.0);
+          diffuseColor.rgb *= 1.0 + (grain - 0.5) * 0.16 * dfade;`
+        );
+    };
+    return m;
+  }, []);
+
+  return <mesh geometry={geo} material={mat} receiveShadow castShadow />;
 }
 
 /* underwater skirt so the island reads as a landmass, not a crust */
@@ -633,6 +881,105 @@ function Rocks() {
   );
 }
 
+/* ── birds wheeling over the island (day only) ──────────────────── */
+
+const BIRDS = Array.from({ length: 9 }, (_, i) => ({
+  r: 22 + hash2(i, 61) * 26,
+  y: 16 + hash2(i, 62) * 14,
+  speed: (0.045 + hash2(i, 63) * 0.05) * (i % 3 === 0 ? -1 : 1),
+  phase: hash2(i, 64) * Math.PI * 2,
+  flap: 7 + hash2(i, 65) * 4,
+  s: 0.7 + hash2(i, 66) * 0.6,
+}));
+
+function Birds() {
+  const roots = useRef<(THREE.Group | null)[]>([]);
+  const wingsL = useRef<(THREE.Mesh | null)[]>([]);
+  const wingsR = useRef<(THREE.Mesh | null)[]>([]);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    BIRDS.forEach((b, i) => {
+      const g = roots.current[i];
+      if (!g) return;
+      const a = b.phase + t * b.speed;
+      const x = Math.cos(a) * b.r;
+      const z = Math.sin(a) * b.r;
+      g.position.set(x, b.y + Math.sin(t * 0.7 + i * 2.1) * 1.6, z);
+      // face along the flight path
+      g.rotation.y = -a + (b.speed > 0 ? 0 : Math.PI);
+      const flap = Math.sin(t * b.flap + i) * 0.75;
+      if (wingsL.current[i]) wingsL.current[i]!.rotation.z = flap;
+      if (wingsR.current[i]) wingsR.current[i]!.rotation.z = -flap;
+    });
+  });
+
+  return (
+    <>
+      {BIRDS.map((b, i) => (
+        <group
+          key={i}
+          ref={(g) => {
+            roots.current[i] = g;
+          }}
+          scale={b.s}
+        >
+          <mesh>
+            <capsuleGeometry args={[0.05, 0.26, 3, 6]} />
+            <meshStandardMaterial color="#23282F" roughness={0.9} />
+          </mesh>
+          <mesh
+            ref={(m) => {
+              wingsL.current[i] = m;
+            }}
+            position={[0, 0.02, 0]}
+          >
+            <boxGeometry args={[0.04, 0.015, 0.55]} />
+            <meshStandardMaterial color="#2B313A" roughness={0.9} />
+          </mesh>
+          <mesh
+            ref={(m) => {
+              wingsR.current[i] = m;
+            }}
+            position={[0, 0.02, 0]}
+            rotation={[0, Math.PI, 0]}
+          >
+            <boxGeometry args={[0.04, 0.015, 0.55]} />
+            <meshStandardMaterial color="#2B313A" roughness={0.9} />
+          </mesh>
+        </group>
+      ))}
+    </>
+  );
+}
+
+/* ── faraway sister islands, mostly eaten by the haze ───────────── */
+
+const FAR_ISLES = [
+  { a: 0.7, d: 195, w: 26, h: 7 },
+  { a: 2.6, d: 235, w: 42, h: 11 },
+  { a: 4.4, d: 205, w: 20, h: 5.5 },
+];
+
+function DistantIsles() {
+  return (
+    <>
+      {FAR_ISLES.map((f, i) => (
+        <group key={i} position={[Math.cos(f.a) * f.d, 0, Math.sin(f.a) * f.d]}>
+          <mesh position={[0, f.h * 0.28, 0]} scale={[f.w, f.h, f.w * 0.8]}>
+            <sphereGeometry args={[1, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshStandardMaterial color={MOOD.night ? "#22303E" : "#5E7566"} roughness={1} />
+          </mesh>
+          <mesh position={[f.w * 0.35, f.h * 0.5, 0]} scale={[f.w * 0.45, f.h * 0.9, f.w * 0.4]}>
+            <sphereGeometry args={[1, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshStandardMaterial color={MOOD.night ? "#1C2836" : "#54695C"} roughness={1} />
+          </mesh>
+        </group>
+      ))}
+    </>
+  );
+}
+
 /* ── wavy grass: instanced blades bending in the storm wind ─────── */
 
 /* half a million blades: precompute an eligibility grid once (cheap),
@@ -791,15 +1138,16 @@ function Grass({ dense }: { dense: boolean }) {
 
   const mat = useMemo(() => {
     const m = new THREE.MeshStandardMaterial({
-      color: "#3F8232",
+      color: "#4F9440",
       side: THREE.DoubleSide,
       roughness: 0.85,
     });
     m.onBeforeCompile = (shader) => {
       shader.uniforms.uTime = { value: 0 };
-      shader.vertexShader = ("uniform float uTime;\n" + shader.vertexShader).replace(
+      shader.vertexShader = ("uniform float uTime;\nvarying float vTip;\n" + shader.vertexShader).replace(
         "#include <begin_vertex>",
         `#include <begin_vertex>
+        vTip = position.y;
         #ifdef USE_INSTANCING
           vec2 ip = vec2(instanceMatrix[3][0], instanceMatrix[3][2]);
           // calm traveling wave + per-blade phase from its offset in the tuft
@@ -813,6 +1161,14 @@ function Grass({ dense }: { dense: boolean }) {
           transformed.z += cos(uTime * 1.2 + ip.y * 0.5 + position.z * 4.0) * 0.25 * bend;
         #endif`
       );
+      shader.fragmentShader = ("varying float vTip;\n" + shader.fragmentShader).replace(
+        "#include <color_fragment>",
+        `#include <color_fragment>
+        // shadowed roots, sunlit tips — the classic meadow gradient
+        float tip = smoothstep(0.0, 0.32, vTip);
+        diffuseColor.rgb *= 0.84 + tip * 0.42;
+        diffuseColor.g += tip * 0.05;`
+      );
       shaderRef.current = shader as unknown as { uniforms: { uTime: { value: number } } };
     };
     return m;
@@ -820,8 +1176,8 @@ function Grass({ dense }: { dense: boolean }) {
 
   useEffect(() => {
     const dummy = new THREE.Object3D();
-    const colA = new THREE.Color("#2E6424");
-    const colB = new THREE.Color("#3F8232");
+    const colA = new THREE.Color("#3B7A2E");
+    const colB = new THREE.Color("#4E9440");
     const col = new THREE.Color();
     const step = dense ? 1 : 3;
     GRASS_CHUNKS.forEach((chunk, ci) => {
@@ -1174,6 +1530,21 @@ function PizzaShack() {
 function Lighthouse() {
   const lamp = useRef<THREE.PointLight>(null);
   const beam = useRef<THREE.Group>(null);
+  /* beams die off along their length like light through damp air */
+  const beamTex = useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = 2;
+    c.height = 64;
+    const ctx = c.getContext("2d")!;
+    const g = ctx.createLinearGradient(0, 0, 0, 64);
+    g.addColorStop(0, "rgba(255,255,255,0)"); // wide far end
+    g.addColorStop(0.25, "rgba(255,255,255,0.08)");
+    g.addColorStop(0.6, "rgba(255,255,255,0.32)");
+    g.addColorStop(1, "rgba(255,255,255,1)"); // apex (at the lamp)
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 2, 64);
+    return new THREE.CanvasTexture(c);
+  }, []);
   useFrame(({ clock }) => {
     if (lamp.current) lamp.current.intensity = 14 + Math.sin(clock.elapsedTime * 2.4) * 5;
     if (beam.current) beam.current.rotation.y = clock.elapsedTime * 0.5;
@@ -1206,12 +1577,20 @@ function Lighthouse() {
         <meshStandardMaterial color="#3A342C" roughness={0.6} />
       </mesh>
       <pointLight ref={lamp} position={[0, 6.5, 0]} intensity={MOOD.lampIntensity} distance={46} decay={2} color="#FFE2A8" />
-      {/* rotating light beams, hero of the night storm */}
-      <group ref={beam} position={[0, 6.45, 0]}>
+      {/* rotating light beams — invisible in clear daylight, hero of the night storm */}
+      <group ref={beam} position={[0, 6.45, 0]} visible={MOOD.night || MOOD.rainy}>
         {[0, Math.PI].map((a) => (
-          <mesh key={a} rotation={[0, a, Math.PI / 2]} position={[Math.cos(a) * 5.5, 0, Math.sin(a) * 5.5]}>
-            <coneGeometry args={[0.9, 11, 12, 1, true]} />
-            <meshBasicMaterial color="#FFE9C0" transparent opacity={MOOD.beamOpacity} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+          <mesh key={a} rotation={[0, a, Math.PI / 2]} position={[Math.cos(a) * 3.2, 0, Math.sin(a) * 3.2]}>
+            <coneGeometry args={[0.55, 6.4, 12, 1, true]} />
+            <meshBasicMaterial
+              color="#FFE9C0"
+              transparent
+              opacity={MOOD.beamOpacity * 0.9}
+              alphaMap={beamTex}
+              side={THREE.DoubleSide}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
           </mesh>
         ))}
       </group>
@@ -1670,14 +2049,18 @@ function World({
 
   return (
     <>
+      {quality === "high" && <SoftShadows size={16} samples={12} focus={0.55} />}
       <SkyDome />
+      <Clouds />
+      {!MOOD.night && <Birds />}
+      <DistantIsles />
 
       <directionalLight
         ref={light}
         castShadow
         intensity={MOOD.keyIntensity}
         color={MOOD.keyColor}
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={quality === "high" ? [4096, 4096] : [2048, 2048]}
         shadow-camera-near={1}
         shadow-camera-far={80}
         shadow-camera-left={-30}
@@ -1688,9 +2071,16 @@ function World({
       />
       <ambientLight intensity={MOOD.ambIntensity} color={MOOD.ambColor} />
       <hemisphereLight intensity={MOOD.hemiIntensity} color={MOOD.hemiSky} groundColor={MOOD.hemiGround} />
+      {/* cool rim light opposite the sun carves the silhouettes out */}
+      <directionalLight
+        intensity={MOOD.night ? 0.35 : 0.5}
+        color={MOOD.night ? "#4E6FA8" : "#BFD8F2"}
+        position={[26, 14, 30]}
+      />
       <Environment resolution={256} frames={1}>
         <Lightformer intensity={MOOD.envA} color={MOOD.envACol} position={[8, 6, 4]} scale={[10, 6, 1]} />
         <Lightformer intensity={MOOD.envB} color={MOOD.envBCol} position={[-9, 4, -4]} scale={[8, 5, 1]} />
+        <Lightformer intensity={MOOD.envB * 0.6} color={MOOD.skyTop} position={[0, 10, 0]} scale={[14, 14, 1]} rotation={[Math.PI / 2, 0, 0]} />
       </Environment>
 
       <CameraRig store={store} light={light} />
@@ -1712,18 +2102,23 @@ function World({
       <Dog store={store} />
 
       {MOOD.rainy && <Rain store={store} count={quality === "high" ? 750 : 320} />}
+      {MOOD.night && !MOOD.rainy && (
+        <Sparkles count={90} scale={[55, 5, 55]} position={[0, 2.5, 0]} size={2.8} speed={0.35} color="#FFD98A" opacity={0.85} />
+      )}
 
       {quality === "high" ? (
         <EffectComposer multisampling={4}>
-          <Bloom intensity={0.42} luminanceThreshold={0.82} luminanceSmoothing={0.2} mipmapBlur />
+          <Bloom intensity={0.55} luminanceThreshold={0.78} luminanceSmoothing={0.25} mipmapBlur />
           <ChromaticAberration offset={aberration} radialModulation modulationOffset={0.42} />
-          <Noise opacity={0.03} />
-          <Vignette eskil={false} offset={0.22} darkness={0.55} />
+          <HueSaturation saturation={0.14} />
+          <BrightnessContrast brightness={0.015} contrast={0.09} />
+          <Noise opacity={0.025} />
+          <Vignette eskil={false} offset={0.22} darkness={0.5} />
         </EffectComposer>
       ) : (
         <EffectComposer multisampling={0}>
-          <Bloom intensity={0.42} luminanceThreshold={0.82} luminanceSmoothing={0.2} mipmapBlur />
-          <Vignette eskil={false} offset={0.22} darkness={0.55} />
+          <Bloom intensity={0.5} luminanceThreshold={0.8} luminanceSmoothing={0.2} mipmapBlur />
+          <Vignette eskil={false} offset={0.22} darkness={0.5} />
         </EffectComposer>
       )}
     </>
@@ -1891,6 +2286,10 @@ export default function JourneyWorld() {
         dpr={quality === "high" ? [1, 2] : 1}
         camera={{ position: [30, 16, 55], fov: 40, near: 0.1, far: 900 }}
         gl={{ antialias: false, powerPreference: "high-performance" }}
+        onCreated={({ gl }) => {
+          gl.toneMapping = THREE.ACESFilmicToneMapping;
+          gl.toneMappingExposure = MOOD.night ? 1.02 : 1.12;
+        }}
       >
         <PerformanceMonitor onDecline={() => setQuality("low")}>
           <World store={store} onActive={onActive} onPizza={onPizza} quality={quality} />
