@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import JerryIcon from "../JerryIcon";
+import ParticleBrain from "./ParticleBrain";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -71,30 +72,26 @@ export default function JerryChat() {
 
   return (
     <main className="flex min-h-[100dvh] flex-col bg-cream">
-      {/* header */}
-      <header className="border-b border-line bg-surface/80 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center gap-4 px-5 py-4">
+      {/* header — Jerry himself, the particle brain */}
+      <header className="sticky top-0 z-30 border-b border-line bg-cream/90 backdrop-blur">
+        <div className="relative mx-auto max-w-3xl px-5 pb-3 pt-3">
           <Link
             href="/"
-            className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted transition-colors hover:text-accent"
+            className="absolute left-5 top-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted transition-colors hover:text-accent"
           >
             ← bytejay
           </Link>
-          <div className="ml-auto flex items-center gap-3">
-            <div className="text-right">
-              <p className="font-display text-sm font-bold leading-none tracking-tight">
-                Jerry
-              </p>
-              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
-                PRL / CORTEX companion
-              </p>
-            </div>
-            <div className="relative">
-              <JerryIcon className="h-9 w-9 text-ink" />
-              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent">
-                <span className="absolute inset-0 animate-ping rounded-full bg-accent opacity-60" />
-              </span>
-            </div>
+          <ParticleBrain
+            thinking={busy}
+            className="mx-auto h-32 w-full max-w-sm sm:h-40"
+          />
+          <div className="mt-1 text-center">
+            <p className="font-display text-lg font-bold leading-none tracking-tight">
+              Jerry
+            </p>
+            <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.22em] text-muted">
+              {busy ? "synapses firing…" : "PRL / CORTEX companion · online"}
+            </p>
           </div>
         </div>
       </header>
