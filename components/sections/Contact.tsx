@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { email, prlUrl, socials } from "@/lib/data";
-import JerryIcon from "../JerryIcon";
+import { email, socials } from "@/lib/data";
 import MagneticButton from "../MagneticButton";
 import Reveal from "../Reveal";
 import RollingText from "../RollingText";
@@ -62,21 +61,7 @@ export default function Contact() {
                 <span aria-hidden>↗</span>
               </MagneticButton>
             ))}
-            <MagneticButton
-              href={prlUrl}
-              newTab={prlUrl.startsWith("http")}
-              cursorLabel="PRL"
-              className="inline-flex h-[52px] w-[52px] items-center justify-center rounded-full border border-ink/20 bg-surface/70 text-ink backdrop-blur transition-colors hover:border-accent hover:text-accent"
-            >
-              <span className="sr-only">Jerry — visit PRL</span>
-              <JerryIcon className="h-6 w-6 transition-transform duration-300 group-hover:scale-110" />
-            </MagneticButton>
           </div>
-        </Reveal>
-        <Reveal delay={0.3}>
-          <p className="mt-4 font-hand text-lg text-muted">
-            the little brain is Jerry — he&apos;ll walk you into PRL
-          </p>
         </Reveal>
         <Reveal delay={0.34}>
           <p className="mt-14 font-hand text-2xl text-muted">

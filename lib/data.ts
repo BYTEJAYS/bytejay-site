@@ -98,13 +98,6 @@ export const interests = [
 
 export const email = "codes404z@gmail.com";
 
-/**
- * Where Jerry (the PRL companion) takes visitors.
- * Defaults to the built-in /jerry chat; NEXT_PUBLIC_PRL_URL overrides
- * it if the full PRL app gets its own deployment later.
- */
-export const prlUrl = process.env.NEXT_PUBLIC_PRL_URL || "/jerry";
-
 export const socials = [
   { name: "GitHub", href: "https://github.com/BYTEJAYS" },
   { name: "Instagram", href: "https://www.instagram.com/_bytejay_" },
