@@ -30,7 +30,7 @@ export default function Navbar() {
           className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-ink font-display text-xs font-bold text-cream transition-transform hover:rotate-[-8deg]"
           aria-label="ByteJay — back to top"
         >
-          BJ
+          ME
         </a>
         <div className="hidden items-center sm:flex">
           {links.map((link) => {

@@ -471,13 +471,6 @@ export default function AlbumClient() {
 
       {/* nav */}
       <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-5">
-        <a
-          href="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-cream font-display text-xs font-bold text-ink transition-transform hover:rotate-[-8deg]"
-          aria-label="ByteJay — back home"
-        >
-          BJ
-        </a>
         <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-cream/40">
           album / {String(PHOTOS.length).padStart(2, "0")} frames
         </span>
