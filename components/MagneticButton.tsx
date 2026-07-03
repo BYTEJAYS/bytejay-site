@@ -10,6 +10,7 @@ type Props = {
   children: React.ReactNode;
   strength?: number;
   cursorLabel?: string;
+  newTab?: boolean;
 };
 
 const spring = { type: "spring", stiffness: 180, damping: 15, mass: 0.4 } as const;
@@ -21,6 +22,7 @@ export default function MagneticButton({
   children,
   strength = 0.25,
   cursorLabel,
+  newTab = false,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -46,6 +48,8 @@ export default function MagneticButton({
       {href ? (
         <motion.a
           href={href}
+          target={newTab ? "_blank" : undefined}
+          rel={newTab ? "noopener noreferrer" : undefined}
           animate={{ x: offset.x, y: offset.y }}
           transition={spring}
           whileTap={{ scale: 0.97 }}
