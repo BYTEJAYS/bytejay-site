@@ -10,8 +10,9 @@
  * marks the journey's end.
  *
  * Everything is procedural: terrain heightfield with biome vertex colors,
- * shader ocean with shore foam, instanced trees and rocks, PBR materials,
- * filmic post-processing.
+ * shader ocean with shore foam and a twinkling glitter path, instanced
+ * trees, rocks, reeds and butterflies, an arrival dock with a moored
+ * rowboat, sailboats in the haze, PBR materials, filmic post-processing.
  *
  * ── EDIT YOUR STORY HERE: the MILESTONES array is the whole timeline. ──
  */
@@ -43,7 +44,7 @@ import {
 } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { easing } from "maath";
-import { sfxGreet, sfxReact, unlockAudio } from "@/lib/robotSfx";
+import { sfxReact, unlockAudio } from "@/lib/robotSfx";
 
 /* ── the story ──────────────────────────────────────────────────── */
 
@@ -215,17 +216,23 @@ const LIGHTHOUSE = (() => {
   return { x: Math.cos(a) * r, z: Math.sin(a) * r, y: terrainHeight(Math.cos(a) * r, Math.sin(a) * r) };
 })();
 
-/* the hidden pizza shack: far south shore, in the trees between two
-   cottages — an easter egg, so no beacon, you have to stumble onto it */
-const PIZZA = (() => {
-  const a = Math.PI / 2 + Math.PI; // midway between milestones 3 and 4
-  let r = 30;
-  while (r > 10 && terrainHeight(Math.cos(a) * r, Math.sin(a) * r) < 0.9) r -= 0.5;
-  r -= 1.5;
-  const x = Math.cos(a) * r;
-  const z = Math.sin(a) * r;
-  return { x, z, y: terrainHeight(x, z), yaw: Math.atan2(-x, -z) };
+/* the arrival dock: scan its shoreline for the waterline, then step
+   inland so the deck spans sand → open water */
+const DOCK = (() => {
+  const a = Math.PI / 2 - 0.85;
+  let waterR = 16;
+  for (let r = 16; r < ISLAND_R + 8; r += 0.3) {
+    if (terrainHeight(Math.cos(a) * r, Math.sin(a) * r) > -0.35) waterR = r;
+  }
+  const r0 = waterR - 2.0;
+  const x = Math.cos(a) * r0;
+  const z = Math.sin(a) * r0;
+  const inland = terrainHeight(Math.cos(a) * (r0 - 2.2), Math.sin(a) * (r0 - 2.2));
+  return { a, x, z, deckY: Math.max(0.72, inland + 0.32) };
 })();
+
+/* moving cloud shadows: how hard the drifting cover dims the ground */
+const CLOUD_SHADE = MOOD.night ? 0.1 : MOOD.rainy ? 0.12 : 0.22;
 
 const PLAYER_START = { x: 0, z: 15 };
 const START_HEADING = Math.atan2(SPOTS[0].x - PLAYER_START.x, SPOTS[0].z - PLAYER_START.z);
@@ -241,7 +248,6 @@ type Store = {
   speed: number;
   active: number;
   cineStart: number;
-  pizza: boolean;
 };
 
 /* ── canvas label textures ──────────────────────────────────────── */
@@ -324,10 +330,18 @@ function SkyDome() {
             vec3 col = mix(horizon, top, pow(elev, 0.55));
             col = mix(haze, col, smoothstep(-0.05, 0.10, nd.y));
             float md = dot(nd, moon);
+            // warm veil hugging the horizon on the light's side of the sky
+            float az = max(dot(normalize(vec3(nd.x, 0.0, nd.z)), normalize(vec3(moon.x, 0.0, moon.z))), 0.0);
+            col = mix(col, celCol, pow(az, 3.0) * (1.0 - smoothstep(0.0, 0.35, nd.y)) * ${MOOD.rainy ? "0.08" : MOOD.night ? "0.13" : "0.24"});
             // forward-scattering glow wrapping the light — the "wet air" look
             col += celCol * pow(max(md, 0.0), 6.0) * ${(MOOD.halo * 0.45).toFixed(3)};
-            // disc with a soft bloom-friendly core + tight halo
-            col += celCol * smoothstep(0.9985, 0.9997, md) * ${MOOD.disc.toFixed(2)};
+            // disc with a soft bloom-friendly core + tight halo; the moon
+            // carries faint maria mottling, the sun stays a clean ball
+            vec3 mxb = normalize(cross(moon, vec3(0.0, 1.0, 0.0)));
+            vec3 myb = cross(mxb, moon);
+            vec2 muv = vec2(dot(nd, mxb), dot(nd, myb)) * 230.0;
+            float mottle = ${MOOD.night ? "0.68 + 0.32 * vnoise(muv)" : "1.0"};
+            col += celCol * smoothstep(0.9985, 0.9997, md) * ${MOOD.disc.toFixed(2)} * mottle;
             col += celCol * 0.8 * smoothstep(0.990, 0.9995, md) * ${MOOD.halo.toFixed(2)};
             // high drifting cirrus, sun-tinted on the lit side
             if (nd.y > 0.02) {
@@ -342,7 +356,35 @@ function SkyDome() {
             vec3 sp = floor(nd * 240.0);
             float st = step(0.9992, hash13(sp));
             float tw = 0.6 + 0.4 * sin(uTime * (2.0 + hash13(sp + 1.0) * 4.0) + hash13(sp + 2.0) * 6.283);
-            col += vec3(0.82, 0.87, 1.0) * st * tw * smoothstep(0.10, 0.45, nd.y) * ${MOOD.stars.toFixed(2)};
+            col += vec3(0.82, 0.87, 1.0) * st * tw * smoothstep(0.10, 0.45, nd.y) * ${MOOD.stars.toFixed(2)};${
+              MOOD.night && !MOOD.rainy
+                ? `
+            // the galactic band arcing overhead, mottled by fbm dust lanes
+            vec3 mwN = normalize(vec3(0.52, 0.18, -0.83));
+            float band = 1.0 - smoothstep(0.0, 0.42, abs(dot(nd, mwN)));
+            float mwTex = fbm(nd.xz * 5.0 + nd.y * 3.0 + 31.0);
+            col += vec3(0.50, 0.58, 0.80) * band * band * (0.25 + 0.75 * mwTex) * smoothstep(0.06, 0.40, nd.y) * 0.15;
+            // aurora: green-violet curtains rippling low over the water,
+            // opposite the moon so the two never fight for the eye
+            float aaz = atan(nd.x, nd.z);
+            float acur = fbm(vec2(aaz * 7.0 + uTime * 0.02, nd.y * 2.2 - uTime * 0.045));
+            float aband = smoothstep(0.10, 0.30, nd.y) * (1.0 - smoothstep(0.34, 0.72, nd.y));
+            float adir = smoothstep(0.1, 0.85, dot(normalize(vec3(nd.x, 0.0, nd.z)), normalize(vec3(0.55, 0.0, 0.83))));
+            vec3 acol = mix(vec3(0.15, 0.85, 0.45), vec3(0.45, 0.25, 0.85), smoothstep(0.12, 0.55, nd.y));
+            col += acol * acur * acur * aband * adir * 0.28;`
+                : ""
+            }${
+              MOOD.rainy && !MOOD.night
+                ? `
+            // a quiet rainbow standing against the grey, opposite the sun
+            float ad = dot(nd, -moon);
+            vec3 rb = vec3(
+              exp(-pow((ad - 0.7385) * 90.0, 2.0)),
+              exp(-pow((ad - 0.7513) * 90.0, 2.0)),
+              exp(-pow((ad - 0.7638) * 90.0, 2.0)));
+            col += rb * 0.14 * smoothstep(0.0, 0.14, nd.y);`
+                : ""
+            }
             gl_FragColor = vec4(col, 1.0);
           }
         `}
@@ -720,9 +762,11 @@ function Ocean({ quality }: { quality: "high" | "low" }) {
             slope += (n1 * 0.85 + n2 * 0.55) * (0.10 + 0.90 * da);
             vec3 N = normalize(vec3(-slope.x, 1.0, -slope.y));
 
-            // ── base color: depth gradient + wave-top subsurface glow
+            // ── base color: depth gradient + wave-top subsurface glow;
+            // crests turn translucent-green when you look toward the light
             vec3 col = mix(deep, shallow, shore);
-            col += shallow * max(vWave, 0.0) * 0.35;
+            float trans = pow(clamp((1.0 - dot(V, sunDir)) * 0.5, 0.0, 1.0), 2.0);
+            col += shallow * max(vWave, 0.0) * (0.28 + 0.55 * trans);
 
             // ── fresnel reflection: live mirrored scene, analytic sky fallback
             float fres = pow(1.0 - max(dot(N, V), 0.0), 5.0);
@@ -738,16 +782,19 @@ function Ocean({ quality }: { quality: "high" | "low" }) {
             }
             col = mix(col, skyRef, fres);
 
-            // ── the light's glitter path: tight spec + broad streak
+            // ── the light's glitter path: tight spec + broad streak, with a
+            // drifting shimmer field so the sparkles twinkle in and out
             vec3 H = normalize(V + sunDir);
             float spec = pow(max(dot(N, H), 0.0), 340.0);
             float streak = pow(max(dot(N, H), 0.0), 28.0);
+            float shimmer = 0.55 + 0.9 * vnoise(vXZ * 5.0 + vec2(t * 1.1, -t * 0.8));
             // the glitter path swells and settles with the island's breath
-            col += sunCol * (spec * ${(MOOD.night ? 2.6 : 3.2).toFixed(1)} + streak * ${(MOOD.night ? 0.22 : 0.30).toFixed(2)} * (0.75 + 0.5 * uBreath)) * ${MOOD.rainy ? "0.35" : "1.0"};
+            col += sunCol * (spec * shimmer * ${(MOOD.night ? 2.6 : 3.2).toFixed(1)} + streak * ${(MOOD.night ? 0.22 : 0.30).toFixed(2)} * (0.75 + 0.5 * uBreath)) * ${MOOD.rainy ? "0.35" : "1.0"};
 
-            // ── whitecaps riding the tallest swell crests only
+            // ── whitecaps riding the tallest swell crests, torn into lace
             float crest = smoothstep(0.24, 0.40, vWave + (r1 - 0.5) * 0.06 * da);
-            col = mix(col, foam, crest * ${MOOD.rainy ? "0.40" : "0.25"});
+            crest *= 0.45 + 0.75 * vnoise(vXZ * 4.2 - vec2(t * 0.5, t * 0.33));
+            col = mix(col, foam, crest * ${MOOD.rainy ? "0.55" : "0.38"});
 
             // ── breathing foam ring hugging the shore, broken up by noise
             float ang = atan(vXZ.y, vXZ.x);
@@ -835,10 +882,13 @@ function Terrain() {
     return g;
   }, []);
 
+  const shaderRef = useRef<{ uniforms: { uTime: { value: number } } } | null>(null);
+
   const mat = useMemo(() => {
     const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.94, metalness: 0.02 });
     // world-space micro grain so the ground has tooth up close
     m.onBeforeCompile = (shader) => {
+      shader.uniforms.uTime = { value: 0 };
       shader.vertexShader = shader.vertexShader
         .replace(
           "#include <common>",
@@ -853,6 +903,7 @@ function Terrain() {
           "#include <common>",
           `#include <common>
           varying vec3 vWPos;
+          uniform float uTime;
           float thash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
           float tnoise(vec2 p) {
             vec2 i = floor(p); vec2 f = fract(p);
@@ -866,7 +917,11 @@ function Terrain() {
           `#include <color_fragment>
           float grain = tnoise(vWPos.xz * 3.1) * 0.6 + tnoise(vWPos.xz * 9.7) * 0.4;
           float dfade = clamp(1.0 - length(vWPos.xz - cameraPosition.xz) / 70.0, 0.0, 1.0);
-          diffuseColor.rgb *= 1.0 + (grain - 0.5) * 0.16 * dfade;`
+          diffuseColor.rgb *= 1.0 + (grain - 0.5) * 0.16 * dfade;
+          // drifting cloud shadows sweeping the whole island
+          float cs1 = tnoise(vWPos.xz * 0.02 + vec2(uTime * 0.014, uTime * 0.006));
+          float cs2 = tnoise(vWPos.xz * 0.045 - vec2(uTime * 0.009, uTime * 0.011));
+          diffuseColor.rgb *= 1.0 - smoothstep(0.52, 0.95, cs1 * 0.65 + cs2 * 0.35) * ${CLOUD_SHADE.toFixed(2)};`
         )
         .replace(
           "#include <normal_fragment_begin>",
@@ -885,9 +940,16 @@ function Terrain() {
             normal = normalize(normal + (viewMatrix * vec4(bumpW, 0.0)).xyz);
           }`
         );
+      shaderRef.current = shader as unknown as {
+        uniforms: { uTime: { value: number } };
+      };
     };
     return m;
   }, []);
+
+  useFrame(({ clock }) => {
+    if (shaderRef.current) shaderRef.current.uniforms.uTime.value = clock.elapsedTime;
+  });
 
   return <mesh geometry={geo} material={mat} receiveShadow castShadow />;
 }
@@ -920,17 +982,24 @@ function scatter(count: number, seed: number, ok: (h: number, slope: number) => 
     const nearSpot = SPOTS.some((s) => Math.hypot(s.x - x, s.z - z) < 8);
     const nearLight = Math.hypot(LIGHTHOUSE.x - x, LIGHTHOUSE.z - z) < 7;
     const nearStart = Math.hypot(PLAYER_START.x - x, PLAYER_START.z - z) < 7;
-    const nearPizza = Math.hypot(PIZZA.x - x, PIZZA.z - z) < 4;
-    if (!nearSpot && !nearLight && !nearStart && !nearPizza && ok(h, slope)) {
+    if (!nearSpot && !nearLight && !nearStart && ok(h, slope)) {
       out.push({ x, z, y: h, s: 0.7 + hash2(i, seed) * 0.7, r: hash2(i * 2, seed) * Math.PI * 2 });
     }
   }
   return out;
 }
 
-const TREE_SPOTS = scatter(110, 3, (h, slope) => h > 0.9 && h < 6.2 && slope < 0.5).map(
-  (t, i) => ({ ...t, conifer: hash2(i * 7 + 3, 19) > 0.35 })
-);
+const TREE_SPOTS = [
+  ...scatter(110, 3, (h, slope) => h > 0.9 && h < 6.2 && slope < 0.5).map(
+    (t, i) => ({ ...t, conifer: hash2(i * 7 + 3, 19) > 0.35 })
+  ),
+  // stunted wind-bitten pines climbing toward the snowline
+  ...scatter(14, 23, (h, slope) => h > 6.0 && h < 8.3 && slope < 0.6).map((t) => ({
+    ...t,
+    s: 0.55 + (t.s - 0.7) * 0.5,
+    conifer: true,
+  })),
+];
 const CONIFERS = TREE_SPOTS.filter((t) => t.conifer);
 const LEAFY = TREE_SPOTS.filter((t) => !t.conifer);
 
@@ -938,7 +1007,7 @@ const LEAFY = TREE_SPOTS.filter((t) => !t.conifer);
 const SOLIDS = [
   ...SPOTS.map((s) => ({ x: s.x, z: s.z, r: 2.4 })),
   { x: LIGHTHOUSE.x, z: LIGHTHOUSE.z, r: 2.6 },
-  { x: PIZZA.x, z: PIZZA.z, r: 1.5 },
+  { x: DOCK.x, z: DOCK.z, r: 1.5 },
   ...TREE_SPOTS.map((t) => ({ x: t.x, z: t.z, r: 0.26 * t.s })),
 ];
 
@@ -954,7 +1023,9 @@ function Trees() {
 
   useEffect(() => {
     const col = new THREE.Color();
-    /* conifers: tapered trunk + colors per tier (darker at the base) */
+    const frostC = new THREE.Color("#E6EDF2");
+    /* conifers: tapered trunk + colors per tier (darker at the base);
+       trees near the snowline get frost-dusted, heaviest at the crown */
     CONIFERS.forEach((p, i) => {
       dummy.position.set(p.x, p.y + 0.55 * p.s, p.z);
       dummy.rotation.set(0, p.r, 0);
@@ -962,9 +1033,10 @@ function Trees() {
       dummy.updateMatrix();
       trunkC.current!.setMatrixAt(i, dummy.matrix);
       const shade = 0.85 + hash2(i, 4) * 0.3;
-      tier1.current!.setColorAt(i, col.set("#2C4E22").multiplyScalar(shade));
-      tier2.current!.setColorAt(i, col.set("#37602A").multiplyScalar(shade));
-      tier3.current!.setColorAt(i, col.set("#437434").multiplyScalar(shade));
+      const frost = THREE.MathUtils.smoothstep(p.y, 5.2, 8.2) * 0.85;
+      tier1.current!.setColorAt(i, col.set("#2C4E22").multiplyScalar(shade).lerp(frostC, frost * 0.7));
+      tier2.current!.setColorAt(i, col.set("#37602A").multiplyScalar(shade).lerp(frostC, frost * 0.85));
+      tier3.current!.setColorAt(i, col.set("#437434").multiplyScalar(shade).lerp(frostC, frost));
     });
     /* leafy trees: taller trunk + warm-green canopy blobs */
     LEAFY.forEach((p, i) => {
@@ -1434,8 +1506,314 @@ function DistantIsles() {
             <sphereGeometry args={[1, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2]} />
             <meshStandardMaterial color={MOOD.night ? "#1C2836" : "#54695C"} roughness={1} />
           </mesh>
+          {/* the tallest sister wears a snow peak, barely there in the haze */}
+          {i === 1 && (
+            <mesh position={[f.w * 0.35, f.h * 1.02, 0]} scale={[f.w * 0.26, f.h * 0.48, f.w * 0.23]}>
+              <sphereGeometry args={[1, 10, 7, 0, Math.PI * 2, 0, Math.PI / 2]} />
+              <meshStandardMaterial color={MOOD.night ? "#3E4E62" : "#E8EDF2"} roughness={1} />
+            </mesh>
+          )}
         </group>
       ))}
+    </>
+  );
+}
+
+/* ── far sailboats crossing the haze ────────────────────────────── */
+
+const SAILBOATS = [
+  { r: 92, speed: 0.016, phase: 1.2, s: 1.0 },
+  { r: 128, speed: -0.01, phase: 4.1, s: 1.5 },
+];
+
+function Sailboats() {
+  const refs = useRef<(THREE.Group | null)[]>([]);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    SAILBOATS.forEach((b, i) => {
+      const g = refs.current[i];
+      if (!g) return;
+      const a = b.phase + t * b.speed;
+      g.position.set(
+        Math.cos(a) * b.r,
+        Math.sin(t * 0.7 + i * 2.3) * 0.09 - 0.04,
+        Math.sin(a) * b.r
+      );
+      // bow along the flight path, heeling gently into the wind
+      g.rotation.y = -a + (b.speed > 0 ? 0 : Math.PI);
+      g.rotation.z = 0.06 + Math.sin(t * 0.5 + i) * 0.04;
+      g.rotation.x = Math.sin(t * 0.62 + i * 1.7) * 0.025;
+    });
+  });
+  const hullC = MOOD.night ? "#243244" : "#6E4630";
+  const sailC = MOOD.night ? "#93A7C6" : "#F3ECDB";
+  return (
+    <>
+      {SAILBOATS.map((b, i) => (
+        <group
+          key={i}
+          ref={(g) => {
+            refs.current[i] = g;
+          }}
+          scale={b.s}
+        >
+          <mesh position={[0, 0.35, 0]}>
+            <boxGeometry args={[0.8, 0.55, 3.1]} />
+            <meshStandardMaterial color={hullC} roughness={0.85} />
+          </mesh>
+          <mesh position={[0, 0.35, 1.85]} rotation={[Math.PI / 2, 0, 0]}>
+            <coneGeometry args={[0.4, 0.9, 6]} />
+            <meshStandardMaterial color={hullC} roughness={0.85} />
+          </mesh>
+          <mesh position={[0, 2.1, 0.2]}>
+            <cylinderGeometry args={[0.05, 0.07, 3.6, 6]} />
+            <meshStandardMaterial color="#4A3626" roughness={0.9} />
+          </mesh>
+          <mesh position={[0, 2.15, -0.5]} scale={[0.28, 1, 1]}>
+            <coneGeometry args={[1.05, 2.7, 3]} />
+            <meshStandardMaterial color={sailC} roughness={0.6} />
+          </mesh>
+          <mesh position={[0, 1.85, 1.0]} scale={[0.22, 1, 1]}>
+            <coneGeometry args={[0.7, 2.0, 3]} />
+            <meshStandardMaterial color={sailC} roughness={0.6} />
+          </mesh>
+          {MOOD.night && (
+            <mesh position={[0, 3.95, 0.2]}>
+              <sphereGeometry args={[0.09, 6, 5]} />
+              <meshBasicMaterial color="#FFD9A0" toneMapped={false} />
+            </mesh>
+          )}
+        </group>
+      ))}
+    </>
+  );
+}
+
+/* ── the arrival dock: weathered planks + the rowboat that brought
+   you here, moored and bobbing ──────────────────────────────────── */
+
+function Dock() {
+  const boat = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    const g = boat.current;
+    if (!g) return;
+    g.position.y = 0.06 + Math.sin(t * 0.85) * 0.05 + Math.sin(t * 1.6 + 1.1) * 0.025;
+    g.rotation.z = Math.sin(t * 0.75 + 0.6) * 0.045;
+    g.rotation.x = Math.sin(t * 0.55) * 0.035;
+  });
+  const deck = DOCK.deckY;
+  return (
+    <group position={[DOCK.x, 0, DOCK.z]} rotation={[0, Math.PI / 2 - DOCK.a, 0]}>
+      {/* planks, each slightly off-true like they were nailed by hand */}
+      {Array.from({ length: 10 }, (_, k) => (
+        <mesh
+          key={k}
+          position={[0, deck + (hash2(k, 141) - 0.5) * 0.035, -1.6 + k * 0.68]}
+          rotation={[0, (hash2(k, 142) - 0.5) * 0.06, 0]}
+          castShadow
+          receiveShadow
+        >
+          <boxGeometry args={[1.8, 0.09, 0.58]} />
+          <meshStandardMaterial color={k % 2 ? "#8A6A44" : "#94744C"} roughness={0.92} />
+        </mesh>
+      ))}
+      {/* stringers under the planks */}
+      {[-0.62, 0.62].map((px) => (
+        <mesh key={px} position={[px, deck - 0.12, 1.4]}>
+          <boxGeometry args={[0.14, 0.14, 6.9]} />
+          <meshStandardMaterial color="#6E4E30" roughness={0.95} />
+        </mesh>
+      ))}
+      {/* piles driven into the seabed */}
+      {[-1.3, 0.7, 2.7, 4.5].map((pz) =>
+        [-0.86, 0.86].map((px) => (
+          <mesh key={`${px}:${pz}`} position={[px, deck - 0.85, pz]} castShadow>
+            <cylinderGeometry args={[0.09, 0.12, 2.4, 7]} />
+            <meshStandardMaterial color="#5E432A" roughness={0.95} />
+          </mesh>
+        ))
+      )}
+      {/* lantern on the last pile */}
+      <mesh position={[0.86, deck + 0.55, 4.5]}>
+        <boxGeometry args={[0.2, 0.26, 0.2]} />
+        <meshStandardMaterial
+          color="#3A2E20"
+          emissive="#FFC66B"
+          emissiveIntensity={MOOD.windowGlow * 1.4}
+        />
+      </mesh>
+      <pointLight position={[0.86, deck + 0.8, 4.5]} intensity={MOOD.lantern} distance={7} decay={2} color="#FFC98E" />
+      {/* the rowboat */}
+      <group ref={boat} position={[1.9, 0.06, 3.3]} rotation={[0, 0.4, 0]}>
+        <RoundedBox args={[0.95, 0.5, 2.15]} radius={0.16} castShadow>
+          <meshStandardMaterial color="#7A4A2E" roughness={0.85} />
+        </RoundedBox>
+        <mesh position={[0, 0.16, 0]}>
+          <boxGeometry args={[0.62, 0.22, 1.75]} />
+          <meshStandardMaterial color="#33241A" roughness={0.95} />
+        </mesh>
+        {[-0.45, 0.45].map((bz) => (
+          <mesh key={bz} position={[0, 0.2, bz]}>
+            <boxGeometry args={[0.72, 0.055, 0.24]} />
+            <meshStandardMaterial color="#A87C50" roughness={0.85} />
+          </mesh>
+        ))}
+        {/* oar laid across the benches */}
+        <mesh position={[0.16, 0.28, 0.15]} rotation={[0, 0.35, Math.PI / 2]}>
+          <cylinderGeometry args={[0.024, 0.024, 1.85, 6]} />
+          <meshStandardMaterial color="#B08A58" roughness={0.85} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+/* ── shore reeds: cattail clusters leaning in the wind ──────────── */
+
+const REEDS = scatter(84, 29, (h, slope) => h > 0.26 && h < 0.75 && slope < 0.5);
+
+function Reeds() {
+  const stalks = useRef<THREE.InstancedMesh>(null);
+  const heads = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const tip = useMemo(() => new THREE.Vector3(), []);
+
+  useEffect(() => {
+    const col = new THREE.Color();
+    REEDS.forEach((_, i) => {
+      stalks.current!.setColorAt(i, col.set("#6B7F3E").multiplyScalar(0.8 + hash2(i, 31) * 0.4));
+      heads.current!.setColorAt(i, col.set("#5C3A22").multiplyScalar(0.85 + hash2(i, 32) * 0.3));
+    });
+    for (const r of [stalks, heads])
+      if (r.current!.instanceColor) r.current!.instanceColor.needsUpdate = true;
+  }, []);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    if (!stalks.current || !heads.current) return;
+    const gust = 0.5 + BREATH.gust * (MOOD.rainy ? 1.1 : 0.7);
+    REEDS.forEach((p, i) => {
+      const lean = Math.sin(t * 1.4 + p.x * 0.6 + p.z * 0.4) * 0.09 * gust + 0.04;
+      dummy.position.set(p.x, p.y + 0.42 * p.s, p.z);
+      dummy.rotation.set(0, p.r, lean);
+      dummy.scale.setScalar(p.s);
+      dummy.updateMatrix();
+      stalks.current!.setMatrixAt(i, dummy.matrix);
+      // the cattail head rides the stalk tip
+      tip.set(0, 0.46, 0).applyMatrix4(dummy.matrix);
+      dummy.position.copy(tip);
+      dummy.updateMatrix();
+      heads.current!.setMatrixAt(i, dummy.matrix);
+    });
+    stalks.current.instanceMatrix.needsUpdate = true;
+    heads.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <>
+      <instancedMesh ref={stalks} args={[undefined, undefined, REEDS.length]} frustumCulled={false}>
+        <cylinderGeometry args={[0.012, 0.026, 0.85, 5]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={heads} args={[undefined, undefined, REEDS.length]} frustumCulled={false}>
+        <capsuleGeometry args={[0.035, 0.14, 3, 6]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.9} />
+      </instancedMesh>
+    </>
+  );
+}
+
+/* ── butterflies: the meadow's day shift (clear days only) ──────── */
+
+const BUTTERFLY_TINTS = ["#F6A23B", "#E86A92", "#9CC7F2", "#F2E6C8", "#C98BE8"];
+const BUTTERFLIES = Array.from({ length: 26 }, (_, i) => {
+  // anchor over grassy ground, like the fireflies do at night
+  let x = 0;
+  let z = 0;
+  let h = -1;
+  let guard = 0;
+  while ((h < 0.9 || h > 5.5) && guard < 40) {
+    x = (hash2(i * 11 + guard, 121) - 0.5) * 2 * (ISLAND_R - 8);
+    z = (hash2(i * 5 + guard * 7, 77) - 0.5) * 2 * (ISLAND_R - 8);
+    h = terrainHeight(x, z);
+    guard++;
+  }
+  return {
+    x,
+    z,
+    y: h,
+    r1: 1.0 + hash2(i, 122) * 2.4,
+    r2: 0.7 + hash2(i, 123) * 1.5,
+    s1: 0.1 + hash2(i, 124) * 0.22,
+    s2: 0.14 + hash2(i, 125) * 0.3,
+    ph: hash2(i, 126) * Math.PI * 2,
+    flap: 8 + hash2(i, 127) * 8,
+    s: 0.75 + hash2(i, 128) * 0.6,
+  };
+});
+
+function Butterflies() {
+  const wingL = useRef<THREE.InstancedMesh>(null);
+  const wingR = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  /* each wing is a small quad hinged at the body line */
+  const geoL = useMemo(() => {
+    const g = new THREE.PlaneGeometry(0.17, 0.12);
+    g.rotateX(-Math.PI / 2);
+    g.translate(-0.095, 0, 0);
+    return g;
+  }, []);
+  const geoR = useMemo(() => {
+    const g = new THREE.PlaneGeometry(0.17, 0.12);
+    g.rotateX(-Math.PI / 2);
+    g.translate(0.095, 0, 0);
+    return g;
+  }, []);
+
+  useEffect(() => {
+    const col = new THREE.Color();
+    BUTTERFLIES.forEach((_, i) => {
+      col
+        .set(BUTTERFLY_TINTS[i % BUTTERFLY_TINTS.length])
+        .multiplyScalar(0.85 + hash2(i, 129) * 0.3);
+      wingL.current!.setColorAt(i, col);
+      wingR.current!.setColorAt(i, col);
+    });
+    for (const r of [wingL, wingR])
+      if (r.current!.instanceColor) r.current!.instanceColor.needsUpdate = true;
+  }, []);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    if (!wingL.current || !wingR.current) return;
+    BUTTERFLIES.forEach((b, i) => {
+      const wx = b.x + Math.sin(t * b.s1 + b.ph) * b.r1 + Math.sin(t * b.s2 * 1.9 + b.ph * 2.1) * 0.5;
+      const wz = b.z + Math.cos(t * b.s2 + b.ph * 1.4) * b.r2 + Math.cos(t * b.s1 * 2.3 + b.ph) * 0.5;
+      const wy = b.y + 1.0 + Math.sin(t * 0.55 + b.ph * 2.7) * 0.45 + Math.sin(t * 2.2 + b.ph) * 0.12;
+      const hd = b.ph + t * 0.4 + Math.sin(t * 0.6 + b.ph) * 1.1;
+      const flap = Math.sin(t * b.flap + b.ph * 3.0) * 0.95 + 0.15;
+      dummy.position.set(wx, wy, wz);
+      dummy.scale.setScalar(b.s);
+      dummy.rotation.set(0, hd, flap);
+      dummy.updateMatrix();
+      wingR.current!.setMatrixAt(i, dummy.matrix);
+      dummy.rotation.set(0, hd, -flap);
+      dummy.updateMatrix();
+      wingL.current!.setMatrixAt(i, dummy.matrix);
+    });
+    wingL.current.instanceMatrix.needsUpdate = true;
+    wingR.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <>
+      <instancedMesh ref={wingL} args={[geoL, undefined, BUTTERFLIES.length]} frustumCulled={false}>
+        <meshBasicMaterial side={THREE.DoubleSide} />
+      </instancedMesh>
+      <instancedMesh ref={wingR} args={[geoR, undefined, BUTTERFLIES.length]} frustumCulled={false}>
+        <meshBasicMaterial side={THREE.DoubleSide} />
+      </instancedMesh>
     </>
   );
 }
@@ -1469,7 +1847,6 @@ const GRASS_DATA = (() => {
       const z = -span + (j + 0.5) * cell;
       if (SPOTS.some((s) => (s.x - x) ** 2 + (s.z - z) ** 2 < 3.1 ** 2)) continue;
       if ((LIGHTHOUSE.x - x) ** 2 + (LIGHTHOUSE.z - z) ** 2 < 3.2 ** 2) continue;
-      if ((PIZZA.x - x) ** 2 + (PIZZA.z - z) ** 2 < 2.6 ** 2) continue;
       eligible.push(j * RES + i);
     }
 
@@ -1608,12 +1985,31 @@ function Grass({ dense }: { dense: boolean }) {
     m.onBeforeCompile = (shader) => {
       shader.uniforms.uTime = { value: 0 };
       shader.uniforms.uGust = { value: 0.5 };
-      shader.vertexShader = ("uniform float uTime;\nuniform float uGust;\nvarying float vTip;\n" + shader.vertexShader).replace(
+      shader.vertexShader = (
+        `uniform float uTime;
+        uniform float uGust;
+        varying float vTip;
+        varying float vCloud;
+        float ghash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float gnoise(vec2 p) {
+          vec2 i = floor(p); vec2 f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(mix(ghash(i), ghash(i + vec2(1, 0)), u.x),
+                     mix(ghash(i + vec2(0, 1)), ghash(i + vec2(1, 1)), u.x), u.y);
+        }
+        ` + shader.vertexShader
+      ).replace(
         "#include <begin_vertex>",
         `#include <begin_vertex>
         vTip = position.y;
+        vCloud = 1.0;
         #ifdef USE_INSTANCING
           vec2 ip = vec2(instanceMatrix[3][0], instanceMatrix[3][2]);
+          // the same drifting cloud-shadow field the terrain samples,
+          // computed per tuft so the meadow darkens with the ground
+          float gcs1 = gnoise(ip * 0.02 + vec2(uTime * 0.014, uTime * 0.006));
+          float gcs2 = gnoise(ip * 0.045 - vec2(uTime * 0.009, uTime * 0.011));
+          vCloud = 1.0 - smoothstep(0.52, 0.95, gcs1 * 0.65 + gcs2 * 0.35) * ${CLOUD_SHADE.toFixed(2)};
           // calm traveling wave + per-blade phase from its offset in the tuft
           float ph = ip.x * 0.38 + ip.y * 0.30 + (position.x + position.z) * 2.4;
           float w = sin(uTime * 1.6 + ph) * 0.60
@@ -1627,12 +2023,12 @@ function Grass({ dense }: { dense: boolean }) {
           transformed.z += cos(uTime * 1.2 + ip.y * 0.5 + position.z * 4.0) * 0.25 * bend;
         #endif`
       );
-      shader.fragmentShader = ("varying float vTip;\n" + shader.fragmentShader).replace(
+      shader.fragmentShader = ("varying float vTip;\nvarying float vCloud;\n" + shader.fragmentShader).replace(
         "#include <color_fragment>",
         `#include <color_fragment>
         // shadowed roots, sunlit tips — the classic meadow gradient
         float tip = smoothstep(0.0, 0.32, vTip);
-        diffuseColor.rgb *= 0.84 + tip * 0.42;
+        diffuseColor.rgb *= (0.84 + tip * 0.42) * vCloud;
         diffuseColor.g += tip * 0.05;`
       );
       shaderRef.current = shader as unknown as {
@@ -1743,11 +2139,19 @@ function Flowers() {
 
 /* ── milestone cottage: warm windows in the storm ───────────────── */
 
+const SMOKE_N = 5;
+const SMOKE_CYC = 6.5;
+const SMOKE_C = MOOD.night ? "#55617A" : MOOD.rainy ? "#C9CDD1" : "#EDE8DF";
+const SMOKE_O = MOOD.night ? 0.3 : MOOD.rainy ? 0.32 : 0.24;
+
 function Station({ i, m, store }: { i: number; m: Milestone; store: Store }) {
   const spot = SPOTS[i];
   const winMat = useRef<THREE.MeshStandardMaterial>(null);
   const ringRef = useRef<THREE.Group>(null);
   const porchLight = useRef<THREE.PointLight>(null);
+  const puffs = useRef<(THREE.Sprite | null)[]>([]);
+  const puffMats = useRef<(THREE.SpriteMaterial | null)[]>([]);
+  const smokeTex = useMemo(() => makePuffTexture(), []);
   const yearTex = useMemo(() => makeLabel(m.year), [m.year]);
   const yaw = Math.atan2(-spot.x, -spot.z); // door faces the island interior
 
@@ -1769,6 +2173,24 @@ function Station({ i, m, store }: { i: number; m: Milestone; store: Store }) {
     if (ringRef.current) {
       ringRef.current.rotation.y = t * 0.4 + i;
       ringRef.current.position.y = 1.7 + Math.sin(t * 0.7 + i * 2.1) * 0.14;
+    }
+    // chimney smoke: each puff loops birth → drift → fade on its own lag
+    for (let k = 0; k < SMOKE_N; k++) {
+      const s = puffs.current[k];
+      const mt = puffMats.current[k];
+      if (!s || !mt) continue;
+      const p = ((t * 0.9 + k * (SMOKE_CYC / SMOKE_N) + i * 2.3) % SMOKE_CYC) / SMOKE_CYC;
+      s.position.set(
+        -0.55 + p * p * 1.1,
+        3.25 + p * 2.3,
+        Math.sin(p * 9.0 + i) * 0.15
+      );
+      const sc = 0.22 + p * 0.85;
+      s.scale.set(sc, sc * 0.8, 1);
+      mt.opacity =
+        (p < 0.18 ? p / 0.18 : 1 - (p - 0.18) / 0.82) *
+        SMOKE_O *
+        (0.8 + 0.2 * Math.sin(t * 0.5 + i));
     }
   });
 
@@ -1835,6 +2257,28 @@ function Station({ i, m, store }: { i: number; m: Milestone; store: Store }) {
           <boxGeometry args={[0.36, 0.1, 0.36]} />
           <meshStandardMaterial color="#8A4C28" roughness={0.9} />
         </mesh>
+        {/* woodsmoke curling out of the chimney, bent by the wind */}
+        {Array.from({ length: SMOKE_N }, (_, k) => (
+          <sprite
+            key={k}
+            ref={(s) => {
+              puffs.current[k] = s;
+            }}
+            position={[-0.55, 3.3, 0]}
+          >
+            <spriteMaterial
+              ref={(mt) => {
+                puffMats.current[k] = mt;
+              }}
+              map={smokeTex}
+              color={SMOKE_C}
+              transparent
+              opacity={0}
+              depthWrite={false}
+              rotation={k * 1.3}
+            />
+          </sprite>
+        ))}
         {/* porch awning over the door */}
         <mesh position={[0, 1.42, 0.99]} rotation={[0, 0, Math.PI / 2]} scale={[0.32, 1, 0.42]} castShadow>
           <cylinderGeometry args={[0.85, 0.85, 1.0, 3, 1]} />
@@ -1939,78 +2383,6 @@ function Station({ i, m, store }: { i: number; m: Milestone; store: Store }) {
       </group>
       <pointLight ref={porchLight} position={[0, 1.5, 1.9]} intensity={7} distance={10} decay={2} color="#FFC98E" />
       <Sparkles count={10} scale={[4, 3, 4]} size={2.2} speed={0.3} color={ACCENT} position={[0, 2, 0]} />
-    </group>
-  );
-}
-
-/* ── the hidden pizza shack (easter egg) ────────────────────────── */
-
-function PizzaShack() {
-  const sign = useRef<THREE.Group>(null);
-  useFrame(({ clock }) => {
-    if (sign.current) sign.current.rotation.y = Math.sin(clock.elapsedTime * 0.9) * 0.18;
-  });
-  return (
-    <group position={[PIZZA.x, PIZZA.y, PIZZA.z]} rotation={[0, PIZZA.yaw, 0]}>
-      {/* stone pad */}
-      <mesh receiveShadow position={[0, 0.12, 0]}>
-        <cylinderGeometry args={[1.7, 2.0, 0.34, 8]} />
-        <meshStandardMaterial color="#8F8268" flatShading roughness={0.95} />
-      </mesh>
-      {/* shack */}
-      <RoundedBox args={[1.7, 1.3, 1.4]} radius={0.04} position={[0, 0.92, 0]} castShadow>
-        <meshStandardMaterial color="#D9C9A0" roughness={0.85} />
-      </RoundedBox>
-      <mesh position={[0, 1.62, 0]} castShadow>
-        <boxGeometry args={[1.9, 0.14, 1.6]} />
-        <meshStandardMaterial color="#4A3226" roughness={0.85} />
-      </mesh>
-      {/* serving window, warm and lit */}
-      <mesh position={[0, 0.95, 0.69]}>
-        <boxGeometry args={[0.85, 0.5, 0.06]} />
-        <meshStandardMaterial color="#5A452A" emissive="#FFC66B" emissiveIntensity={MOOD.windowGlow} />
-      </mesh>
-      <mesh position={[0, 0.66, 0.76]} castShadow>
-        <boxGeometry args={[1.0, 0.08, 0.24]} />
-        <meshStandardMaterial color="#8A5A2E" roughness={0.85} />
-      </mesh>
-      {/* striped awning */}
-      {[-0.36, -0.18, 0, 0.18, 0.36].map((ax, i) => (
-        <mesh key={ax} position={[ax * 2, 1.36, 0.92]} rotation={[0.5, 0, 0]} castShadow>
-          <boxGeometry args={[0.36, 0.04, 0.55]} />
-          <meshStandardMaterial color={i % 2 === 0 ? "#C0392B" : "#EFE6D2"} roughness={0.8} />
-        </mesh>
-      ))}
-      {/* swinging pizza sign on a pole */}
-      <mesh position={[1.05, 1.1, 0.6]} castShadow>
-        <cylinderGeometry args={[0.04, 0.05, 2.2, 8]} />
-        <meshStandardMaterial color="#6E4A2C" roughness={0.9} />
-      </mesh>
-      <group ref={sign} position={[1.05, 2.28, 0.6]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.46, 0.46, 0.07, 20]} />
-          <meshStandardMaterial color="#D8A85A" roughness={0.75} />
-        </mesh>
-        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.045]}>
-          <cylinderGeometry args={[0.36, 0.36, 0.02, 20]} />
-          <meshStandardMaterial color="#F2C94C" emissive="#B8862E" emissiveIntensity={0.4} roughness={0.7} />
-        </mesh>
-        {[0, 1, 2, 3, 4].map((k) => (
-          <mesh
-            key={k}
-            rotation={[Math.PI / 2, 0, 0]}
-            position={[
-              Math.cos((k / 5) * Math.PI * 2 + 0.6) * 0.19,
-              Math.sin((k / 5) * Math.PI * 2 + 0.6) * 0.19,
-              0.058,
-            ]}
-          >
-            <cylinderGeometry args={[0.055, 0.055, 0.015, 10]} />
-            <meshStandardMaterial color="#B03A2E" roughness={0.7} />
-          </mesh>
-        ))}
-      </group>
-      <pointLight position={[0, 1.1, 1.2]} intensity={2.2} distance={5} decay={2} color="#FFC98E" />
     </group>
   );
 }
@@ -2484,9 +2856,6 @@ function CameraRig({ store, light }: { store: Store; light: React.RefObject<THRE
       if (Math.hypot(s.x - store.px, s.z - store.pz) < 5.2) active = i;
     });
     store.active = store.phase === "play" ? active : -1;
-    store.pizza =
-      store.phase === "play" &&
-      Math.hypot(PIZZA.x - store.px, PIZZA.z - store.pz) < 4.2;
 
     // sun follows for tight shadow frustum; its strength rides the breath
     if (light.current) {
@@ -2505,22 +2874,15 @@ function CameraRig({ store, light }: { store: Store; light: React.RefObject<THRE
 function Bridge({
   store,
   onActive,
-  onPizza,
 }: {
   store: Store;
   onActive: (i: number) => void;
-  onPizza: (near: boolean) => void;
 }) {
   const last = useRef(-2);
-  const lastPizza = useRef(false);
   useFrame(() => {
     if (store.active !== last.current) {
       last.current = store.active;
       onActive(store.active);
-    }
-    if (store.pizza !== lastPizza.current) {
-      lastPizza.current = store.pizza;
-      onPizza(store.pizza);
     }
   });
   return null;
@@ -2531,12 +2893,10 @@ function Bridge({
 function World({
   store,
   onActive,
-  onPizza,
   quality,
 }: {
   store: Store;
   onActive: (i: number) => void;
-  onPizza: (near: boolean) => void;
   quality: "high" | "low";
 }) {
   const light = useRef<THREE.DirectionalLight>(null);
@@ -2602,7 +2962,9 @@ function World({
       )}
       <Clouds />
       {!MOOD.night && <Birds />}
+      {!MOOD.night && !MOOD.rainy && <Butterflies />}
       <DistantIsles />
+      <Sailboats />
 
       <directionalLight
         ref={light}
@@ -2633,7 +2995,7 @@ function World({
       </Environment>
 
       <CameraRig store={store} light={light} />
-      <Bridge store={store} onActive={onActive} onPizza={onPizza} />
+      <Bridge store={store} onActive={onActive} />
 
       <Ocean quality={quality} />
       <Terrain />
@@ -2642,11 +3004,12 @@ function World({
       <Flowers />
       <Trees />
       <Rocks />
+      <Reeds />
       {MILESTONES.map((m, i) => (
         <Station key={m.title} i={i} m={m} store={store} />
       ))}
       <Lighthouse />
-      <PizzaShack />
+      <Dock />
       <Player store={store} />
       <Dog store={store} />
 
@@ -2756,7 +3119,6 @@ export default function JourneyWorld() {
     speed: 0,
     active: -1,
     cineStart: 0,
-    pizza: false,
   }).current;
 
   const { progress, active: loading } = useProgress();
@@ -2837,16 +3199,6 @@ export default function JourneyWorld() {
     }
   };
 
-  const [pizza, setPizza] = useState(false);
-  const pizzaFoundRef = useRef(false);
-  const onPizza = (near: boolean) => {
-    setPizza(near);
-    if (near && !pizzaFoundRef.current) {
-      pizzaFoundRef.current = true;
-      if (soundRef.current) sfxGreet();
-    }
-  };
-
   const hold = (k: keyof typeof KEYS, on: boolean) => () => {
     KEYS[k] = on;
     if (on) unlockAudio();
@@ -2880,7 +3232,7 @@ export default function JourneyWorld() {
             if (factor < 0.1) setQuality("low");
           }}
         >
-          <World store={store} onActive={onActive} onPizza={onPizza} quality={quality} />
+          <World store={store} onActive={onActive} quality={quality} />
         </PerformanceMonitor>
       </Canvas>
 
@@ -2996,24 +3348,6 @@ export default function JourneyWorld() {
                 className="pointer-events-none absolute bottom-20 left-1/2 z-40 -translate-x-1/2 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-accent backdrop-blur"
               >
                 every memory found — to be continued… ✦
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* pizza easter egg */}
-          <AnimatePresence>
-            {pizza && (
-              <motion.div
-                initial={{ opacity: 0, y: 18, scale: 0.9, rotate: -2 }}
-                animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                exit={{ opacity: 0, y: 12, scale: 0.94 }}
-                transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
-                className="pointer-events-none absolute bottom-24 left-1/2 z-40 -translate-x-1/2 rounded-2xl border border-accent/40 bg-surface/95 px-6 py-4 text-center shadow-[0_18px_44px_rgba(28,25,23,0.2)] backdrop-blur-md"
-              >
-                <p className="font-display text-xl font-bold text-ink">🍕 JAY loves pizza!</p>
-                <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.25em] text-accent">
-                  secret found · the hidden slice shack
-                </p>
               </motion.div>
             )}
           </AnimatePresence>
