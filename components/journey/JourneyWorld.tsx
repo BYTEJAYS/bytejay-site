@@ -484,9 +484,10 @@ function Ocean({ quality }: { quality: "high" | "low" }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const { gl, scene, camera } = useThree();
 
-  /* live planar reflection: the island, lights and sky mirrored in the sea */
+  /* live planar reflection: the island, lights and sky mirrored in the sea.
+     384² is plenty — the waves smear the mirror anyway */
   const reflTarget = useMemo(() => {
-    const t = new THREE.WebGLRenderTarget(512, 512, { depthBuffer: true });
+    const t = new THREE.WebGLRenderTarget(384, 384, { depthBuffer: true });
     t.texture.generateMipmaps = true;
     t.texture.minFilter = THREE.LinearMipmapLinearFilter;
     t.texture.magFilter = THREE.LinearFilter;
@@ -578,9 +579,9 @@ function Ocean({ quality }: { quality: "high" | "low" }) {
     const doRefl = quality === "high";
     uniforms.uRefl.value = doRefl ? 1 : 0;
     if (!doRefl || !meshRef.current) return;
-    // the mirror refreshes every other frame — the waves hide the lag
+    // the mirror refreshes every third frame — the waves hide the lag
     frameNo.current++;
-    if (frameNo.current % 2 === 0) return;
+    if (frameNo.current % 3 !== 0) return;
 
     const cam = camera as THREE.PerspectiveCamera;
     const m = rig.cam;
@@ -1555,6 +1556,7 @@ const GRASS_CHUNKS = (() => {
 
 function Grass({ dense }: { dense: boolean }) {
   const refs = useRef<(THREE.InstancedMesh | null)[]>([]);
+  const builtCount = useRef<number[]>([]);
   const shaderRef = useRef<{
     uniforms: { uTime: { value: number }; uGust: { value: number } };
   } | null>(null);
@@ -1663,6 +1665,7 @@ function Grass({ dense }: { dense: boolean }) {
         n++;
       }
       mesh.count = n;
+      builtCount.current[ci] = n;
       mesh.instanceMatrix.needsUpdate = true;
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
       mesh.layers.set(NO_REFLECT_LAYER);
@@ -1682,10 +1685,17 @@ function Grass({ dense }: { dense: boolean }) {
       if (!mesh) return;
       sphere.center.set(chunk.cx, chunk.cy, chunk.cz);
       sphere.radius = chunk.r;
-      const near =
-        Math.hypot(camera.position.x - chunk.cx, camera.position.z - chunk.cz) <
-        MOOD.fogFar * 0.8;
-      mesh.visible = near && frustum.intersectsSphere(sphere);
+      const dist =
+        Math.hypot(camera.position.x - chunk.cx, camera.position.z - chunk.cz) - chunk.r;
+      mesh.visible = dist < MOOD.fogFar * 0.8 && frustum.intersectsSphere(sphere);
+      if (mesh.visible) {
+        // distance-tiered density: a full lawn underfoot, thinning out
+        // where fog + depth of field already eat individual blades —
+        // instances are randomly ordered so a prefix is a uniform subset
+        const built = builtCount.current[ci] ?? mesh.count;
+        mesh.count =
+          dist < 24 ? built : dist < 60 ? Math.ceil(built * 0.5) : Math.ceil(built * 0.25);
+      }
     });
   });
 
@@ -2578,7 +2588,7 @@ function World({
 
   return (
     <>
-      {quality === "high" && <SoftShadows size={16} samples={12} focus={0.55} />}
+      {quality === "high" && <SoftShadows size={16} samples={8} focus={0.55} />}
       <SkyDome />
       {!MOOD.rainy && (
         <mesh
@@ -2647,11 +2657,11 @@ function World({
       <GroundMist />
 
       {quality === "high" ? (
-        <EffectComposer multisampling={4}>
+        <EffectComposer multisampling={2}>
           {sunMesh ? (
             <GodRays
               sun={sunMesh}
-              samples={32}
+              samples={22}
               density={0.94}
               decay={0.95}
               weight={MOOD.night ? 0.22 : 0.4}
@@ -2667,6 +2677,7 @@ function World({
             worldFocusDistance={58}
             worldFocusRange={46}
             bokehScale={2.2}
+            resolutionScale={0.8}
           />
           <Bloom intensity={0.55} luminanceThreshold={0.78} luminanceSmoothing={0.25} mipmapBlur />
           <ChromaticAberration offset={aberration} radialModulation modulationOffset={0.42} />
@@ -2763,6 +2774,10 @@ export default function JourneyWorld() {
   const [active, setActive] = useState(-1);
   const [sound, setSound] = useState(true);
   const [quality, setQuality] = useState<"high" | "low">("high");
+  /* adaptive resolution: start mid, then climb toward native retina only
+     while the frame rate holds near the display's refresh, back off the
+     moment it dips — resolution is the cheapest thing to trade away */
+  const [dpr, setDpr] = useState(1.5);
   const seenRef = useRef(new Set<number>());
   const [seenCount, setSeenCount] = useState(0);
   const soundRef = useRef(sound);
@@ -2843,16 +2858,28 @@ export default function JourneyWorld() {
     <div className="fixed inset-0 select-none" style={{ backgroundColor: MOOD.bg }}>
       <Canvas
         shadows
-        dpr={quality === "high" ? [1, 2] : 1}
+        dpr={quality === "high" ? dpr : 1}
         camera={{ position: [30, 16, 55], fov: 40, near: 0.1, far: 900 }}
-        gl={{ antialias: false, powerPreference: "high-performance" }}
+        gl={{ antialias: false, stencil: false, powerPreference: "high-performance" }}
         onCreated={({ gl, camera }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = MOOD.night ? 1.02 : 1.12;
           camera.layers.enable(NO_REFLECT_LAYER);
         }}
       >
-        <PerformanceMonitor onDecline={() => setQuality("low")}>
+        <PerformanceMonitor
+          /* on ProMotion/144Hz screens chase the refresh rate, not 60 */
+          bounds={(refreshRate) =>
+            refreshRate > 90 ? [72, Math.min(refreshRate - 12, 132)] : [45, 57]
+          }
+          flipflops={6}
+          onChange={({ factor }) => setDpr(1 + Math.round(factor * 4) / 4)}
+          onDecline={({ factor }) => {
+            /* only drop the whole quality tier once resolution has already
+               been traded all the way down */
+            if (factor < 0.1) setQuality("low");
+          }}
+        >
           <World store={store} onActive={onActive} onPizza={onPizza} quality={quality} />
         </PerformanceMonitor>
       </Canvas>
