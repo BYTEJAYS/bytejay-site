@@ -518,7 +518,29 @@ export function addLights(
   scene.add(new THREE.HemisphereLight(sky, ground, amb));
   const d = new THREE.DirectionalLight(0xfff4dd, key);
   d.position.set(4, 7, 5);
+  // soft shadows ground every scene; meshes opt in via enableShadows()
+  d.castShadow = true;
+  d.shadow.mapSize.set(1024, 1024);
+  d.shadow.camera.left = d.shadow.camera.bottom = -12;
+  d.shadow.camera.right = d.shadow.camera.top = 12;
+  d.shadow.camera.far = 30;
+  d.shadow.bias = -0.0005;
+  d.shadow.radius = 6;
   scene.add(d);
+}
+
+/* opt a whole scene into the key light's soft shadows: opaque meshes
+   cast and receive; transparent/additive things stay out of it */
+export function enableShadows(scene: THREE.Scene) {
+  scene.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    const m = mesh.material as THREE.Material;
+    const additive = (m as THREE.MeshBasicMaterial).blending === THREE.AdditiveBlending;
+    if (m.transparent || additive) return;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+  });
 }
 
 /* soft ground-contact shadow */

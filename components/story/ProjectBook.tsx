@@ -33,6 +33,7 @@ import {
   addCloudBank,
   addFireflies,
   addLights,
+  enableShadows,
   dropShadow,
   type Built,
   type Tex,
@@ -108,12 +109,25 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       }
       nodePos.push(new THREE.Vector3(0, 2.4, 0)); // 13 — the mule, dead centre
       const MULE = 13;
-      const nodeMat = new THREE.MeshBasicMaterial({ color: 0xaeb8ff });
+      const nodeMat = new THREE.MeshStandardMaterial({
+        color: 0xaeb8ff,
+        emissive: 0x6a78e8,
+        emissiveIntensity: 0.55,
+        roughness: 0.25,
+        metalness: 0.3,
+      });
       for (let i = 0; i < nodePos.length; i++) {
         const isMule = i === MULE;
         const node = new THREE.Mesh(
           new THREE.SphereGeometry(isMule ? 0.16 : 0.07 + hash(i) * 0.05, 12, 10),
-          isMule ? new THREE.MeshBasicMaterial({ color: 0xff7a50 }) : nodeMat
+          isMule
+            ? new THREE.MeshStandardMaterial({
+                color: 0xff7a50,
+                emissive: 0xff5a2a,
+                emissiveIntensity: 1.4,
+                roughness: 0.3,
+              })
+            : nodeMat
         );
         node.position.copy(nodePos[i]);
         net.add(node);
@@ -159,6 +173,32 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       scene.add(net);
       addHorizonGlow(scene, halo, 0x6a78e8, [0, 1.6, -15], 17, 0.5);
       addRipples(scene, 0x8a96e8, 0.1);
+      // the data plane: a fine polar grid the graph hovers over
+      const grid = new THREE.Group();
+      const gridMat = new THREE.LineBasicMaterial({
+        color: 0x7a86e0,
+        transparent: true,
+        opacity: 0.16,
+      });
+      for (let r = 1.6; r <= 8; r += 1.6) {
+        const pts: THREE.Vector3[] = [];
+        for (let a = 0; a <= 64; a++)
+          pts.push(new THREE.Vector3(Math.cos((a / 64) * Math.PI * 2) * r, 0.03, Math.sin((a / 64) * Math.PI * 2) * r));
+        grid.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat));
+      }
+      for (let a = 0; a < 12; a++) {
+        const dir = (a / 12) * Math.PI * 2;
+        grid.add(
+          new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(Math.cos(dir) * 1.6, 0.03, Math.sin(dir) * 1.6),
+              new THREE.Vector3(Math.cos(dir) * 8, 0.03, Math.sin(dir) * 8),
+            ]),
+            gridMat
+          )
+        );
+      }
+      scene.add(grid);
       const stars = addTwinkleStars(scene, soft, { color: 0xdae0ff, count: 260 });
       const aurora = addAurora(scene, halo, [0x7a6ae8, 0x4a8ae0, 0xb06ae0], { y: 10, opacity: 0.14 });
 
@@ -241,6 +281,7 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
           catIdle(cat, t, 2);
           stars.tick(t, dt);
           aurora.tick(t, dt);
+          grid.rotation.y = t * 0.02;
         },
       };
     },
@@ -264,12 +305,14 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       /* the glass tablet */
       const slab = new THREE.Mesh(
         new THREE.BoxGeometry(2.7, 1.7, 0.55),
-        new THREE.MeshStandardMaterial({
-          color: 0xa8e0e4,
+        new THREE.MeshPhysicalMaterial({
+          color: 0xd8f4f6,
+          transmission: 0.92,
+          thickness: 0.8,
+          ior: 1.45,
+          roughness: 0.08,
           transparent: true,
-          opacity: 0.16,
-          roughness: 0.12,
-          metalness: 0.1,
+          opacity: 1,
         })
       );
       const slabEdges = new THREE.LineSegments(
@@ -311,6 +354,26 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       const slabShadow = dropShadow(soft, 2.0, 0.35);
       slabShadow.position.set(0, 0.02, -0.4);
       scene.add(slabShadow);
+
+      /* ice shards grown around the rig, catching the env light */
+      const shardMat = new THREE.MeshPhysicalMaterial({
+        color: 0xbfeef0,
+        transmission: 0.75,
+        thickness: 0.4,
+        roughness: 0.2,
+        transparent: true,
+      });
+      for (let i = 0; i < 9; i++) {
+        const shard = new THREE.Mesh(
+          new THREE.ConeGeometry(0.1 + hash(i + 5) * 0.16, 0.5 + hash(i + 15) * 1.1, 5),
+          shardMat
+        );
+        const a = hash(i + 25) * Math.PI * 2;
+        const r = 2.4 + hash(i + 35) * 2.6;
+        shard.position.set(Math.cos(a) * r, 0.2, Math.sin(a) * r * 0.7 - 0.5);
+        shard.rotation.z = (hash(i + 45) - 0.5) * 0.4;
+        scene.add(shard);
+      }
 
       /* the writing laser: a beam sweeping the slab */
       const shaft = new THREE.Mesh(
@@ -444,6 +507,18 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       }
       core.position.set(0, 2.6, -0.5);
       scene.add(core);
+      // a still, dark mirror pool under the mind — catches the core's light
+      const pool = new THREE.Mesh(
+        new THREE.CircleGeometry(3.4, 56),
+        new THREE.MeshStandardMaterial({
+          color: 0x2a1544,
+          roughness: 0.12,
+          metalness: 0.85,
+        })
+      );
+      pool.rotation.x = -Math.PI / 2;
+      pool.position.set(0, 0.02, -0.5);
+      scene.add(pool);
       addHorizonGlow(scene, halo, 0x9a70d8, [0, 1.8, -14], 16, 0.5);
       addRipples(scene, 0xc8a8ff, 0.1);
       const stars = addTwinkleStars(scene, soft, { color: 0xe8d8ff, count: 320, size: 0.09 });
@@ -556,18 +631,18 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       /* the dial: a standing ring, the interface at rest */
       const dial = new THREE.Group();
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(1.45, 0.05, 12, 80),
-        new THREE.MeshStandardMaterial({ color: 0x5c5470, roughness: 0.4, metalness: 0.35 })
+        new THREE.TorusGeometry(1.45, 0.05, 16, 96),
+        new THREE.MeshStandardMaterial({ color: 0x6a6280, roughness: 0.12, metalness: 0.92 })
       );
       const inner = new THREE.Mesh(
         new THREE.CircleGeometry(1.38, 48),
-        new THREE.MeshBasicMaterial({
-          map: soft,
+        new THREE.MeshPhysicalMaterial({
           color: 0xffffff,
+          transmission: 0.85,
+          thickness: 0.15,
+          roughness: 0.25,
           transparent: true,
-          opacity: 0.25,
           side: THREE.DoubleSide,
-          depthWrite: false,
         })
       );
       const ticks = new THREE.Group();
@@ -653,7 +728,6 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       return {
         tick(t, dt) {
           dial.rotation.z = t * 0.08;
-          inner.material.opacity = 0.18 + Math.sin(t * 0.9) * 0.08;
           modes.forEach((m, i) => {
             const a = t * (0.5 + i * 0.09) + m.ph;
             m.g.position.set(
@@ -722,6 +796,55 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       counter.add(cup);
       counter.position.set(0.4, 0, -0.3);
       scene.add(counter);
+
+      /* pendant lamps hanging over the counter, warm and glowing */
+      const lampGlows: THREE.Sprite[] = [];
+      for (const [lx, lz] of [
+        [-0.4, -0.4],
+        [0.75, -0.5],
+        [1.9, -0.3],
+      ] as const) {
+        const cord = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.012, 0.012, 2.2, 6),
+          new THREE.MeshStandardMaterial({ color: 0x4a3320, roughness: 0.9 })
+        );
+        cord.position.set(lx, 3.5, lz);
+        scene.add(cord);
+        const shade = new THREE.Mesh(
+          new THREE.ConeGeometry(0.16, 0.18, 18, 1, true),
+          new THREE.MeshStandardMaterial({
+            color: 0x8a5a34,
+            roughness: 0.6,
+            metalness: 0.3,
+            side: THREE.DoubleSide,
+          })
+        );
+        shade.position.set(lx, 2.4, lz);
+        scene.add(shade);
+        const bulb = new THREE.Mesh(
+          new THREE.SphereGeometry(0.05, 12, 10),
+          new THREE.MeshBasicMaterial({ color: 0xffe2a8 })
+        );
+        bulb.position.set(lx, 2.33, lz);
+        scene.add(bulb);
+        const lampGlow = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: halo,
+            color: 0xffd9a0,
+            transparent: true,
+            opacity: 0.6,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+          })
+        );
+        lampGlow.position.set(lx, 2.33, lz);
+        lampGlow.scale.setScalar(0.9);
+        scene.add(lampGlow);
+        lampGlows.push(lampGlow);
+        const pt = new THREE.PointLight(0xffd9a0, 1.6, 4, 1.8);
+        pt.position.set(lx, 2.3, lz);
+        scene.add(pt);
+      }
       addHorizonGlow(scene, halo, 0xffd9a0, [0, 1.6, -16], 17, 0.5);
       addRipples(scene, 0xb0813e, 0.18);
       const clouds = addCloudBank(scene, soft, { color: 0xfff0d4, count: 5, y: 6, opacity: 0.42, speed: 0.1 });
@@ -819,6 +942,9 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
           spark.position.y = 1.75 + Math.sin(t * 1.3) * 0.12;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 2.0) * 0.2;
           catIdle(cat, t, 6);
+          lampGlows.forEach((g, i) => {
+            g.material.opacity = 0.5 + Math.sin(t * 1.7 + i * 2.1) * 0.15;
+          });
           clouds.tick(t, dt);
           rays.tick(t, dt);
           flies.tick(t, dt);
@@ -943,6 +1069,8 @@ export default function ProjectBook() {
     renderer.setClearColor(0x000000, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.06;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -965,6 +1093,7 @@ export default function ProjectBook() {
       camBase = new THREE.Vector3(...def.cam);
       lookAt = new THREE.Vector3(...def.look);
       built = def.build(scene, tex);
+      enableShadows(scene);
     };
     setChapter(0);
     const arrive = setTimeout(() => setVeil(false), 600);
