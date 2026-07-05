@@ -45,7 +45,6 @@ import {
 import * as THREE from "three";
 import { easing } from "maath";
 import { sfxReact, unlockAudio } from "@/lib/robotSfx";
-import { makeCat, catIdle } from "@/components/story/storyKit";
 
 /* ── the story ──────────────────────────────────────────────────── */
 
@@ -92,23 +91,13 @@ function noise2(x: number, y: number) {
 }
 
 /* ── time of day + weather ──────────────────────────────────────────
-   The island lives on your clock: visit at night, it's night. Weather
-   is seeded from the date, so some days/nights are rainy, some clear. */
+   The island is locked to a rainy night — its moodiest, most atmospheric
+   face. The ?mood=day and ?wx=clear params still peek at its other faces. */
 
-const NOW = new Date();
-/* ?mood=night|day and ?wx=rain|clear override the clock (handy for peeking
-   at the island's other faces) */
 const QS =
   typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-const IS_NIGHT = QS?.get("mood")
-  ? QS.get("mood") === "night"
-  : NOW.getHours() < 6 || NOW.getHours() >= 18;
-const IS_RAINY = QS?.get("wx")
-  ? QS.get("wx") === "rain"
-  : hash2(
-      NOW.getFullYear() * 500 + (NOW.getMonth() + 1) * 40 + NOW.getDate(),
-      IS_NIGHT ? 7.3 : 3.7
-    ) < 0.5;
+const IS_NIGHT = QS?.get("mood") ? QS.get("mood") === "night" : true;
+const IS_RAINY = QS?.get("wx") ? QS.get("wx") === "rain" : true;
 
 const MOOD = (() => {
   const base = IS_NIGHT
@@ -2461,27 +2450,20 @@ function Lighthouse() {
   );
 }
 
-/* ── the cat: the playable character (the storybook cat, roaming) ── */
+/* ── BB-8: the playable character ───────────────────────────────── */
 
 const KEYS = { f: false, b: false, l: false, r: false, boost: false };
 
 function Player({ store }: { store: Store }) {
   const root = useRef<THREE.Group>(null);
-  const bodyG = useRef<THREE.Group>(null); // bob + lean wrapper around the cat
-  const spark = useRef<THREE.Group>(null); // the floating lantern-spark companion
+  const bodyG = useRef<THREE.Group>(null);
+  const legL = useRef<THREE.Group>(null);
+  const legR = useRef<THREE.Group>(null);
+  const armL = useRef<THREE.Group>(null);
+  const armR = useRef<THREE.Group>(null);
   const vel = useRef(new THREE.Vector2(0, 0));
   const phase = useRef(0);
   const R = 0.42; // body radius for collisions
-
-  // the exact storybook cat — big head, huge eyes, curled tail — cast into
-  // the journey world. Enable shadows so it grounds on the terrain.
-  const cat = useMemo(() => {
-    const c = makeCat(1.4);
-    c.traverse((o) => {
-      if ((o as THREE.Mesh).isMesh) o.castShadow = true;
-    });
-    return c;
-  }, []);
 
   useFrame((state, dtRaw) => {
     const dt = Math.min(dtRaw, 0.05);
@@ -2536,8 +2518,7 @@ function Player({ store }: { store: Store }) {
 
     const gy = terrainHeight(nx, nz);
     const amp = Math.min(speed / 6.5, 1);
-    // a cat bounds — a springier hop than the old hiker's step
-    root.current.position.set(nx, gy + Math.abs(Math.sin(phase.current)) * 0.12 * amp, nz);
+    root.current.position.set(nx, gy + Math.abs(Math.sin(phase.current)) * 0.05 * amp, nz);
 
     // heading: the whole hiker turns toward the walk direction
     if (speed > 0.4) {
@@ -2550,46 +2531,101 @@ function Player({ store }: { store: Store }) {
     }
     root.current.rotation.y = store.heading;
 
-    // bound cycle + cat aliveness
-    phase.current += speed * dt * 2.6;
+    // walk cycle
+    phase.current += speed * dt * 2.4;
     const t = state.clock.elapsedTime;
-    catIdle(cat, t); // blink, breath, head sway, tail curl — always alive
-    // extra tail flick + forward lean while moving
-    const tail = cat.userData.tail as THREE.Group;
-    tail.rotation.z += Math.sin(phase.current * 1.6) * 0.22 * amp;
+    const swing = Math.sin(phase.current) * 0.75 * amp;
+    if (legL.current) legL.current.rotation.x = swing;
+    if (legR.current) legR.current.rotation.x = -swing;
+    if (armL.current) armL.current.rotation.x = -swing * 0.7 + (1 - amp) * Math.sin(t * 1.8) * 0.05;
+    if (armR.current) armR.current.rotation.x = swing * 0.7;
     if (bodyG.current) {
-      bodyG.current.rotation.x = amp * 0.16; // lean into the run
-      bodyG.current.rotation.z = Math.sin(phase.current * 2) * 0.05 * amp;
-    }
-    // the lantern-spark bobs along beside the cat
-    if (spark.current) {
-      spark.current.position.set(
-        0.34,
-        1.02 + Math.sin(t * 2.2) * 0.06 + amp * 0.05,
-        0.12
-      );
+      bodyG.current.rotation.x = amp * 0.10; // lean into the walk
+      bodyG.current.rotation.z = Math.sin(phase.current * 2) * 0.03 * amp;
     }
   });
 
   return (
     <group ref={root} position={[PLAYER_START.x, 2, PLAYER_START.z]}>
-      {/* the storybook cat — bob + lean handled by this wrapper */}
       <group ref={bodyG}>
-        <primitive object={cat} />
-      </group>
+        {/* legs (pivot at hips) */}
+        <group ref={legL} position={[-0.11, 0.38, 0]}>
+          <mesh castShadow position={[0, -0.17, 0]}>
+            <boxGeometry args={[0.11, 0.34, 0.11]} />
+            <meshStandardMaterial color="#4E3A28" roughness={0.85} />
+          </mesh>
+          <mesh castShadow position={[0, -0.36, 0.03]}>
+            <boxGeometry args={[0.12, 0.09, 0.18]} />
+            <meshStandardMaterial color="#2E2318" roughness={0.85} />
+          </mesh>
+        </group>
+        <group ref={legR} position={[0.11, 0.38, 0]}>
+          <mesh castShadow position={[0, -0.17, 0]}>
+            <boxGeometry args={[0.11, 0.34, 0.11]} />
+            <meshStandardMaterial color="#4E3A28" roughness={0.85} />
+          </mesh>
+          <mesh castShadow position={[0, -0.36, 0.03]}>
+            <boxGeometry args={[0.12, 0.09, 0.18]} />
+            <meshStandardMaterial color="#2E2318" roughness={0.85} />
+          </mesh>
+        </group>
 
-      {/* a floating lantern-spark drifts beside the cat and carries the
-          journey's night light (kept from the old hiker's lantern) */}
-      <group ref={spark} position={[0.34, 1.02, 0.12]}>
-        <mesh>
-          <sphereGeometry args={[0.07, 16, 16]} />
-          <meshStandardMaterial
-            color="#FFDCA0"
-            emissive="#FFB95E"
-            emissiveIntensity={MOOD.night ? 3.6 : 1.4}
-          />
+        {/* torso + rain cloak */}
+        <RoundedBox args={[0.4, 0.46, 0.26]} radius={0.06} position={[0, 0.62, 0]} castShadow>
+          <meshStandardMaterial color="#B98B52" roughness={0.85} />
+        </RoundedBox>
+        <mesh castShadow position={[0, 0.62, -0.16]}>
+          <boxGeometry args={[0.3, 0.34, 0.1]} />
+          <meshStandardMaterial color="#6E4F33" roughness={0.9} />
         </mesh>
-        <pointLight intensity={MOOD.lantern} distance={9} decay={2} color="#FFDCA0" />
+
+        {/* arms (pivot at shoulders) */}
+        <group ref={armL} position={[-0.26, 0.78, 0]}>
+          <mesh castShadow position={[0, -0.16, 0]}>
+            <boxGeometry args={[0.09, 0.34, 0.09]} />
+            <meshStandardMaterial color="#A97D48" roughness={0.85} />
+          </mesh>
+        </group>
+        <group ref={armR} position={[0.26, 0.78, 0]}>
+          <mesh castShadow position={[0, -0.16, 0]}>
+            <boxGeometry args={[0.09, 0.34, 0.09]} />
+            <meshStandardMaterial color="#A97D48" roughness={0.85} />
+          </mesh>
+          {/* lantern swinging from the right hand */}
+          <group position={[0.02, -0.38, 0.06]}>
+            <mesh>
+              <boxGeometry args={[0.11, 0.15, 0.11]} />
+              <meshStandardMaterial color="#2E2A24" roughness={0.6} />
+            </mesh>
+            <mesh>
+              <boxGeometry args={[0.07, 0.1, 0.07]} />
+              <meshStandardMaterial color="#FFC96B" emissive="#FFB95E" emissiveIntensity={MOOD.night ? 3.4 : 1.2} />
+            </mesh>
+            <pointLight intensity={MOOD.lantern} distance={9} decay={2} color="#FFDCA0" />
+          </group>
+        </group>
+
+        {/* head + rain hat */}
+        <mesh castShadow position={[0, 1.0, 0]}>
+          <sphereGeometry args={[0.14, 20, 14]} />
+          <meshStandardMaterial color="#E9BE93" roughness={0.7} />
+        </mesh>
+        {[-0.05, 0.05].map((ex) => (
+          <mesh key={ex} position={[ex, 1.02, 0.125]}>
+            <sphereGeometry args={[0.016, 8, 8]} />
+            <meshStandardMaterial color="#1C1917" roughness={0.4} />
+          </mesh>
+        ))}
+        <group position={[0, 1.1, 0]} rotation={[-0.08, 0, 0.05]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.24, 0.26, 0.035, 12]} />
+            <meshStandardMaterial color="#C9A55C" flatShading roughness={0.85} />
+          </mesh>
+          <mesh castShadow position={[0, 0.07, 0]}>
+            <cylinderGeometry args={[0.11, 0.14, 0.13, 10]} />
+            <meshStandardMaterial color="#B8934E" flatShading roughness={0.85} />
+          </mesh>
+        </group>
       </group>
 
       {/* contact shadow blob */}
