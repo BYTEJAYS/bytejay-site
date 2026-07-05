@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import CustomCursor from "@/components/CustomCursor";
-import FaceBust from "./FaceBust";
 
 /* ------------------------------------------------------------------ */
 /* Photos — swap `src` in for real pictures (drop them in /public/album
@@ -79,7 +78,6 @@ const TONE_STYLES: Record<Photo["tone"], string> = {
 
 export default function AlbumClient() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const faceRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -132,22 +130,12 @@ export default function AlbumClient() {
       rafIds.set(el, requestAnimationFrame(step));
     };
 
-    const setFace = (visible: boolean) => {
-      const face = faceRef.current;
-      if (!face) return;
-      face.style.opacity = visible ? "1" : "0";
-      face.style.transform = visible ? "scale(1)" : "scale(1.04)";
-    };
-    const hideHero = () => {
+    const hideHero = () =>
       lines.forEach((el, i) => typeTo(el, 0, HIDE_MS_PER_CHAR, i * LINE_STAGGER));
-      setFace(false); // the portrait steps aside while the photos spill
-    };
-    const showHero = () => {
+    const showHero = () =>
       lines.forEach((el, i) =>
         typeTo(el, 1, SHOW_MS_PER_CHAR, (lines.length - 1 - i) * LINE_STAGGER),
       );
-      setFace(true);
-    };
 
     /* -------- image trail ------------------------------------------ */
 
@@ -407,14 +395,6 @@ export default function AlbumClient() {
       }}
     >
       <CustomCursor dark />
-
-      {/* the portrait — fades away the moment the trail comes alive */}
-      <div
-        ref={faceRef}
-        className="pointer-events-none absolute inset-0 z-0 transition-[opacity,transform] duration-700 ease-out"
-      >
-        <FaceBust />
-      </div>
 
       {/* hero — sliced away while the trail is live, typed back on idle */}
       <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center px-6">
