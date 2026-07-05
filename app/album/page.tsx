@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import AlbumFace from "@/components/album/AlbumFace";
+import AlbumClient from "@/components/album/AlbumClient";
 
 export const metadata: Metadata = {
   title: "Album — ByteJay",
   description:
-    "The album as a portrait — move your cursor across the silhouette and the photos show through.",
+    "A cursor-driven photo album — move the mouse and frames from Jay's world spill across the page.",
 };
 
-// The previous cursor-trail spill lives on in components/album/AlbumClient.tsx —
-// swap the import back to bring it home.
 export default function AlbumPage() {
-  return <AlbumFace />;
+  return <AlbumClient />;
 }
