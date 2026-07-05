@@ -27,6 +27,11 @@ import {
   applyEnvironment,
   addRipples,
   addHorizonGlow,
+  addTwinkleStars,
+  addAurora,
+  addSunRays,
+  addCloudBank,
+  addFireflies,
   addLights,
   dropShadow,
   type Built,
@@ -154,6 +159,8 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       scene.add(net);
       addHorizonGlow(scene, halo, 0x6a78e8, [0, 1.6, -15], 17, 0.5);
       addRipples(scene, 0x8a96e8, 0.1);
+      const stars = addTwinkleStars(scene, soft, { color: 0xdae0ff, count: 260 });
+      const aurora = addAurora(scene, halo, [0x7a6ae8, 0x4a8ae0, 0xb06ae0], { y: 10, opacity: 0.14 });
 
       /* payments sliding along the wires into the mule */
       const pulses: { s: THREE.Sprite; pair: [number, number]; ph: number; sp: number }[] = [];
@@ -212,7 +219,7 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
 
       const v = new THREE.Vector3();
       return {
-        tick(t) {
+        tick(t, dt) {
           net.rotation.y = t * 0.1;
           const muleGlow = net.userData.muleGlow as THREE.Sprite;
           muleGlow.material.opacity = 0.6 + Math.sin(t * 3.2) * 0.3;
@@ -232,6 +239,8 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
           spark.position.y = 1.6 + Math.sin(t * 1.4) * 0.14;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 1.9) * 0.2;
           catIdle(cat, t, 2);
+          stars.tick(t, dt);
+          aurora.tick(t, dt);
         },
       };
     },
@@ -295,6 +304,9 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       scene.add(rig);
       addHorizonGlow(scene, halo, 0x5fc4c8, [0, 1.4, -15], 15, 0.5);
       addRipples(scene, 0x9fd8dc, 0.12);
+      const stars = addTwinkleStars(scene, soft, { color: 0xbdf0f4, count: 170, size: 0.08 });
+      const sheen = addAurora(scene, halo, [0x4ac8c8, 0x62dce0], { y: 8, opacity: 0.12 });
+      const plankton = addFireflies(scene, soft, { color: 0x9df0e8, count: 20, spread: 16, yMax: 5, size: 0.11 });
 
       const slabShadow = dropShadow(soft, 2.0, 0.35);
       slabShadow.position.set(0, 0.02, -0.4);
@@ -355,7 +367,7 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       const litCol = new THREE.Color(0x8ef0e8);
       const dimCol = new THREE.Color(0x0d3d46);
       return {
-        tick(t) {
+        tick(t, dt) {
           rig.rotation.y = Math.sin(t * 0.4) * 0.35;
           /* crystallisation wave: voxels glow column by column */
           let i = 0;
@@ -373,6 +385,9 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
           spark.position.y = 1.7 + Math.sin(t * 1.3) * 0.15;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 2.0) * 0.2;
           catIdle(cat, t, 3);
+          stars.tick(t, dt);
+          sheen.tick(t, dt);
+          plankton.tick(t, dt);
         },
       };
     },
@@ -431,6 +446,8 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       scene.add(core);
       addHorizonGlow(scene, halo, 0x9a70d8, [0, 1.8, -14], 16, 0.5);
       addRipples(scene, 0xc8a8ff, 0.1);
+      const stars = addTwinkleStars(scene, soft, { color: 0xe8d8ff, count: 320, size: 0.09 });
+      const nebula = addAurora(scene, halo, [0xb06ae0, 0x7a4ae0, 0xe06ab8], { y: 9, opacity: 0.17 });
 
       /* memories: pale pages circling the core */
       const panes: { s: THREE.Sprite; r: number; y: number; ph: number; sp: number }[] = [];
@@ -495,7 +512,7 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       scene.add(spark);
 
       return {
-        tick(t) {
+        tick(t, dt) {
           heart.scale.setScalar(1 + Math.sin(t * 1.2) * 0.06);
           coreGlow.material.opacity = 0.65 + Math.sin(t * 1.2) * 0.2;
           gyros.forEach((g, i) => {
@@ -515,6 +532,8 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
           spark.position.y = 1.5 + Math.sin(t * 1.4) * 0.13;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 2.1) * 0.2;
           catIdle(cat, t, 4);
+          stars.tick(t, dt);
+          nebula.tick(t, dt);
         },
       };
     },
@@ -524,7 +543,7 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
   ath: {
     cam: [0, 2.4, 8.0],
     look: [0, 2.2, 0],
-    build(scene, { halo, soft }) {
+    build(scene, { halo, soft, beam }) {
       addLights(scene, 0.95, 0.9, 0xffffff, 0xd8c8c0);
       scene.fog = new THREE.Fog(0xf0e6d6, 18, 48);
       const ground = new THREE.Mesh(
@@ -565,8 +584,10 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       dial.add(ring, inner, ticks);
       dial.position.set(0, 2.35, -0.8);
       scene.add(dial);
-      addHorizonGlow(scene, halo, 0xffffff, [0, 2.6, -17], 18, 0.35);
+      addHorizonGlow(scene, halo, 0xffe8c8, [7, 3.2, -18], 10, 0.22);
       addRipples(scene, 0x9a8fb8, 0.16);
+      const clouds = addCloudBank(scene, soft, { color: 0xffffff, count: 6, y: 6.5, opacity: 0.5, speed: 0.14 });
+      const rays = addSunRays(scene, beam, { color: 0xfff6dc, pos: [-7.5, 10, -17], count: 4, length: 10, opacity: 0.045 });
       const dialShadow = dropShadow(soft, 1.7, 0.2);
       dialShadow.position.set(0, 0.02, -0.8);
       scene.add(dialShadow);
@@ -654,6 +675,8 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
             p.material.opacity = 0.4 * Math.sin((p.position.y / 5) * Math.PI);
           }
           catIdle(cat, t, 5);
+          clouds.tick(t, dt);
+          rays.tick(t, dt);
         },
       };
     },
@@ -663,7 +686,7 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
   backend: {
     cam: [0, 2.6, 8.6],
     look: [0, 1.6, 0],
-    build(scene, { halo, soft }) {
+    build(scene, { halo, soft, beam }) {
       addLights(scene, 1.05, 0.7, 0xfff2d0, 0xa0763c);
       scene.fog = new THREE.Fog(0xeec488, 16, 46);
       const ground = new THREE.Mesh(
@@ -701,6 +724,9 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
       scene.add(counter);
       addHorizonGlow(scene, halo, 0xffd9a0, [0, 1.6, -16], 17, 0.5);
       addRipples(scene, 0xb0813e, 0.18);
+      const clouds = addCloudBank(scene, soft, { color: 0xfff0d4, count: 5, y: 6, opacity: 0.42, speed: 0.1 });
+      const rays = addSunRays(scene, beam, { color: 0xffdf9e, pos: [-4, 8.5, -15], count: 5, length: 11, opacity: 0.09 });
+      const flies = addFireflies(scene, soft, { color: 0xffe2a0, count: 14, spread: 13, yMax: 3 });
 
       /* steam over the cup */
       const steam: THREE.Sprite[] = [];
@@ -793,6 +819,9 @@ const VIZ_CHAPTERS: Record<Project["viz"], ChapterDef> = {
           spark.position.y = 1.75 + Math.sin(t * 1.3) * 0.12;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 2.0) * 0.2;
           catIdle(cat, t, 6);
+          clouds.tick(t, dt);
+          rays.tick(t, dt);
+          flies.tick(t, dt);
         },
       };
     },

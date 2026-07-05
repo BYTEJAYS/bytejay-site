@@ -245,6 +245,206 @@ export function addHorizonGlow(
   return glow;
 }
 
+/* ── sky dressing: the pieces that make a world eye-catching ────── */
+
+export type Dressed = { tick: (t: number, dt: number) => void };
+
+/* two star layers breathing in counter-phase = cheap twinkle */
+export function addTwinkleStars(
+  scene: THREE.Scene,
+  soft: THREE.Texture,
+  { count = 220, color = 0xe6ecff, radius = 34, yLift = 7, size = 0.1 } = {}
+): Dressed {
+  const layers: THREE.Points[] = [];
+  for (let L = 0; L < 2; L++) {
+    const geo = new THREE.BufferGeometry();
+    const sp = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const a = hash(i + L * 500) * Math.PI * 2;
+      const e = hash(i + 900 + L * 500) * Math.PI - Math.PI / 2;
+      sp[i * 3] = Math.cos(a) * Math.cos(e) * radius;
+      sp[i * 3 + 1] = Math.abs(Math.sin(e)) * radius * 0.75 + yLift;
+      sp[i * 3 + 2] = Math.sin(a) * Math.cos(e) * radius;
+    }
+    geo.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+    const stars = new THREE.Points(
+      geo,
+      new THREE.PointsMaterial({
+        color,
+        size: size + L * 0.05,
+        transparent: true,
+        opacity: 0.9,
+        map: soft,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    stars.userData.fog = false;
+    scene.add(stars);
+    layers.push(stars);
+  }
+  return {
+    tick(t) {
+      (layers[0].material as THREE.PointsMaterial).opacity = 0.5 + Math.sin(t * 1.3) * 0.3;
+      (layers[1].material as THREE.PointsMaterial).opacity = 0.5 + Math.sin(t * 1.3 + Math.PI) * 0.3;
+    },
+  };
+}
+
+/* wide soft ribbons high in the sky, drifting and breathing — an aurora */
+export function addAurora(
+  scene: THREE.Scene,
+  halo: THREE.Texture,
+  colors: number[],
+  { y = 9, z = -20, width = 22, height = 3.2, opacity = 0.16 } = {}
+): Dressed {
+  const bands: THREE.Sprite[] = [];
+  colors.forEach((c, i) => {
+    const band = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: halo,
+        color: c,
+        transparent: true,
+        opacity: opacity * (1 - i * 0.2),
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        fog: false,
+      })
+    );
+    band.position.set((hash(i + 31) - 0.5) * 8, y + i * 1.7, z - i * 2);
+    band.scale.set(width - i * 3, height, 1);
+    scene.add(band);
+    bands.push(band);
+  });
+  return {
+    tick(t) {
+      bands.forEach((b, i) => {
+        b.position.x = (hash(i + 31) - 0.5) * 8 + Math.sin(t * 0.16 + i * 2.1) * 2.4;
+        b.material.opacity = opacity * (1 - i * 0.2) * (0.72 + Math.sin(t * 0.5 + i) * 0.28);
+      });
+    },
+  };
+}
+
+/* a slow fan of light shafts around a sky point — god rays */
+export function addSunRays(
+  scene: THREE.Scene,
+  beam: THREE.Texture,
+  { color = 0xfff2cf, pos = [0, 7, -14] as [number, number, number], count = 5, length = 10, opacity = 0.08 } = {}
+): Dressed {
+  const pivot = new THREE.Group();
+  pivot.position.set(...pos);
+  const rays: THREE.Mesh[] = [];
+  for (let i = 0; i < count; i++) {
+    const ray = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.6 + hash(i) * 1.6, length),
+      new THREE.MeshBasicMaterial({
+        map: beam,
+        color,
+        transparent: true,
+        opacity: opacity * (0.6 + hash(i + 5) * 0.4),
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+        fog: false,
+      })
+    );
+    ray.position.y = -length / 2;
+    const arm = new THREE.Group();
+    arm.rotation.z = (i / count) * 1.9 - 0.95;
+    arm.add(ray);
+    pivot.add(arm);
+    rays.push(ray);
+  }
+  scene.add(pivot);
+  return {
+    tick(t) {
+      pivot.rotation.z = Math.sin(t * 0.1) * 0.12;
+      rays.forEach((r, i) => {
+        (r.material as THREE.MeshBasicMaterial).opacity =
+          opacity * (0.6 + hash(i + 5) * 0.4) * (0.7 + Math.sin(t * 0.4 + i * 1.7) * 0.3);
+      });
+    },
+  };
+}
+
+/* soft cloud puffs drifting sideways across the sky */
+export function addCloudBank(
+  scene: THREE.Scene,
+  soft: THREE.Texture,
+  { color = 0xffffff, count = 5, y = 6, z = -16, spread = 26, opacity = 0.35, speed = 0.1 } = {}
+): Dressed {
+  const clouds: THREE.Sprite[] = [];
+  for (let i = 0; i < count; i++) {
+    const c = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: soft,
+        color,
+        transparent: true,
+        opacity: opacity * (0.7 + hash(i) * 0.3),
+        depthWrite: false,
+        fog: false,
+      })
+    );
+    c.position.set((hash(i + 2) - 0.5) * spread, y + hash(i + 12) * 3, z - hash(i + 22) * 6);
+    c.scale.set(5 + hash(i + 7) * 4, 1.4 + hash(i + 17) * 0.8, 1);
+    scene.add(c);
+    clouds.push(c);
+  }
+  return {
+    tick(t, dt) {
+      clouds.forEach((c, i) => {
+        c.position.x += dt * speed * (0.6 + hash(i) * 0.8);
+        if (c.position.x > spread * 0.62) c.position.x = -spread * 0.62;
+      });
+    },
+  };
+}
+
+/* tiny wandering lights — fireflies / plankton / data sparks */
+export function addFireflies(
+  scene: THREE.Scene,
+  soft: THREE.Texture,
+  { color = 0xffe9a8, count = 16, spread = 14, yMax = 4, size = 0.14 } = {}
+): Dressed {
+  const geo = new THREE.BufferGeometry();
+  const base = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    base[i * 3] = (hash(i + 3) - 0.5) * spread;
+    base[i * 3 + 1] = 0.4 + hash(i + 33) * yMax;
+    base[i * 3 + 2] = (hash(i + 63) - 0.5) * spread * 0.6 + 1;
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(base.slice(), 3));
+  const flies = new THREE.Points(
+    geo,
+    new THREE.PointsMaterial({
+      map: soft,
+      color,
+      size,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  scene.add(flies);
+  const attr = geo.getAttribute("position") as THREE.BufferAttribute;
+  return {
+    tick(t) {
+      for (let i = 0; i < count; i++) {
+        attr.setXYZ(
+          i,
+          base[i * 3] + Math.sin(t * (0.3 + hash(i) * 0.4) + i * 2.4) * 0.8,
+          base[i * 3 + 1] + Math.sin(t * (0.5 + hash(i + 9) * 0.4) + i) * 0.5,
+          base[i * 3 + 2] + Math.cos(t * (0.25 + hash(i + 19) * 0.3) + i * 1.3) * 0.6
+        );
+      }
+      attr.needsUpdate = true;
+      (flies.material as THREE.PointsMaterial).opacity = 0.65 + Math.sin(t * 2.1) * 0.25;
+    },
+  };
+}
+
 /* studio reflections — makes leather, gold and glass read as material
    instead of flat colour. Cheap: one PMREM bake per renderer. */
 export function applyEnvironment(
