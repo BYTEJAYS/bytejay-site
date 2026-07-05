@@ -25,7 +25,8 @@ import {
   makeCat,
   makeSpark,
   makeBook,
-  blink,
+  catIdle,
+  applyEnvironment,
   addLights,
   dropShadow,
   type Built,
@@ -95,9 +96,7 @@ const CHAPTERS: ChapterDef[] = [
       warm.position.set(0, 2.4, 1.4);
       scene.add(warm);
 
-      const book = makeBook(halo, "SPARK", "a small story");
-      const emblem = book.userData.emblem as THREE.Group;
-      const rings = book.userData.rings as THREE.Mesh[];
+      const book = makeBook(halo, "SPARK", "a small story", { emblem: false });
       book.rotation.y = 0.45;
       book.position.y = 0.62;
       scene.add(book);
@@ -153,12 +152,8 @@ const CHAPTERS: ChapterDef[] = [
         tick(t) {
           book.position.y = 0.62 + Math.sin(t * 0.8) * 0.07;
           book.rotation.y = 0.45 + Math.sin(t * 0.25) * 0.09;
-          emblem.userData.glow.material.opacity = 0.75 + Math.sin(t * 1.7) * 0.2;
-          rings[0].rotation.z = t * 0.7;
-          rings[1].rotation.z = -t * 0.55;
           cat.position.y = -0.34 + Math.sin(t * 1.1 + 2) * 0.05;
-          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 1);
-          (cat.userData.tail as THREE.Mesh).rotation.x = 1.05 + Math.sin(t * 2.6) * 0.15;
+          catIdle(cat, t, 1);
           haloRing.rotation.z = t * 0.06;
           motes.rotation.y = t * 0.02;
           motes.position.y = Math.sin(t * 0.3) * 0.15;
@@ -295,8 +290,7 @@ const CHAPTERS: ChapterDef[] = [
           far.userData.glow.material.opacity = 0.6 + Math.sin(t * 1.3) * 0.3;
           far.position.y = 5.2 + Math.sin(t * 0.7) * 0.25;
           far.position.x = 4.2 - (t % 40) * 0.02;
-          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 4);
-          (cat.userData.tail as THREE.Mesh).rotation.x = 1.05 + Math.sin(t * 2.2) * 0.12;
+          catIdle(cat, t, 4);
         },
       };
     },
@@ -421,7 +415,7 @@ const CHAPTERS: ChapterDef[] = [
             (r.material as THREE.MeshBasicMaterial).opacity = (1 - life) * 0.55;
           });
           dust.position.y = (t * 0.14) % 1.5;
-          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 2);
+          catIdle(cat, t, 2);
           cat.rotation.x = -Math.min(0.35, Math.max(0, (spark.position.y - 1) * 0.08));
         },
       };
@@ -544,8 +538,7 @@ const CHAPTERS: ChapterDef[] = [
       return {
         tick(t) {
           cat.position.y = Math.abs(Math.sin(t * 3.0)) * 0.05;
-          (cat.userData.tail as THREE.Mesh).rotation.x = 1.05 + Math.sin(t * 4) * 0.2;
-          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 3);
+          catIdle(cat, t, 3);
           spark.position.y = 1.5 + Math.sin(t * 1.4) * 0.14;
           spark.position.x = 0.9 + Math.sin(t * 0.5) * 0.25;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 1.9) * 0.2;
@@ -680,8 +673,7 @@ const CHAPTERS: ChapterDef[] = [
           dust.rotation.y = t * 0.012;
           spark.position.y = 2.6 + Math.sin(t * 1.2) * 0.16;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 1.8) * 0.2;
-          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 5);
-          (cat.userData.tail as THREE.Mesh).rotation.x = 1.05 + Math.sin(t * 2.4) * 0.14;
+          catIdle(cat, t, 5);
         },
       };
     },
@@ -783,7 +775,7 @@ const CHAPTERS: ChapterDef[] = [
           });
           spark.position.y = 2.5 + Math.sin(t * 1.5) * 0.13;
           spark.userData.glow.material.opacity = 0.85 + Math.sin(t * 2.3) * 0.15;
-          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 6);
+          catIdle(cat, t, 6);
         },
       };
     },
@@ -917,8 +909,7 @@ const CHAPTERS: ChapterDef[] = [
           cat.position.x = 1.1 + Math.sin(t * 0.7) * 0.55;
           cat.position.y = -1.1 + Math.sin(t * 1.1 + 2) * 0.4;
           cat.rotation.z = Math.sin(t * 0.8) * 0.22;
-          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 7);
-          (cat.userData.tail as THREE.Mesh).rotation.x = 1.5 + Math.sin(t * 5) * 0.3;
+          catIdle(cat, t, 7);
         },
       };
     },
@@ -1119,8 +1110,7 @@ const CHAPTERS: ChapterDef[] = [
           spark.position.x = -0.7 + Math.sin(t * 0.55) * 0.3;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 2.0) * 0.2;
           lampGlow.material.opacity = 0.65 + Math.sin(t * 1.1) * 0.2;
-          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 8);
-          (cat.userData.tail as THREE.Mesh).rotation.x = 1.05 + Math.sin(t * 2.8) * 0.16;
+          catIdle(cat, t, 8);
         },
       };
     },
@@ -1169,14 +1159,18 @@ export default function SparkStory() {
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
+    const env = applyEnvironment(renderer, scene, 0.45);
     const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 220);
     const tex: Tex = { halo: makeHalo(), soft: makeSoft(), beam: beamTexture() };
 
+    const clock = new THREE.Clock();
     let built: Built = { tick: () => {} };
     let camBase = new THREE.Vector3(...CHAPTERS[0].cam);
     let lookAt = new THREE.Vector3(...CHAPTERS[0].look);
+    let chapterAt = 0; // when the page opened — drives the settle-in
 
     const setChapter = (i: number) => {
+      chapterAt = clock.elapsedTime;
       disposeDeep(scene);
       scene.clear();
       scene.fog = null;
@@ -1201,18 +1195,19 @@ export default function SparkStory() {
     };
     window.addEventListener("resize", onResize);
 
-    const clock = new THREE.Clock();
     let raf = 0;
     const loop = () => {
       raf = requestAnimationFrame(loop);
       const dt = Math.min(clock.getDelta(), 0.05);
       const t = clock.elapsedTime;
       built.tick(t, dt);
-      // gentle drift + pointer parallax — the "held camera" feel
+      // gentle drift + pointer parallax — plus a settle-in glide per page
+      const settle = Math.min(1, (t - chapterAt) / 1.6);
+      const glide = (1 - settle) ** 3 * 0.9;
       camera.position.set(
         camBase.x + pointer.x * 0.4 + Math.sin(t * 0.3) * 0.1,
-        camBase.y - pointer.y * 0.22 + Math.sin(t * 0.47) * 0.07,
-        camBase.z
+        camBase.y - pointer.y * 0.22 + Math.sin(t * 0.47) * 0.07 + glide * 0.18,
+        camBase.z + glide
       );
       camera.lookAt(lookAt);
       renderer.render(scene, camera);
@@ -1229,6 +1224,7 @@ export default function SparkStory() {
         tex.halo.dispose();
         tex.soft.dispose();
         tex.beam.dispose();
+        env.dispose();
         renderer.dispose();
         mount.removeChild(renderer.domElement);
       },
@@ -1451,12 +1447,13 @@ export default function SparkStory() {
         .spark-word {
           display: inline-block;
           opacity: 0;
-          animation: sparkWord 0.55s ease-out forwards;
+          animation: sparkWord 0.7s ease-out forwards;
           white-space: pre;
         }
         @keyframes sparkWord {
-          from { opacity: 0; transform: translateY(7px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(10px); filter: blur(8px); }
+          60% { filter: blur(2px); }
+          to { opacity: 1; transform: translateY(0); filter: blur(0); }
         }
         .spark-dot {
           width: 13px;
