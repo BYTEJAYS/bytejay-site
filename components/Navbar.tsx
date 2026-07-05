@@ -53,7 +53,7 @@ export default function Navbar() {
                   />
                 )}
                 <span className="relative z-10">
-                  <RollingText text={link.label} hoverText={link.hover} />
+                  <RollingText text={link.label} hoverText={link.hover} fit />
                 </span>
               </a>
             );
@@ -63,7 +63,7 @@ export default function Navbar() {
           href="#contact"
           className="group rounded-full bg-accent px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ink"
         >
-          <RollingText text="Say hi" hoverText="hey! ✌︎" />
+          <RollingText text="Say hi" hoverText="hey! ✌︎" fit />
         </a>
       </motion.nav>
     </div>

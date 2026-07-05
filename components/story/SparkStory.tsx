@@ -15,6 +15,23 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import {
+  SERIF,
+  hash,
+  makeHalo,
+  makeSoft,
+  beamTexture,
+  disposeDeep,
+  makeCat,
+  makeSpark,
+  makeBook,
+  blink,
+  addLights,
+  dropShadow,
+  type Built,
+  type Tex,
+  type ChapterDef,
+} from "./storyKit";
 
 /* ── the script ─────────────────────────────────────────────────── */
 
@@ -65,193 +82,7 @@ const CHAPTER_BG = [
   "#f5efe2", // dedication paper
 ];
 
-const SERIF = `"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif`;
-const CAT_BLACK = 0x14101c;
-const SPARK_WARM = 0xfff3cf;
-
-/* ── tiny helpers ───────────────────────────────────────────────── */
-
-function hash(n: number) {
-  const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
-  return s - Math.floor(s);
-}
-
-function radialTexture(stops: [number, string][]) {
-  const c = document.createElement("canvas");
-  c.width = c.height = 128;
-  const ctx = c.getContext("2d")!;
-  const g = ctx.createRadialGradient(64, 64, 2, 64, 64, 62);
-  for (const [o, col] of stops) g.addColorStop(o, col);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
-}
-
-const makeHalo = () =>
-  radialTexture([
-    [0, "rgba(255,244,210,1)"],
-    [0.25, "rgba(255,238,190,0.5)"],
-    [0.6, "rgba(255,232,180,0.13)"],
-    [1, "rgba(255,232,180,0)"],
-  ]);
-
-const makeSoft = () =>
-  radialTexture([
-    [0, "rgba(255,255,255,0.85)"],
-    [0.5, "rgba(255,255,255,0.3)"],
-    [1, "rgba(255,255,255,0)"],
-  ]);
-
-/* vertical-fade beam texture for light shafts */
-function beamTexture() {
-  const c = document.createElement("canvas");
-  c.width = 64;
-  c.height = 256;
-  const ctx = c.getContext("2d")!;
-  const g = ctx.createLinearGradient(0, 0, 0, 256);
-  g.addColorStop(0, "rgba(255,250,220,0.55)");
-  g.addColorStop(0.6, "rgba(255,250,220,0.12)");
-  g.addColorStop(1, "rgba(255,250,220,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 64, 256);
-  // soften the sides
-  const side = ctx.createLinearGradient(0, 0, 64, 0);
-  side.addColorStop(0, "rgba(0,0,0,1)");
-  side.addColorStop(0.25, "rgba(0,0,0,0)");
-  side.addColorStop(0.75, "rgba(0,0,0,0)");
-  side.addColorStop(1, "rgba(0,0,0,1)");
-  ctx.globalCompositeOperation = "destination-out";
-  ctx.fillStyle = side;
-  ctx.fillRect(0, 0, 64, 256);
-  return new THREE.CanvasTexture(c);
-}
-
-function disposeDeep(root: THREE.Object3D) {
-  root.traverse((o) => {
-    const mesh = o as THREE.Mesh;
-    if (mesh.geometry) mesh.geometry.dispose();
-    const m = mesh.material as THREE.Material | THREE.Material[] | undefined;
-    if (Array.isArray(m)) m.forEach((mm) => mm.dispose());
-    else if (m) m.dispose();
-  });
-}
-
-/* the character: a small night creature, all silhouette and eyes */
-function makeCat(s = 1) {
-  const g = new THREE.Group();
-  const skin = new THREE.MeshStandardMaterial({ color: CAT_BLACK, roughness: 0.85 });
-  const white = new THREE.MeshBasicMaterial({ color: 0xf7f4ea });
-  const dark = new THREE.MeshBasicMaterial({ color: 0x07050c });
-
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.21, 20, 16), skin);
-  body.position.y = 0.24;
-  body.scale.set(0.92, 1.15, 0.8);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 20, 16), skin);
-  head.position.y = 0.6;
-  head.scale.set(1.06, 0.96, 0.92);
-  const earGeo = new THREE.ConeGeometry(0.1, 0.22, 4);
-  const earL = new THREE.Mesh(earGeo, skin);
-  earL.position.set(-0.14, 0.82, -0.02);
-  earL.rotation.z = 0.3;
-  const earR = new THREE.Mesh(earGeo, skin);
-  earR.position.set(0.14, 0.82, -0.02);
-  earR.rotation.z = -0.3;
-  const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.032, 0.3, 4, 8), skin);
-  tail.position.set(0.05, 0.18, -0.22);
-  tail.rotation.x = 1.05;
-
-  /* the big glossy eyes are the whole personality */
-  const eyes = new THREE.Group();
-  for (const ex of [-0.095, 0.095]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.082, 16, 12), white);
-    eye.position.set(ex, 0.6, 0.16);
-    eye.scale.set(0.92, 1.06, 0.45);
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.04, 12, 10), dark);
-    pupil.position.set(ex + 0.008, 0.595, 0.215);
-    pupil.scale.z = 0.5;
-    const shine = new THREE.Mesh(new THREE.SphereGeometry(0.013, 8, 6), white);
-    shine.position.set(ex + 0.025, 0.625, 0.245);
-    eyes.add(eye, pupil, shine);
-  }
-  g.add(body, head, earL, earR, tail, eyes);
-  g.scale.setScalar(s);
-  g.userData.eyes = eyes;
-  g.userData.tail = tail;
-  return g;
-}
-
-/* the spark: warm core + layered additive halos + real light */
-function makeSpark(halo: THREE.Texture, s = 1, lit = true) {
-  const g = new THREE.Group();
-  const core = new THREE.Mesh(
-    new THREE.SphereGeometry(0.085, 16, 12),
-    new THREE.MeshBasicMaterial({ color: SPARK_WARM })
-  );
-  const tight = new THREE.Sprite(
-    new THREE.SpriteMaterial({
-      map: halo,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      opacity: 0.95,
-    })
-  );
-  tight.scale.setScalar(0.85);
-  const wide = new THREE.Sprite(
-    new THREE.SpriteMaterial({
-      map: halo,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      opacity: 0.4,
-    })
-  );
-  wide.scale.setScalar(2.6);
-  g.add(core, tight, wide);
-  if (lit) {
-    const light = new THREE.PointLight(0xffe2a8, 3.2, 7, 1.8);
-    g.add(light);
-  }
-  g.scale.setScalar(s);
-  g.userData.glow = tight;
-  g.userData.wide = wide;
-  return g;
-}
-
-const blink = (t: number, seed: number) => (Math.sin(t * 0.5 + seed) > 0.984 ? 0.1 : 1);
-
 /* ── chapter scene builders ─────────────────────────────────────── */
-
-type Built = { tick: (t: number, dt: number) => void };
-type Tex = { halo: THREE.Texture; soft: THREE.Texture; beam: THREE.Texture };
-type ChapterDef = {
-  cam: [number, number, number];
-  look: [number, number, number];
-  build: (scene: THREE.Scene, tex: Tex) => Built;
-};
-
-function addLights(scene: THREE.Scene, key = 0.9, amb = 0.65, sky = 0xffffff, ground = 0x555566) {
-  scene.add(new THREE.HemisphereLight(sky, ground, amb));
-  const d = new THREE.DirectionalLight(0xfff4dd, key);
-  d.position.set(4, 7, 5);
-  scene.add(d);
-}
-
-/* soft ground-contact shadow */
-function dropShadow(soft: THREE.Texture, size: number, opacity = 0.3) {
-  const m = new THREE.Mesh(
-    new THREE.CircleGeometry(size, 32),
-    new THREE.MeshBasicMaterial({
-      map: soft,
-      transparent: true,
-      opacity,
-      color: 0x000000,
-      depthWrite: false,
-    })
-  );
-  m.rotation.x = -Math.PI / 2;
-  return m;
-}
 
 const CHAPTERS: ChapterDef[] = [
   /* 0 — cover: the closed book and the cat */
@@ -264,82 +95,9 @@ const CHAPTERS: ChapterDef[] = [
       warm.position.set(0, 2.4, 1.4);
       scene.add(warm);
 
-      const book = new THREE.Group();
-      const coverMat = new THREE.MeshStandardMaterial({ color: 0x4a2c1a, roughness: 0.62 });
-      const spineMat = new THREE.MeshStandardMaterial({ color: 0x3a2113, roughness: 0.62 });
-      const pagesMat = new THREE.MeshStandardMaterial({ color: 0xeadfc2, roughness: 0.9 });
-      const goldMat = new THREE.MeshStandardMaterial({
-        color: 0xd8ac52,
-        roughness: 0.35,
-        metalness: 0.5,
-      });
-      const top = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.1, 1.5), coverMat);
-      top.position.y = 0.22;
-      const bottom = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.1, 1.5), coverMat);
-      bottom.position.y = -0.12;
-      const pages = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.26, 1.42), pagesMat);
-      pages.position.y = 0.05;
-      const spine = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 1.52, 12, 1, false), spineMat);
-      spine.rotation.x = Math.PI / 2;
-      spine.position.set(-1.04, 0.05, 0);
-      book.add(pages, top, bottom, spine);
-      // gilded corner caps + clasp
-      for (const [cx, cz] of [
-        [1.02, 0.72],
-        [1.02, -0.72],
-      ] as const) {
-        const corner = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.46, 0.26), goldMat);
-        corner.position.set(cx, 0.05, cz);
-        book.add(corner);
-      }
-      const clasp = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.34), goldMat);
-      clasp.position.set(1.06, 0.05, 0);
-      book.add(clasp);
-      // title plate on the cover
-      const tc = document.createElement("canvas");
-      tc.width = 512;
-      tc.height = 384;
-      const tctx = tc.getContext("2d")!;
-      tctx.textAlign = "center";
-      tctx.fillStyle = "#e9c878";
-      tctx.font = `600 92px ${SERIF}`;
-      tctx.letterSpacing = "18px";
-      tctx.fillText("SPARK", 266, 120);
-      tctx.strokeStyle = "rgba(233,200,120,0.65)";
-      tctx.lineWidth = 3;
-      tctx.strokeRect(36, 30, 440, 324);
-      tctx.font = `italic 34px ${SERIF}`;
-      tctx.fillStyle = "rgba(233,200,120,0.8)";
-      tctx.fillText("a small story", 256, 330);
-      const titleTex = new THREE.CanvasTexture(tc);
-      const title = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.6, 1.2),
-        new THREE.MeshBasicMaterial({ map: titleTex, transparent: true, depthWrite: false })
-      );
-      title.rotation.x = -Math.PI / 2;
-      title.position.set(0, 0.276, 0.02);
-      book.add(title);
-      // the emblem spark, orbited by two thin gold rings
-      const emblem = makeSpark(halo, 1.25);
-      emblem.position.set(0, 0.5, 0.18);
-      book.add(emblem);
-      const rings: THREE.Mesh[] = [];
-      for (const tilt of [0.5, -0.7]) {
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(0.34, 0.008, 8, 48),
-          new THREE.MeshBasicMaterial({
-            color: 0xf2d894,
-            transparent: true,
-            opacity: 0.75,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-          })
-        );
-        ring.position.copy(emblem.position);
-        ring.rotation.x = tilt;
-        book.add(ring);
-        rings.push(ring);
-      }
+      const book = makeBook(halo, "SPARK", "a small story");
+      const emblem = book.userData.emblem as THREE.Group;
+      const rings = book.userData.rings as THREE.Mesh[];
       book.rotation.y = 0.45;
       book.position.y = 0.62;
       scene.add(book);
