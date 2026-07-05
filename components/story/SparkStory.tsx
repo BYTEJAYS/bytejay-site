@@ -45,7 +45,11 @@ const CHAPTER_TEXT: {
     lines: ["Then one morning it pulled me forward,", "faster than I could follow."],
     dark: true,
   },
-  { lines: [] }, // 7 — dedication
+  {
+    lines: ["Until we reached a small green isle,", "and together, piece by piece,", "we began to build a world."],
+    dark: true,
+  },
+  { lines: [] }, // 8 — dedication
 ];
 
 /* one CSS gradient world per page — the background IS the scenery */
@@ -57,6 +61,7 @@ const CHAPTER_BG = [
   "radial-gradient(135% 115% at 50% 22%, #f7e0ab 0%, #e8bd72 52%, #c39244 100%)", // gold desert
   "radial-gradient(135% 115% at 50% 26%, #787878 0%, #454545 55%, #1d1d1d 100%)", // grey
   "radial-gradient(125% 125% at 50% 48%, #d8f2f4 0%, #f8e6ac 38%, #f4bccb 72%, #b9e6c4 100%)", // pastel rush
+  "radial-gradient(135% 110% at 50% 18%, #ffedc8 0%, #ffcfa2 32%, #8ec2b8 64%, #357072 100%)", // dawn isle
   "#f5efe2", // dedication paper
 ];
 
@@ -527,8 +532,8 @@ const CHAPTERS: ChapterDef[] = [
             p.position.y += Math.sin(t * (0.6 + hash(i) * 0.5) + i * 2) * 0.0022;
             p.rotation.y = t * (0.2 + hash(i) * 0.3);
           });
-          starLayers[0].material.opacity = 0.55 + Math.sin(t * 1.4) * 0.3;
-          starLayers[1].material.opacity = 0.55 + Math.sin(t * 1.4 + Math.PI) * 0.3;
+          (starLayers[0].material as THREE.PointsMaterial).opacity = 0.55 + Math.sin(t * 1.4) * 0.3;
+          (starLayers[1].material as THREE.PointsMaterial).opacity = 0.55 + Math.sin(t * 1.4 + Math.PI) * 0.3;
           far.userData.glow.material.opacity = 0.6 + Math.sin(t * 1.3) * 0.3;
           far.position.y = 5.2 + Math.sin(t * 0.7) * 0.25;
           far.position.x = 4.2 - (t % 40) * 0.02;
@@ -708,22 +713,22 @@ const CHAPTERS: ChapterDef[] = [
       }
       scene.add(trunks);
 
-      /* slanting light shafts through the gap */
+      /* slanting light shafts through the gap — wide, gauzy, barely-there */
       const shafts: THREE.Mesh[] = [];
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 3; i++) {
         const shaft = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.9 + hash(i) * 1.4, 14),
+          new THREE.PlaneGeometry(2.6 + hash(i) * 2.2, 9),
           new THREE.MeshBasicMaterial({
             map: beam,
             color: 0xe8f0a8,
             transparent: true,
-            opacity: 0.16 + hash(i + 5) * 0.1,
+            opacity: 0.06 + hash(i + 5) * 0.04,
             depthWrite: false,
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
           })
         );
-        shaft.position.set(-1 + i * 1.6 + hash(i + 9), 6.4, -6 - hash(i + 13) * 4);
+        shaft.position.set(-1 + i * 2.4 + hash(i + 9), 5.2, -6 - hash(i + 13) * 4);
         shaft.rotation.z = -0.32;
         scene.add(shaft);
         shafts.push(shaft);
@@ -788,7 +793,7 @@ const CHAPTERS: ChapterDef[] = [
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 1.9) * 0.2;
           shafts.forEach((s, i) => {
             (s.material as THREE.MeshBasicMaterial).opacity =
-              (0.14 + hash(i + 5) * 0.1) * (0.8 + Math.sin(t * 0.5 + i * 1.7) * 0.25);
+              (0.06 + hash(i + 5) * 0.04) * (0.8 + Math.sin(t * 0.5 + i * 1.7) * 0.25);
             s.rotation.z = -0.32 + Math.sin(t * 0.22 + i) * 0.02;
           });
           motes.position.x = Math.sin(t * 0.1) * 0.8;
@@ -830,8 +835,8 @@ const CHAPTERS: ChapterDef[] = [
       const towers = new THREE.Group();
       for (const [tx, tz, h, tilt] of [
         [-4.6, -4.5, 6.5, 0.3],
-        [1.6, -7, 9, -0.14],
-        [6.6, -3.5, 5, 0.4],
+        [3.2, -9, 6.8, -0.14],
+        [7.2, -3.5, 4.6, 0.4],
       ] as const) {
         const tw = new THREE.Group();
         const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.8, h, 10), towerMat);
@@ -900,18 +905,22 @@ const CHAPTERS: ChapterDef[] = [
       scene.add(dust);
 
       const cat = makeCat(1.15);
-      cat.position.set(-2.5, 1.28, 4.4);
+      cat.position.set(-2.5, 1.42, 4.4);
       cat.rotation.y = 2.7;
       scene.add(cat);
+      const catShadow = dropShadow(soft, 0.55, 0.22);
+      catShadow.position.set(-2.5, 1.44, 4.4);
+      catShadow.rotation.x = -Math.PI / 2 + 0.12; // hug the dune's curve
+      scene.add(catShadow);
       const spark = makeSpark(halo, 1.2);
-      spark.position.set(-3.7, 2.5, 3.4);
+      spark.position.set(-1.4, 2.6, 4.0);
       scene.add(spark);
 
       return {
         tick(t) {
           dust.position.x = Math.sin(t * 0.12) * 2;
           dust.rotation.y = t * 0.012;
-          spark.position.y = 2.5 + Math.sin(t * 1.2) * 0.16;
+          spark.position.y = 2.6 + Math.sin(t * 1.2) * 0.16;
           spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 1.8) * 0.2;
           (cat.userData.eyes as THREE.Group).scale.y = blink(t, 5);
           (cat.userData.tail as THREE.Mesh).rotation.x = 1.05 + Math.sin(t * 2.4) * 0.14;
@@ -1032,13 +1041,21 @@ const CHAPTERS: ChapterDef[] = [
       const pastels = [0xf59db8, 0x8fd8a5, 0xf2cd72, 0x8fcbe0, 0xbfa3e8];
       const blobs: { mesh: THREE.Mesh; sp: number }[] = [];
       for (let i = 0; i < 34; i++) {
+        // self-lit pastel so near blobs never turn muddy in their own shade
         const mat = new THREE.MeshStandardMaterial({
           color: pastels[i % pastels.length],
           roughness: 0.85,
+          emissive: pastels[i % pastels.length],
+          emissiveIntensity: 0.38,
         });
-        const blob = new THREE.Mesh(new THREE.SphereGeometry(0.9 + hash(i) * 2.0, 20, 16), mat);
         const a = hash(i + 40) * Math.PI * 2;
         const r = 3.2 + hash(i + 80) * 8;
+        // blobs near the flight path stay small so they can't swallow the frame
+        const maxSize = r < 6 ? 1.3 : 2.9;
+        const blob = new THREE.Mesh(
+          new THREE.SphereGeometry(Math.min(0.9 + hash(i) * 2.0, maxSize), 20, 16),
+          mat
+        );
         blob.position.set(Math.cos(a) * r, Math.sin(a) * r * 0.75, -12 - hash(i + 120) * 66);
         blob.scale.y = 0.5 + hash(i + 160) * 0.55;
         blob.rotation.z = hash(i + 200) * Math.PI;
@@ -1149,7 +1166,209 @@ const CHAPTERS: ChapterDef[] = [
     },
   },
 
-  /* 7 — dedication (paper page, scene stays empty) */
+  /* 7 — dawn landfall: a small green isle to build a world on */
+  {
+    cam: [0, 2.3, 10],
+    look: [0, 1.35, 0],
+    build(scene, { halo, soft }) {
+      addLights(scene, 1.0, 0.7, 0xfff0d4, 0x2f6b64);
+      scene.fog = new THREE.Fog(0x8ec2b8, 16, 46);
+
+      // the sea — a broad calm disc catching the dawn
+      const sea = new THREE.Mesh(
+        new THREE.CircleGeometry(40, 56),
+        new THREE.MeshStandardMaterial({ color: 0x3f8f8c, roughness: 0.55, metalness: 0.1 })
+      );
+      sea.rotation.x = -Math.PI / 2;
+      scene.add(sea);
+
+      const isle = new THREE.Group();
+      const sand = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 28, 18),
+        new THREE.MeshStandardMaterial({ color: 0xefdcac, roughness: 1 })
+      );
+      sand.scale.set(4.6, 0.55, 3.6);
+      sand.position.y = 0.08;
+      const grass = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 28, 18),
+        new THREE.MeshStandardMaterial({ color: 0x7ab06a, roughness: 1 })
+      );
+      grass.scale.set(3.6, 0.85, 2.7);
+      grass.position.y = 0.3;
+      isle.add(sand, grass);
+
+      // the lighthouse — white with a warm lamp, the isle's promise
+      const lighthouse = new THREE.Group();
+      const lhBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.3, 0.42, 1.7, 12),
+        new THREE.MeshStandardMaterial({ color: 0xf6f0e2, roughness: 0.7 })
+      );
+      lhBody.position.y = 0.85;
+      const lhBand = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.38, 0.4, 0.3, 12),
+        new THREE.MeshStandardMaterial({ color: 0xd8574a, roughness: 0.7 })
+      );
+      lhBand.position.y = 0.6;
+      const lhCap = new THREE.Mesh(
+        new THREE.ConeGeometry(0.34, 0.42, 12),
+        new THREE.MeshStandardMaterial({ color: 0xd8574a, roughness: 0.7 })
+      );
+      lhCap.position.y = 2.05;
+      const lamp = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.2, 0.3, 10),
+        new THREE.MeshBasicMaterial({ color: 0xffe2a8 })
+      );
+      lamp.position.y = 1.8;
+      const lampGlow = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: halo,
+          transparent: true,
+          opacity: 0.8,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      lampGlow.scale.setScalar(1.5);
+      lampGlow.position.y = 1.8;
+      lighthouse.add(lhBody, lhBand, lhCap, lamp, lampGlow);
+      // out on the sandy point, clear of the chapter text
+      lighthouse.position.set(-3.05, 0.42, -0.7);
+      isle.add(lighthouse);
+
+      // a half-built cottage — walls up, roof beams still bare
+      const cottage = new THREE.Group();
+      const walls = new THREE.Mesh(
+        new THREE.BoxGeometry(1.15, 0.7, 0.9),
+        new THREE.MeshStandardMaterial({ color: 0xe8c88e, roughness: 0.9 })
+      );
+      walls.position.y = 0.35;
+      cottage.add(walls);
+      for (const bz of [-0.3, 0, 0.3]) {
+        const beamBar = new THREE.Mesh(
+          new THREE.BoxGeometry(1.3, 0.05, 0.06),
+          new THREE.MeshStandardMaterial({ color: 0x8a5a34, roughness: 0.9 })
+        );
+        beamBar.position.set(0, 0.74, bz);
+        cottage.add(beamBar);
+      }
+      const window1 = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.2, 0.24),
+        new THREE.MeshBasicMaterial({ color: 0xffd9a0 })
+      );
+      window1.position.set(0.2, 0.38, 0.46);
+      cottage.add(window1);
+      cottage.position.set(1.5, 1.02, 0.2);
+      cottage.rotation.y = -0.4;
+      isle.add(cottage);
+
+      // two young trees
+      for (const [tx, tz, s, ty] of [
+        [0.1, -1.1, 0.9, 1.02],
+        [2.6, -0.6, 0.7, 0.82],
+      ] as const) {
+        const tree = new THREE.Group();
+        const trunk = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.05, 0.07, 0.5, 6),
+          new THREE.MeshStandardMaterial({ color: 0x7a5232, roughness: 1 })
+        );
+        trunk.position.y = 0.25;
+        const crown = new THREE.Mesh(
+          new THREE.SphereGeometry(0.34, 12, 10),
+          new THREE.MeshStandardMaterial({ color: 0x5f9e52, roughness: 1 })
+        );
+        crown.position.y = 0.68;
+        crown.scale.y = 1.15;
+        tree.add(trunk, crown);
+        tree.scale.setScalar(s);
+        tree.position.set(tx, ty, tz);
+        isle.add(tree);
+      }
+      scene.add(isle);
+
+      // gentle rings spreading from the shore
+      const rings: THREE.Mesh[] = [];
+      for (let i = 0; i < 3; i++) {
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(0.98, 1.01, 64),
+          new THREE.MeshBasicMaterial({
+            color: 0xdff2ec,
+            transparent: true,
+            opacity: 0,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+          })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 0.02;
+        scene.add(ring);
+        rings.push(ring);
+      }
+
+      // the low dawn sun + drifting clouds
+      const sun = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: halo,
+          color: 0xffe0b0,
+          transparent: true,
+          opacity: 0.95,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          fog: false,
+        })
+      );
+      sun.position.set(6, 7.5, -28);
+      sun.scale.setScalar(9);
+      scene.add(sun);
+      const clouds: THREE.Sprite[] = [];
+      for (let i = 0; i < 4; i++) {
+        const c = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: soft,
+            color: 0xfff2dc,
+            transparent: true,
+            opacity: 0.4,
+            depthWrite: false,
+          })
+        );
+        c.position.set((hash(i + 2) - 0.5) * 26, 4.5 + hash(i + 12) * 3, -18 - hash(i + 22) * 8);
+        c.scale.set(6 + hash(i) * 5, 1.7, 1);
+        scene.add(c);
+        clouds.push(c);
+      }
+
+      // cat on the grass slope, spark hovering at its side — both facing the build
+      const cat = makeCat(1.05);
+      cat.position.set(-0.2, 0.86, 1.9);
+      cat.rotation.y = Math.PI - 0.35;
+      scene.add(cat);
+      const spark = makeSpark(halo, 1.25);
+      spark.position.set(-0.7, 2.0, 2.2);
+      scene.add(spark);
+
+      return {
+        tick(t, dt) {
+          isle.position.y = Math.sin(t * 0.4) * 0.02;
+          rings.forEach((r, i) => {
+            const life = (t * 0.22 + i / 3) % 1;
+            r.scale.setScalar(4.8 + life * 6);
+            (r.material as THREE.MeshBasicMaterial).opacity = (1 - life) * 0.3;
+          });
+          clouds.forEach((c, i) => {
+            c.position.x += dt * (0.08 + hash(i) * 0.08);
+            if (c.position.x > 16) c.position.x = -16;
+          });
+          spark.position.y = 2.0 + Math.sin(t * 1.3) * 0.15;
+          spark.position.x = -0.7 + Math.sin(t * 0.55) * 0.3;
+          spark.userData.glow.material.opacity = 0.75 + Math.sin(t * 2.0) * 0.2;
+          lampGlow.material.opacity = 0.65 + Math.sin(t * 1.1) * 0.2;
+          (cat.userData.eyes as THREE.Group).scale.y = blink(t, 8);
+          (cat.userData.tail as THREE.Mesh).rotation.x = 1.05 + Math.sin(t * 2.8) * 0.16;
+        },
+      };
+    },
+  },
+
+  /* 8 — dedication (paper page, scene stays empty) */
   {
     cam: [0, 0, 6],
     look: [0, 0, 0],
@@ -1160,7 +1379,10 @@ const CHAPTERS: ChapterDef[] = [
 ];
 
 /* per-chapter vignette strength — the cinema edge-darkening */
-const VIGNETTE = [0.5, 0.55, 0.62, 0.45, 0.3, 0.45, 0.18, 0];
+const VIGNETTE = [0.5, 0.55, 0.62, 0.45, 0.3, 0.45, 0.18, 0.26, 0];
+
+/* index of the dedication page */
+const LAST = CHAPTERS.length - 1;
 
 /* ── the storybook ──────────────────────────────────────────────── */
 
@@ -1267,7 +1489,7 @@ export default function SparkStory() {
 
   const advance = useCallback(() => {
     const i = idxRef.current;
-    if (busy.current || i >= 7) return;
+    if (busy.current || i >= LAST) return;
     busy.current = true;
     setVeil(true); // iris floods in
     setTimeout(() => {
@@ -1290,7 +1512,7 @@ export default function SparkStory() {
 
   const chapter = CHAPTER_TEXT[idx];
   const textColor = chapter.dark ? "#4a3416" : "#f6efdd";
-  const chromeDark = idx === 4 || idx === 6 || idx === 7;
+  const chromeDark = !!chapter.dark || idx === LAST;
   let wordDelay = 0;
 
   return (
@@ -1300,7 +1522,7 @@ export default function SparkStory() {
         if ((e.target as HTMLElement).closest("a")) return;
         advance();
       }}
-      style={{ cursor: idx < 7 ? "pointer" : "auto", background: "#081e23" }}
+      style={{ cursor: idx < LAST ? "pointer" : "auto", background: "#081e23" }}
     >
       {/* stacked gradient worlds — the active one fades in */}
       {CHAPTER_BG.map((bg, i) => (
@@ -1357,16 +1579,21 @@ export default function SparkStory() {
           <p className="mt-3 text-lg italic" style={{ fontFamily: SERIF, color: "#bcd8d2" }}>
             a small story from the Isle of Jay
           </p>
-          {dotReady && (
-            <p className="spark-hint mt-8 text-sm italic" style={{ fontFamily: SERIF, color: "#bcd8d2" }}>
-              tap the book
-            </p>
-          )}
         </div>
       )}
 
+      {/* cover hint — below the book, clear of the emblem's glow */}
+      {idx === 0 && dotReady && (
+        <p
+          className="spark-hint pointer-events-none absolute inset-x-0 top-[82vh] z-20 text-center text-sm italic"
+          style={{ fontFamily: SERIF, color: "#bcd8d2" }}
+        >
+          tap the book
+        </p>
+      )}
+
       {/* chapter text, word by word */}
-      {idx >= 1 && idx <= 6 && (
+      {idx >= 1 && idx < LAST && (
         <div
           key={idx}
           className={`pointer-events-none absolute z-20 max-w-xl ${
@@ -1397,7 +1624,7 @@ export default function SparkStory() {
       )}
 
       {/* the next-dot: a small breathing halo, the only affordance */}
-      {dotReady && idx >= 1 && idx <= 6 && (
+      {dotReady && idx >= 1 && idx < LAST && (
         <button
           type="button"
           aria-label="next page"
@@ -1408,7 +1635,7 @@ export default function SparkStory() {
       )}
 
       {/* page number */}
-      {idx >= 1 && idx <= 6 && (
+      {idx >= 1 && idx < LAST && (
         <p
           className="absolute inset-x-0 bottom-6 z-20 text-center font-mono text-[11px] tracking-[0.3em]"
           style={{ color: chapter.dark ? "#4a341688" : "#f6efdd88" }}
@@ -1418,7 +1645,7 @@ export default function SparkStory() {
       )}
 
       {/* dedication */}
-      {idx === 7 && (
+      {idx === LAST && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-3xl" style={{ fontFamily: SERIF, color: "#c9a14e" }}>
             ✦
