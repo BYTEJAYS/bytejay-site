@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { email, socials } from "@/lib/data";
+import AriaBackground from "../AriaBackground";
 import MagneticButton from "../MagneticButton";
 import Reveal from "../Reveal";
 import RollingText from "../RollingText";
@@ -21,6 +22,7 @@ export default function Contact() {
 
   return (
     <section id="contact" className="relative overflow-hidden px-6 py-32">
+      <AriaBackground />
       <div className="absolute inset-0 bg-dots [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,black,transparent)]" />
       <div className="relative mx-auto max-w-2xl text-center">
         <Reveal>
@@ -67,6 +69,11 @@ export default function Contact() {
           <p className="mt-14 font-hand text-2xl text-muted">
             P.S. — in a parallel world, we&apos;ve already shipped something
             together.
+          </p>
+        </Reveal>
+        <Reveal delay={0.42}>
+          <p className="mt-3 font-hand text-lg text-muted/70">
+            (that&apos;s A.R.I.A behind me — slide your mouse, she rewinds time)
           </p>
         </Reveal>
       </div>
