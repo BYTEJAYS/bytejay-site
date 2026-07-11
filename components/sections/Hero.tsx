@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import HeroCanvas from "../HeroCanvas";
 import LiveClock from "../LiveClock";
 import SaintBernard from "../SaintBernard";
+import SpotlightReveal from "../SpotlightReveal";
 import MagneticButton from "../MagneticButton";
 import RollingText from "../RollingText";
 
@@ -69,6 +70,9 @@ export default function Hero() {
           lights ? "opacity-100" : "opacity-0"
         }`}
       />
+      {/* under the paper: a blueprint, revealed by the cursor's torch */}
+      <SpotlightReveal dark={!lights} />
+
       {/* the instrument: an interactive drifting graph */}
       <motion.div
         style={{ y: canvasY, opacity: canvasOpacity }}
