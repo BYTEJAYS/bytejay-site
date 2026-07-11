@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Caveat, Inter, Space_Grotesk, Space_Mono } from "next/font/google";
+import LiquidReveal from "@/components/LiquidReveal";
 import "./globals.css";
 
 const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
@@ -27,6 +28,7 @@ export default function RootLayout({
     >
       <body className="bg-cream font-body text-ink antialiased">
         {children}
+        <LiquidReveal />
       </body>
     </html>
   );
