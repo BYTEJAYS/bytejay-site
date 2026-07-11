@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import HeroCanvas from "../HeroCanvas";
 import LiveClock from "../LiveClock";
 import SaintBernard from "../SaintBernard";
@@ -28,19 +28,9 @@ const hud = {
 
 export default function Hero() {
   const ref = useRef<HTMLElement>(null);
-  const [lights, setLights] = useState(true);
   const [sparks, setSparks] = useState(0);
 
   const onBurst = useCallback(() => setSparks((s) => s + 1), []);
-
-  // yutaabe easter egg: press Shift for lights out.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Shift" && !e.repeat) setLights((l) => !l);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   // The hero drifts away at its own pace as the story scrolls on.
   const { scrollYProgress } = useScroll({
@@ -52,33 +42,27 @@ export default function Hero() {
   const canvasY = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const canvasOpacity = useTransform(scrollYProgress, [0, 0.9], [1, 0.2]);
 
-  const inkText = lights ? "text-ink" : "text-cream";
-  const softText = lights ? "text-ink-soft" : "text-cream/70";
-  const hudText = lights ? "text-ink/60" : "text-cream/60";
+  const inkText = "text-ink";
+  const softText = "text-ink-soft";
+  const hudText = "text-ink/60";
 
   return (
     <section
       ref={ref}
       id="top"
-      className={`relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 transition-colors duration-700 ${
-        lights ? "bg-cream" : "bg-ink"
-      }`}
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream px-6"
     >
       {/* dotted paper, faded at the edges */}
-      <div
-        className={`absolute inset-0 bg-dots transition-opacity duration-700 [mask-image:radial-gradient(ellipse_75%_60%_at_50%_40%,black,transparent)] ${
-          lights ? "opacity-100" : "opacity-0"
-        }`}
-      />
+      <div className="absolute inset-0 bg-dots [mask-image:radial-gradient(ellipse_75%_60%_at_50%_40%,black,transparent)]" />
       {/* under the paper: a blueprint, revealed by the cursor's torch */}
-      <SpotlightReveal dark={!lights} />
+      <SpotlightReveal dark={false} />
 
       {/* the instrument: an interactive drifting graph */}
       <motion.div
         style={{ y: canvasY, opacity: canvasOpacity }}
         className="absolute inset-0"
       >
-        <HeroCanvas dark={!lights} onBurst={onBurst} />
+        <HeroCanvas onBurst={onBurst} />
       </motion.div>
 
       {/* the resident: a saint bernard on patrol, behind the title */}
@@ -86,7 +70,7 @@ export default function Hero() {
         style={{ y: canvasY, opacity: canvasOpacity }}
         className="pointer-events-none absolute inset-0 z-[5]"
       >
-        <SaintBernard dark={!lights} />
+        <SaintBernard />
       </motion.div>
 
       {/* ── HUD: left — local time ── */}
@@ -120,33 +104,6 @@ export default function Hero() {
           </span>
         </p>
         <p className="mt-1 opacity-70">CLICK THE VOID!</p>
-      </motion.div>
-
-      {/* ── HUD: bottom-right — lights switch ── */}
-      <motion.div
-        {...hud}
-        className={`absolute bottom-6 right-6 text-right font-mono text-[11px] tracking-[0.08em] transition-colors duration-700 ${hudText}`}
-      >
-        <button
-          type="button"
-          onClick={() => setLights((l) => !l)}
-          className="group inline-flex items-center gap-2"
-          aria-label="Toggle lights"
-        >
-          <span>LIGHTS {lights ? "ON" : "OUT"}</span>
-          <span
-            className={`relative h-4 w-8 rounded-full border transition-colors duration-500 ${
-              lights ? "border-ink/30" : "border-cream/40"
-            }`}
-          >
-            <span
-              className={`absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-accent transition-all duration-500 ${
-                lights ? "left-[3px]" : "left-[17px]"
-              }`}
-            />
-          </span>
-        </button>
-        <p className="mt-1 opacity-70">PRESS SHIFT!</p>
       </motion.div>
 
       {/* ── centre stage ── */}
@@ -231,20 +188,14 @@ export default function Hero() {
         >
           <MagneticButton
             href="#projects"
-            className={`inline-flex items-center gap-2 rounded-full px-7 py-3.5 font-medium transition-colors duration-500 hover:!bg-accent hover:!text-white ${
-              lights ? "bg-ink text-cream" : "bg-cream text-ink"
-            }`}
+            className="inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 font-medium text-cream transition-colors duration-500 hover:!bg-accent hover:!text-white"
           >
             <RollingText text="Explore my work" hoverText="let's gooo" />{" "}
             <span aria-hidden>↓</span>
           </MagneticButton>
           <MagneticButton
             href="#contact"
-            className={`inline-flex items-center gap-2 rounded-full border px-7 py-3.5 font-medium backdrop-blur transition-colors duration-500 ${
-              lights
-                ? "border-ink/20 bg-surface/60 text-ink hover:border-ink"
-                : "border-cream/25 bg-ink/40 text-cream hover:border-cream"
-            }`}
+            className="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-surface/60 px-7 py-3.5 font-medium text-ink backdrop-blur transition-colors duration-500 hover:border-ink"
           >
             <RollingText text="Say hello" hoverText="or wave ✌︎" />
           </MagneticButton>
@@ -262,9 +213,7 @@ export default function Hero() {
         <motion.span
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className={`block h-8 w-px transition-colors duration-700 ${
-            lights ? "bg-ink/30" : "bg-cream/40"
-          }`}
+          className="block h-8 w-px bg-ink/30"
         />
       </motion.div>
     </section>
