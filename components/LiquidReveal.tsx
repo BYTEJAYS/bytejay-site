@@ -21,6 +21,10 @@ import { useEffect, useRef } from "react";
  * fluid. Until WebGL takes over (and wherever it can't run: touch,
  * reduced motion, no float render targets) CSS backgrounds keep both
  * layers solid grey, which is also the site's default resting look.
+ *
+ * The whole show lives on the home hero only: both layers fade out as
+ * the first screen scrolls away (sim and splats pause once hidden), and
+ * the component doesn't mount at all on the other routes.
  */
 
 /* ── engine constants (verbatim from galekto fluid.js CFG / main.js) ── */
@@ -209,13 +213,33 @@ export default function LiquidReveal() {
 
   useEffect(() => {
     if (!active) return;
-    if (!window.matchMedia("(pointer: fine)").matches) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current;
     const dim = dimRef.current;
     if (!canvas || !dim) return;
+
+    /* front screen only — the veil thins as the hero scrolls away and is
+       gone past it, so the sections below keep their full colours */
+    let veil = 1;
+    const applyFade = () => {
+      veil = Math.max(0, 1 - window.scrollY / (window.innerHeight * 0.65));
+      const vis = veil <= 0 ? "hidden" : "visible";
+      canvas.style.opacity = String(veil);
+      canvas.style.visibility = vis;
+      dim.style.opacity = String(veil);
+      dim.style.visibility = vis;
+    };
+    applyFade();
+    window.addEventListener("scroll", applyFade, { passive: true });
+    const removeFade = () => window.removeEventListener("scroll", applyFade);
+
+    if (
+      !window.matchMedia("(pointer: fine)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return removeFade;
+    }
     const dimCtx = dim.getContext("2d");
-    if (!dimCtx) return;
+    if (!dimCtx) return removeFade;
 
     /* ── pointer / idle state (main.js) ── */
     let idleT = 0, idleFluidTimer = 0;
@@ -472,7 +496,7 @@ export default function LiquidReveal() {
       const dt = Math.min((ts - lastTs) / 1000, 0.05);
       lastTs = ts;
 
-      if (isIdle) {
+      if (isIdle && veil > 0) {
         idleT += dt;
         /* idle: three fluid streamers orbit like on galekto */
         if (fluidOn) {
@@ -500,7 +524,7 @@ export default function LiquidReveal() {
         }
       }
 
-      if (fluidOn) {
+      if (fluidOn && veil > 0) {
         stepFluid(dt);
         renderFluid();
         renderDim();
@@ -511,7 +535,7 @@ export default function LiquidReveal() {
 
     /* ── events (main.js setupEvents) ── */
     const onMove = (e: MouseEvent) => {
-      if (fluidOn && hasPrev) {
+      if (fluidOn && hasPrev && veil > 0) {
         const dx = (e.clientX - prevMouseX) / window.innerWidth;
         const dy = (e.clientY - prevMouseY) / window.innerHeight;
         doSplat(e.clientX, e.clientY, dx, dy);
@@ -551,6 +575,7 @@ export default function LiquidReveal() {
     });
 
     return () => {
+      removeFade();
       canvas.style.background = "#808080";
       dim.style.background = DIM_GREY;
       stopped = true;
