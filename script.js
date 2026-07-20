@@ -1080,7 +1080,7 @@ if (contactSection) {
     return;
   }
 
-  const perChar = 11; // ms per character
+  const perChar = 22; // ms per character
   function writeEl(el) {
     return new Promise((res) => {
       el.classList.add('writing');
