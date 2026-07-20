@@ -89,13 +89,12 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 .nav__links{display:flex;flex-direction:column;align-items:flex-start;gap:8px;flex:1 1 auto;min-width:0}
 /* 3D lucky-cat lives in the empty space beside the links */
 .nav__cat{
-  flex:0 0 118px;width:118px;align-self:stretch;
-  border-radius:14px;background:var(--cream);
+  flex:0 0 118px;width:118px;align-self:stretch;min-height:120px;
+  border-radius:14px;background:var(--cream);overflow:hidden;
   display:flex;align-items:center;justify-content:center;
-  opacity:0;transform:translateY(8px);
-  transition:opacity .4s var(--ease) .22s,transform .4s var(--ease) .22s;
+  opacity:0;transition:opacity .35s var(--ease) .1s;
 }
-.nav.open .nav__cat{opacity:1;transform:translateY(0)}
+.nav.open .nav__cat{opacity:1}
 .nav__cat-canvas{width:100%;height:100%;display:block;cursor:grab}
 .nav__cat-canvas:active{cursor:grabbing}
 .nav__panel a{

@@ -49,6 +49,7 @@ if (nav && canvas && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
 
     resize();
     addEventListener('resize', resize);
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(canvas);
 
     // drag to spin
     canvas.addEventListener('pointerdown', (e) => { dragging = true; lastX = e.clientX; spinVel = 0; canvas.setPointerCapture(e.pointerId); });
@@ -59,9 +60,12 @@ if (nav && canvas && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     canvas.addEventListener('click', () => wave()); // tap the cat to make it wave
   }
 
+  let lastW = 0, lastH = 0;
   function resize() {
     const r = canvas.getBoundingClientRect();
-    const w = Math.max(1, r.width), h = Math.max(1, r.height);
+    const w = Math.round(r.width), h = Math.round(r.height);
+    if (w < 2 || h < 2 || (w === lastW && h === lastH)) return;
+    lastW = w; lastH = h;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
@@ -71,6 +75,7 @@ if (nav && canvas && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
 
   function frame() {
     raf = requestAnimationFrame(frame);
+    resize(); // keep canvas fitted while the panel animates open
     const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.elapsedTime;
 
