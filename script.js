@@ -865,6 +865,37 @@ if (form) {
   });
 }
 
+// Reveal social shortcuts only when their related content has been reached.
+(function contextualFloaters() {
+  const about = document.getElementById('about');
+  const work = document.getElementById('work');
+  const contact = document.getElementById('contact');
+  if (!about || !work || !contact) return;
+
+  let frame = 0;
+  const sync = () => {
+    frame = 0;
+    const triggerLine = window.innerHeight * 0.62;
+    const beforeContact = contact.getBoundingClientRect().top > triggerLine;
+    document.body.classList.toggle(
+      'floater-instagram-visible',
+      beforeContact && about.getBoundingClientRect().top <= triggerLine
+    );
+    document.body.classList.toggle(
+      'floater-github-visible',
+      beforeContact && work.getBoundingClientRect().top <= triggerLine
+    );
+  };
+  const queueSync = () => {
+    if (frame) return;
+    frame = requestAnimationFrame(sync);
+  };
+
+  sync();
+  window.addEventListener('scroll', queueSync, { passive: true });
+  window.addEventListener('resize', queueSync);
+}());
+
 // Keep fixed action chips clear of the contact terminal while it is active.
 const contactSection = document.getElementById('contact');
 if (contactSection) {
