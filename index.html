@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ByteJay — Software Engineer</title>
+  <meta name="description" content="Jay — software engineer & backend builder. From idea to launch: clean, scalable digital products." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="assets/images/hero-portrait-mono.jpeg" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/images/hero-portrait-red.jpeg" type="image/jpeg" />
+  <link rel="stylesheet" href="styles.css?v=29" />
+</head>
+<body>
+  <!-- grain overlay -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- sticky pill nav -->
+  <nav class="nav" aria-label="Primary">
+    <div class="nav__bar">
+      <a href="#top" class="nav__brand">ByteJay</a>
+      <button class="nav__menu" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav__panel">
+      <div class="nav__panel-inner">
+        <a href="#about">About Me</a>
+        <a href="#services">Services</a>
+        <a href="#work">Projects</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- floating side actions -->
+  <div class="floaters" aria-hidden="false">
+    <a class="floater floater--dark" href="#work">See Work</a>
+    <a class="floater floater--chip" href="https://github.com/BYTEJAYS" target="_blank" rel="noopener">
+      <span class="dot"></span> GitHub
+    </a>
+  </div>
+
+  <main id="top">
+    <!-- HERO → ABOUT: one measured, reversible scroll journey -->
+    <div class="hero-journey" id="heroScene">
+      <section class="hero-panel" id="hero-section" aria-labelledby="heroTitle">
+        <canvas class="hero-synapse" data-hero-synapse aria-hidden="true"></canvas>
+        <h1 class="hero__title" id="heroTitle" data-synapse-trigger tabindex="0">
+          <span class="sr-only">Backend Engineer, Software Engineer and AI Engineer</span>
+          <span class="hero__title-rotator" aria-hidden="true">
+            <span class="hero__title-item hero__title-item--backend" data-role="backend">
+              <span>BACKEND</span>
+              <span>ENGINEER</span>
+            </span>
+            <span class="hero__title-item hero__title-item--software" data-role="software">
+              <span>SOFTWARE</span>
+              <span>ENGINEER</span>
+            </span>
+            <span class="hero__title-item hero__title-item--ai" data-role="ai">
+              <span>AI</span>
+              <span>ENGINEER</span>
+            </span>
+          </span>
+        </h1>
+
+        <span class="hero__year">&copy;2026</span>
+        <span class="hero__since">/BUILDING SINCE 2022</span>
+      </section>
+
+      <div class="hero-card-stage" aria-hidden="true">
+        <div class="hero-card-slot">
+          <div class="hero-card-underlay"></div>
+          <div class="hero-card" id="heroCard">
+            <div class="hero-card__face hero-card__front">
+              <img src="assets/images/hero-portrait-mono.jpeg" alt="" width="1086" height="1448" fetchpriority="high" />
+            </div>
+            <div class="hero-card__face hero-card__back">
+              <img src="assets/images/hero-portrait-red.jpeg" alt="" width="1023" height="1537" />
+            </div>
+          </div>
+          <div class="hero-card__shadow"></div>
+        </div>
+      </div>
+
+      <!-- The animated card settles into the centre column of this section. -->
+      <section class="intro" id="about" aria-labelledby="aboutTitle">
+        <div class="intro__col intro__col--lead">
+          <h2 id="aboutTitle">Hey!</h2>
+          <p data-reveal>I&rsquo;m Jay, a backend developer &amp; AI engineer based in India, building intelligent backend systems and graph analytics.</p>
+        </div>
+        <div class="intro__col intro__col--media">
+          <div class="portrait-destination">
+            <img src="assets/images/hero-portrait-red.jpeg" alt="Portrait of Jay in red studio light" width="1023" height="1537" loading="eager" />
+          </div>
+        </div>
+        <div class="intro__col intro__col--body">
+          <p data-reveal>I build modern, scalable backend systems with FastAPI, PostgreSQL and Redis &mdash; with PyTorch and NetworkX when the problem is a graph.</p>
+          <p data-reveal>Lately, I&rsquo;m building fraud-detection graph engines and local AI systems, alongside FastAPI platforms and Next.js consoles.</p>
+          <a class="link-arrow" href="#contact" data-reveal>
+            <span>Get Started</span>
+            <span class="link-arrow__box">&#8599;</span>
+          </a>
+        </div>
+      </section>
+    </div>
+
+    <!-- STATEMENT -->
+    <section class="statement">
+      <p data-reveal-words>
+        <b>From</b> idea to launch. Clean, scalable digital products built to move fast, stay simple, and perform in real-world use, driven by clarity, structured systems, and intentional design.
+      </p>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="services" id="services">
+      <h2 class="section-title" data-reveal-title>Services</h2>
+      <ul class="services__list">
+        <li class="service" data-reveal>
+          <span class="service__no">01</span>
+          <h3>Backend Engineering</h3>
+          <p>FastAPI, AsyncIO &amp; SQLAlchemy systems &mdash; clean architecture, auth, background jobs on Celery, and data models that scale on PostgreSQL &amp; Redis.</p>
+        </li>
+        <li class="service" data-reveal>
+          <span class="service__no">02</span>
+          <h3>AI Agents Development</h3>
+          <p>LLM-powered agents and multi-agent teams &mdash; tools, memory, and orchestration wired into real product workflows with Ollama and local-first AI.</p>
+        </li>
+        <li class="service" data-reveal>
+          <span class="service__no">03</span>
+          <h3>ML Model Deployments</h3>
+          <p>Packaging and serving PyTorch models behind APIs &mdash; inference endpoints, batching, and monitoring that hold up in production.</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- FEATURED WORK -->
+    <section class="work" id="work">
+      <div class="work__head">
+        <h2 class="section-title" data-reveal-title>Featured Projects</h2>
+        <a class="link-arrow" href="https://github.com/BYTEJAYS" target="_blank" rel="noopener" data-reveal>
+          <span>View All Work</span>
+          <span class="link-arrow__box">&#8599;</span>
+        </a>
+      </div>
+      <div class="work__grid">
+        <a class="card project-card" href="https://github.com/BYTEJAYS/TRANSACTION-GRAPH-ENGINE" target="_blank" rel="noopener" data-project-card>
+          <div class="project-card__visual">
+            <canvas class="project-card__canvas" data-particle-visual="graph" role="img" aria-label="Animated transaction graph with particles travelling between connected accounts"></canvas>
+          </div>
+          <div class="project-card__top">
+            <span class="project-card__tag">Python · NetworkX</span>
+            <span class="project-card__number" aria-hidden="true">01</span>
+          </div>
+          <div class="project-card__info">
+            <div>
+              <h3>Transaction Graph Engine</h3>
+              <p>Fraud-detection graph engine</p>
+            </div>
+            <span class="project-card__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </span>
+          </div>
+          <span class="sr-only">Open repository in a new tab</span>
+        </a>
+        <a class="card project-card" href="https://github.com/BYTEJAYS" target="_blank" rel="noopener" data-project-card>
+          <div class="project-card__visual">
+            <canvas class="project-card__canvas" data-particle-visual="governance" role="img" aria-label="Animated AI requests flowing through three governance checkpoints"></canvas>
+          </div>
+          <div class="project-card__top">
+            <span class="project-card__tag">FastAPI · Next.js</span>
+            <span class="project-card__number" aria-hidden="true">02</span>
+          </div>
+          <div class="project-card__info">
+            <div>
+              <h3>AI Control Plane</h3>
+              <p>Enterprise AI governance</p>
+            </div>
+            <span class="project-card__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </span>
+          </div>
+          <span class="sr-only">Open GitHub in a new tab</span>
+        </a>
+        <a class="card project-card" href="https://github.com/BYTEJAYS" target="_blank" rel="noopener" data-project-card>
+          <div class="project-card__visual">
+            <canvas class="project-card__canvas" data-particle-visual="growth" role="img" aria-label="Animated agent particles converging into a rising growth path"></canvas>
+          </div>
+          <div class="project-card__top">
+            <span class="project-card__tag">FastAPI · Agents</span>
+            <span class="project-card__number" aria-hidden="true">03</span>
+          </div>
+          <div class="project-card__info">
+            <div>
+              <h3>GrowthDesk</h3>
+              <p>Multi-tenant AI agent SaaS</p>
+            </div>
+            <span class="project-card__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </span>
+          </div>
+          <span class="sr-only">Open GitHub in a new tab</span>
+        </a>
+        <a class="card project-card" href="https://github.com/BYTEJAYS/bytejay-site" target="_blank" rel="noopener" data-project-card>
+          <div class="project-card__visual">
+            <canvas class="project-card__canvas" data-particle-visual="portfolio" role="img" aria-label="Animated portfolio constellation forming a browser frame and wireframe cube"></canvas>
+          </div>
+          <div class="project-card__top">
+            <span class="project-card__tag">Next.js · Three.js</span>
+            <span class="project-card__number" aria-hidden="true">04</span>
+          </div>
+          <div class="project-card__info">
+            <div>
+              <h3>bytejay-site</h3>
+              <p>3D interactive portfolio</p>
+            </div>
+            <span class="project-card__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </span>
+          </div>
+          <span class="sr-only">Open repository in a new tab</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonials">
+      <h2 class="section-title" data-reveal-title>Testimonials</h2>
+      <div class="testimonials__grid">
+        <div class="card quote">
+          <div class="card__inner">
+            <div class="card__face card__face--front">
+              <div class="card__logo">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 44 C16 30 24 22 32 22 C40 22 48 30 48 44 M24 44 C24 34 28 30 32 30 C36 30 40 34 40 44 M32 38 V44"/>
+                </svg>
+              </div>
+            </div>
+            <div class="card__face card__face--back">
+              <p class="quote__text">&ldquo;Jay ships backend that just works &mdash; clean, tested, and easy to build on.&rdquo;</p>
+              <footer><span class="quote__avatar">A</span><span>Engineering Lead</span></footer>
+            </div>
+          </div>
+        </div>
+        <div class="card quote">
+          <div class="card__inner">
+            <div class="card__face card__face--front">
+              <div class="card__logo">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="32" cy="32" r="7"/>
+                  <path d="M32 10 V18 M32 46 V54 M10 32 H18 M46 32 H54 M17 17 l5 5 M42 42 l5 5 M47 17 l-5 5 M22 42 l-5 5"/>
+                </svg>
+              </div>
+            </div>
+            <div class="card__face card__face--back">
+              <p class="quote__text">&ldquo;He thinks in systems. The API he designed for us still feels effortless a year later.&rdquo;</p>
+              <footer><span class="quote__avatar">R</span><span>Product Founder</span></footer>
+            </div>
+          </div>
+        </div>
+        <div class="card quote">
+          <div class="card__inner">
+            <div class="card__face card__face--front">
+              <div class="card__logo">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 40 L26 24 L38 34 L52 18"/><path d="M22 46 L34 34 L44 42 L54 30"/>
+                </svg>
+              </div>
+            </div>
+            <div class="card__face card__face--back">
+              <p class="quote__text">&ldquo;Fast, precise, and genuinely curious. Rare to find in someone this early in their career.&rdquo;</p>
+              <footer><span class="quote__avatar">M</span><span>Mentor, IDEA 2.0</span></footer>
+            </div>
+          </div>
+        </div>
+        <div class="card quote">
+          <div class="card__inner">
+            <div class="card__face card__face--front">
+              <div class="card__logo">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M32 8 L40 24 L58 26 L45 39 L48 57 L32 48 L16 57 L19 39 L6 26 L24 24 Z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="card__face card__face--back">
+              <p class="quote__text">&ldquo;From idea to shipped in days, not weeks. Jay is the person you want on the hard parts.&rdquo;</p>
+              <footer><span class="quote__avatar">S</span><span>Hackathon Teammate</span></footer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact" id="contact">
+      <div class="contact__left">
+        <p class="contact__eyebrow" data-reveal>CONTACT_PROTOCOL / 01</p>
+        <h2 class="section-title contact__title" data-reveal-title>Let&rsquo;s<br />talk<span class="contact__cursor" aria-hidden="true">_</span></h2>
+        <p class="contact__lede" data-reveal>Have a difficult backend problem, an AI idea, or a product that needs to ship? Open a channel and tell me what you&rsquo;re building.</p>
+        <dl class="contact__meta" data-reveal>
+          <div><dt>Status</dt><dd><span class="contact__status-dot" aria-hidden="true"></span>Open to interesting builds</dd></div>
+          <div><dt>Channel</dt><dd>Remote / async-friendly</dd></div>
+        </dl>
+        <div class="socials" data-reveal>
+          <a href="https://github.com/BYTEJAYS" target="_blank" rel="noopener" aria-label="GitHub">GH</a>
+          <a href="https://linkedin.com/in/bytejay" target="_blank" rel="noopener" aria-label="LinkedIn">in</a>
+          <a href="mailto:codes404z@gmail.com" aria-label="Email">@</a>
+        </div>
+      </div>
+      <form class="contact__form terminal" data-reveal aria-label="Contact terminal">
+        <div class="terminal__bar">
+          <span class="terminal__lights" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="terminal__title">jay@bytejay: ~/messages/new</span>
+          <span class="terminal__secure"><i aria-hidden="true"></i><span class="terminal__secure-text">standby</span></span>
+        </div>
+        <div class="terminal__body">
+          <div class="terminal__intro" aria-hidden="true">
+            <p><span>jay@bytejay</span>:~/contact$ <b class="terminal__typed" data-terminal-type>./start-conversation</b></p>
+            <p class="terminal__output" data-terminal-output>Initializing secure message channel...</p>
+            <p class="terminal__output" data-terminal-output><strong>[OK]</strong> Connection established. Awaiting input.</p>
+          </div>
+
+          <label class="terminal__field" for="contact-name">
+            <span class="terminal__prompt"><b aria-hidden="true">&gt;</b> visitor.name</span>
+            <input id="contact-name" type="text" name="name" placeholder='"Your name"' autocomplete="name" required />
+          </label>
+
+          <label class="terminal__field" for="contact-email">
+            <span class="terminal__prompt"><b aria-hidden="true">&gt;</b> visitor.email</span>
+            <input id="contact-email" type="email" name="email" placeholder='"you@email.com"' autocomplete="email" required />
+          </label>
+
+          <label class="terminal__field terminal__field--message" for="contact-message">
+            <span class="terminal__prompt"><b aria-hidden="true">&gt;</b> message.body</span>
+            <textarea id="contact-message" name="message" rows="5" placeholder='"Tell me about the project, problem, or idea..."' required></textarea>
+          </label>
+
+          <div class="terminal__command" aria-hidden="true"><span>$</span> <b class="terminal__typed" data-terminal-type>message.send --channel=human</b></div>
+          <button type="submit" class="btn-submit">
+            <span class="btn-submit__label">Execute message.send()</span>
+            <span class="btn-submit__key" aria-hidden="true">ENTER &crarr;</span>
+          </button>
+          <p class="contact__note" role="status" aria-live="polite" hidden><strong>[OK]</strong> Demo command complete. Send for real via <a href="mailto:codes404z@gmail.com">codes404z@gmail.com</a>.</p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__top">
+      <h2 class="footer__headline" data-reveal>Scaling Ideas<br />into Products.</h2>
+      <div class="footer__links">
+        <h4>/Quick links</h4>
+        <div class="footer__pills">
+          <a href="#top">Home</a>
+          <a href="#about">About Me</a>
+          <a href="#services">Services</a>
+          <a href="#work">Works</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </div>
+      <div class="footer__contact">
+        <h4>/Contact</h4>
+        <a href="mailto:codes404z@gmail.com">codes404z@gmail.com</a>
+      </div>
+    </div>
+    <div class="footer__wordmark" aria-hidden="true">BYTEJAY</div>
+  </footer>
+
+  <script src="assets/vendor/gsap.min.js"></script>
+  <script src="assets/vendor/ScrollTrigger.min.js"></script>
+  <script src="assets/vendor/lenis.min.js"></script>
+  <script src="script.js?v=25"></script>
+</body>
+</html>
