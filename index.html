@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-mono.jpeg" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-red.jpeg" type="image/jpeg" />
-  <link rel="stylesheet" href="styles.css?v=35" />
+  <link rel="stylesheet" href="styles.css?v=36" />
 </head>
 <body>
   <!-- grain overlay -->
@@ -26,10 +26,16 @@
     </div>
     <div class="nav__panel">
       <div class="nav__panel-inner">
-        <a href="#about">About Me</a>
-        <a href="#services">Services</a>
-        <a href="#work">Projects</a>
-        <a href="#contact">Contact</a>
+        <div class="nav__links">
+          <a href="#about">About Me</a>
+          <a href="#services">Services</a>
+          <a href="#work">Projects</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <div class="nav__buddy" aria-hidden="true">
+          <span class="nav__buddy-bubble">Hi!</span>
+          <img class="nav__buddy-img" src="assets/models/boy-wave.gif" alt="" width="360" height="440" loading="lazy" />
+        </div>
       </div>
     </div>
   </nav>
