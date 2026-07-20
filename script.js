@@ -6,11 +6,15 @@ document.documentElement.classList.add('js');
   const root = document.documentElement;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let safetyTimer;
+  let completed = false;
 
   const finish = () => {
+    if (completed) return;
+    completed = true;
     root.classList.remove('site-entering', 'site-intro-active');
     root.classList.add('site-entered');
     window.clearTimeout(safetyTimer);
+    window.dispatchEvent(new Event('siteintrocomplete'));
   };
 
   if (reduceMotion) {
@@ -23,7 +27,7 @@ document.documentElement.classList.add('js');
   requestAnimationFrame(() => requestAnimationFrame(() => {
     root.classList.remove('site-entering');
     root.classList.add('site-entered');
-    window.setTimeout(() => root.classList.remove('site-intro-active'), 1900);
+    window.setTimeout(finish, 1900);
   }));
 
   // Never leave the page in its prepared state if loading is interrupted.
@@ -1021,6 +1025,7 @@ if (contactSection) {
   let ticker;
   let anchorClick;
   let syncLenisSize;
+  let resumeAfterIntro;
 
   // One Lenis instance, driven by GSAP's ticker and connected to ScrollTrigger.
   if (LenisCtor) {
@@ -1035,6 +1040,19 @@ if (contactSection) {
     ticker = (time) => lenis.raf(time * 1000);
     gsap.ticker.add(ticker);
     window.__lenis = lenis;
+
+    // Prevent wheel input from advancing ScrollTrigger while the opening
+    // composition is still resolving. Resume both systems on the same frame.
+    if (document.documentElement.classList.contains('site-intro-active')) {
+      lenis.stop();
+      resumeAfterIntro = () => requestAnimationFrame(() => {
+        lenis.start();
+        lenis.resize();
+        ScrollTrigger.refresh();
+        ScrollTrigger.update();
+      });
+      window.addEventListener('siteintrocomplete', resumeAfterIntro, { once: true });
+    }
 
     syncLenisSize = () => lenis.resize();
     ScrollTrigger.addEventListener('refreshInit', syncLenisSize);
@@ -1125,6 +1143,7 @@ if (contactSection) {
     if (navDismissTrigger) navDismissTrigger.kill();
     mm.revert();
     if (anchorClick) document.removeEventListener('click', anchorClick);
+    if (resumeAfterIntro) window.removeEventListener('siteintrocomplete', resumeAfterIntro);
     if (syncLenisSize) ScrollTrigger.removeEventListener('refreshInit', syncLenisSize);
     if (ticker) gsap.ticker.remove(ticker);
     if (lenis) {
