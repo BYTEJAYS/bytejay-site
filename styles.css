@@ -197,6 +197,7 @@ body.contact-in-view .floaters{opacity:0;transform:translate3d(calc(100% + 30px)
 .floater--dark:hover{transform:translateY(-2px)}
 .floater--chip{background:#fff;color:var(--ink);display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(0,0,0,.1)}
 .floater--chip .dot{width:9px;height:9px;border-radius:50%;background:#25b86a;box-shadow:0 0 0 3px rgba(37,184,106,.16)}
+.floater--chip .dot--instagram{background:linear-gradient(135deg,#833ab4,#fd1d1d 55%,#fcb045);box-shadow:0 0 0 3px rgba(225,48,108,.14)}
 
 /* ===== Hero → About scroll journey ===== */
 .hero-journey{
