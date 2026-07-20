@@ -1047,3 +1047,65 @@ if (contactSection) {
     }
   }, { once: true });
 })();
+
+// ===== About: pencil-write reveal — text inks in char-by-char with a ✏️ following the line =====
+(function pencilWrite() {
+  const nodes = [...document.querySelectorAll('[data-write]')];
+  if (!nodes.length) return;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  nodes.forEach((el) => {
+    const text = el.textContent;
+    el.textContent = '';
+    const frag = document.createDocumentFragment();
+    for (const ch of text) {
+      const s = document.createElement('span');
+      s.className = 'w-ch';
+      s.textContent = ch;
+      if (ch === ' ') s.style.whiteSpace = 'pre';
+      frag.appendChild(s);
+    }
+    el.appendChild(frag);
+    el._chars = [...el.querySelectorAll('.w-ch')];
+    const pen = document.createElement('span');
+    pen.className = 'write-pencil';
+    pen.textContent = '✏️';
+    pen.setAttribute('aria-hidden', 'true');
+    el.appendChild(pen);
+    el._pen = pen;
+  });
+
+  if (reduce) {
+    nodes.forEach((el) => { el.classList.add('done'); el._chars.forEach((c) => c.classList.add('inked')); el._pen.remove(); });
+    return;
+  }
+
+  const perChar = 11; // ms per character
+  function writeEl(el) {
+    return new Promise((res) => {
+      el.classList.add('writing');
+      const chars = el._chars, pen = el._pen, N = chars.length;
+      pen.classList.add('on');
+      let start = null;
+      function step(ts) {
+        if (start === null) start = ts;
+        const n = Math.min(N, Math.floor((ts - start) / perChar));
+        for (let i = 0; i < n; i++) if (!chars[i].classList.contains('inked')) chars[i].classList.add('inked');
+        const cur = chars[Math.min(n, N - 1)];
+        if (cur) pen.style.transform = 'translate(' + (cur.offsetLeft + cur.offsetWidth - 2) + 'px,' + (cur.offsetTop - cur.offsetHeight * 0.55) + 'px)';
+        if (n >= N) { el.classList.add('done'); pen.classList.remove('on'); setTimeout(() => pen.remove(), 220); res(); return; }
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  let started = false;
+  async function runAll() { if (started) return; started = true; for (const el of nodes) await writeEl(el); }
+
+  const trigger = document.querySelector('#about') || nodes[0];
+  const io2 = new IntersectionObserver((ents) => {
+    ents.forEach((e) => { if (e.isIntersecting) { runAll(); io2.disconnect(); } });
+  }, { threshold: 0.12 });
+  io2.observe(trigger);
+})();
