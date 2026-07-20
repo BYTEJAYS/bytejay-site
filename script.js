@@ -877,7 +877,7 @@ if (form) {
   let frame = 0;
   const sync = () => {
     frame = 0;
-    const triggerLine = window.innerHeight * 0.62;
+    const triggerLine = window.innerHeight * 0.76;
     const beforeContact = contact.getBoundingClientRect().top > triggerLine;
     document.body.classList.toggle(
       'floater-instagram-visible',
