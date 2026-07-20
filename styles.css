@@ -185,22 +185,23 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 /* ===== Floating side actions ===== */
 .floaters{
   position:fixed;right:20px;bottom:20px;z-index:40;
-  display:flex;flex-direction:column;gap:0;align-items:flex-end;
-  transition:transform .4s var(--ease),opacity .3s ease;
+  width:180px;height:118px;pointer-events:none;
+  transition:transform .38s cubic-bezier(.4,0,1,1),opacity .26s ease;
 }
 body.contact-in-view .floaters{opacity:0;transform:translate3d(calc(100% + 30px),0,0);pointer-events:none}
 .floater{
-  max-height:0;overflow:hidden;visibility:hidden;opacity:0;pointer-events:none;
-  font-size:15px;font-weight:500;padding:0 22px;border-radius:12px;
-  transform:translate3d(14px,8px,0) scale(.97);
-  transition:opacity .32s ease,transform .42s var(--ease),max-height .42s var(--ease),padding .42s var(--ease),margin .42s var(--ease),visibility 0s linear .42s,background .3s;
+  position:absolute;right:0;bottom:0;visibility:hidden;opacity:0;pointer-events:none;
+  font-size:15px;font-weight:500;padding:14px 22px;border-radius:12px;white-space:nowrap;
+  filter:blur(4px);transform:translate3d(18px,14px,0) scale(.94);
+  transition:opacity .28s ease-out,filter .38s ease-out,transform .52s cubic-bezier(.16,1,.3,1),visibility 0s linear .52s,background .3s,box-shadow .3s;
 }
 body.floater-instagram-visible .floater--instagram,
 body.floater-github-visible .floater--github{
-  max-height:60px;visibility:visible;opacity:1;pointer-events:auto;padding:14px 22px;
+  visibility:visible;opacity:1;pointer-events:auto;filter:blur(0);
   transform:translate3d(0,0,0) scale(1);transition-delay:0s;
 }
-body.floater-github-visible .floater--github{margin-top:10px}
+body.floater-github-visible .floater--instagram{transform:translate3d(0,-62px,0) scale(1)}
+body.floater-github-visible .floater--github{transition-delay:.08s}
 .floater--dark{background:var(--ink);color:#fff}
 .floater--dark:hover{transform:translateY(-2px)}
 .floater--chip{background:#fff;color:var(--ink);display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(0,0,0,.1)}
