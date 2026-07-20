@@ -90,7 +90,7 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 /* 3D lucky-cat lives in the empty space beside the links */
 .nav__cat{
   flex:0 0 118px;width:118px;align-self:stretch;min-height:120px;
-  border-radius:14px;background:var(--cream);overflow:hidden;
+  background:transparent;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
   opacity:0;transition:opacity .35s var(--ease) .1s;
 }
