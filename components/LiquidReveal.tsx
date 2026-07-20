@@ -10,19 +10,17 @@ import { useEffect, useRef } from "react";
  * splats grey dye; strokes linger, swirl and dissipate like ink, and
  * three streamers orbit on their own when the mouse rests.
  *
- * The site keeps its real colours in the DOM. Two stacked layers make it
- * rest grey: this GL canvas paints opaque neutral grey in
- * mix-blend-mode: saturation (desaturates what's beneath), and a 2D
- * companion canvas in mix-blend-mode: multiply dims it to a flatter,
- * darker paper grey. The display shader cuts dye-shaped holes into the
- * GL canvas (galekto's hard smoothstep edge) and the companion copies
- * that alpha every frame, so the cursor wipes both veils away at once
- * and the site's original colours appear at full brightness through the
- * fluid. Until WebGL takes over (and wherever it can't run: touch,
- * reduced motion, no float render targets) CSS backgrounds keep both
- * layers solid grey, which is also the site's default resting look.
+ * Display works exactly like galekto's live site: dye density becomes an
+ * alpha mask (their hard 0.08→0.09 smoothstep edge) that reveals colour
+ * where the fluid flows and stays fully transparent everywhere else. On
+ * galekto the mask reveals their Sanity-hosted sunset-marble artwork;
+ * here the same palette — coral #F09672, peach #F5AD85, dusty rose
+ * #CE8794, lavender #988AB7 — is rebuilt procedurally in the display
+ * shader (slow-drifting marble bands), so the exact colours ride the
+ * fluid without borrowing their asset. The rest of the viewport stays
+ * untouched, which is what makes the splat pop against the dark site.
  *
- * The whole show lives on the home hero only: both layers fade out as
+ * The whole show lives on the home hero only: the canvas fades out as
  * the first screen scrolls away (sim and splats pause once hidden), and
  * the component doesn't mount at all on the other routes.
  */
@@ -42,7 +40,6 @@ const EDGE_HIGH = 0.09;
 const DYE_GRAY = 0.76;
 const IDLE_DELAY = 2200;
 const IDLE_FLUID_INTERVAL = 0.038;
-const DIM_GREY = "#CDCDCD"; // multiply layer: how dark the resting grey paper is
 
 /* ── shaders (after PavelDoGreat, trimmed to what galekto uses) ── */
 const VS = `
@@ -175,19 +172,43 @@ void main () {
   gl_FragColor = vec4(velocity, 0.0, 1.0);
 }`;
 
-/* galekto's display shader, inverted: dye density cuts a hard-edged
-   hole into the opaque grey desaturation layer */
+/* galekto's display shader, verbatim mechanics: dye density → alpha mask
+   revealing colour. Their live site reveals a sunset-marble artwork; the
+   same palette is generated here procedurally. */
 const FS_DISPLAY = `
 precision highp float; precision highp sampler2D;
 varying vec2 vUv;
 uniform sampler2D uTexture;
 uniform float uEdgeLow;
 uniform float uEdgeHigh;
+uniform float uTime;
+
+vec3 sunset(vec2 uv, float t) {
+  /* galekto's palette, deepened ~28% so white hero text keeps its punch
+     inside the wash (screen blend brightens the backdrop) */
+  vec3 coral    = vec3(0.729, 0.408, 0.286); /* burnt #BA6849 */
+  vec3 peach    = vec3(0.796, 0.494, 0.341); /* ember #CB7E57 */
+  vec3 rose     = vec3(0.608, 0.365, 0.427); /* deep rose #9B5D6D */
+  vec3 lavender = vec3(0.427, 0.376, 0.545); /* plum #6D608B */
+
+  vec3 col = mix(coral, rose, smoothstep(0.0, 0.55, uv.y));
+  col = mix(col, lavender, smoothstep(0.45, 1.05, uv.y));
+
+  /* slow marble swirls in peach, like the brushed bands in the artwork */
+  float w  = sin(uv.x * 7.5 + sin(uv.y * 6.0 + t * 0.18) * 2.2 + uv.y * 5.0 + t * 0.06);
+  float w2 = sin(uv.x * 3.1 - uv.y * 9.0 - t * 0.11 + sin(uv.x * 11.0) * 0.8);
+  float band = smoothstep(0.62, 0.97, w) + smoothstep(0.75, 0.99, w2) * 0.6;
+  col = mix(col, peach, clamp(band, 0.0, 1.0) * 0.85);
+  return col;
+}
+
 void main () {
   vec3 dye = texture2D(uTexture, vUv).rgb;
   float density = max(dye.r, max(dye.g, dye.b));
-  float alpha = 1.0 - smoothstep(uEdgeLow, uEdgeHigh, density);
-  gl_FragColor = vec4(vec3(0.5) * alpha, alpha);
+  float alpha = smoothstep(uEdgeLow, uEdgeHigh, density);
+  if (alpha < 0.004) { gl_FragColor = vec4(0.0); return; }
+  vec3 col = sunset(vUv, uTime);
+  gl_FragColor = vec4(col * alpha, alpha);
 }`;
 
 type FBO = {
@@ -205,7 +226,6 @@ type DoubleFBO = {
 
 export default function LiquidReveal() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dimRef = useRef<HTMLCanvasElement>(null);
   const pathname = usePathname();
   /* home page only — /projects, /journey, /album and /hackathons keep
      their original colours with no grey veil */
@@ -214,8 +234,7 @@ export default function LiquidReveal() {
   useEffect(() => {
     if (!active) return;
     const canvas = canvasRef.current;
-    const dim = dimRef.current;
-    if (!canvas || !dim) return;
+    if (!canvas) return;
 
     /* front screen only — the veil thins as the hero scrolls away and is
        gone past it, so the sections below keep their full colours */
@@ -225,8 +244,6 @@ export default function LiquidReveal() {
       const vis = veil <= 0 ? "hidden" : "visible";
       canvas.style.opacity = String(veil);
       canvas.style.visibility = vis;
-      dim.style.opacity = String(veil);
-      dim.style.visibility = vis;
     };
     applyFade();
     window.addEventListener("scroll", applyFade, { passive: true });
@@ -238,8 +255,6 @@ export default function LiquidReveal() {
     ) {
       return removeFade;
     }
-    const dimCtx = dim.getContext("2d");
-    if (!dimCtx) return removeFade;
 
     /* ── pointer / idle state (main.js) ── */
     let idleT = 0, idleFluidTimer = 0;
@@ -358,8 +373,6 @@ export default function LiquidReveal() {
     if (fluidOn) {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      dim.width = window.innerWidth;
-      dim.height = window.innerHeight;
       quad = gl!.createBuffer()!;
       gl!.bindBuffer(gl!.ARRAY_BUFFER, quad);
       gl!.bufferData(
@@ -465,6 +478,7 @@ export default function LiquidReveal() {
       dye.swap();
     }
 
+    let simTime = 0;
     function renderFluid() {
       gl!.bindFramebuffer(gl!.FRAMEBUFFER, null);
       gl!.clearColor(0, 0, 0, 0);
@@ -475,16 +489,8 @@ export default function LiquidReveal() {
       gl!.uniform1i(u.uTexture, dye.read.attach(0));
       gl!.uniform1f(u.uEdgeLow, EDGE_LOW);
       gl!.uniform1f(u.uEdgeHigh, EDGE_HIGH);
+      gl!.uniform1f(u.uTime, simTime);
       blit(null);
-    }
-
-    /* dim layer = flat grey with the GL canvas's alpha stamped in */
-    function renderDim() {
-      dimCtx!.globalCompositeOperation = "source-over";
-      dimCtx!.fillStyle = DIM_GREY;
-      dimCtx!.fillRect(0, 0, dim!.width, dim!.height);
-      dimCtx!.globalCompositeOperation = "destination-in";
-      dimCtx!.drawImage(canvas!, 0, 0);
     }
 
     /* ── main loop (main.js loop, trimmed to the two engines) ── */
@@ -495,6 +501,7 @@ export default function LiquidReveal() {
       if (stopped) return;
       const dt = Math.min((ts - lastTs) / 1000, 0.05);
       lastTs = ts;
+      simTime += dt;
 
       if (isIdle && veil > 0) {
         idleT += dt;
@@ -527,7 +534,6 @@ export default function LiquidReveal() {
       if (fluidOn && veil > 0) {
         stepFluid(dt);
         renderFluid();
-        renderDim();
       }
 
       raf = requestAnimationFrame(loop);
@@ -553,17 +559,10 @@ export default function LiquidReveal() {
       if (!fluidOn) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      dim.width = window.innerWidth;
-      dim.height = window.innerHeight;
       initFramebuffers();
     };
 
-    if (fluidOn) {
-      renderFluid();
-      renderDim();
-      canvas.style.background = "transparent";
-      dim.style.background = "transparent";
-    }
+    if (fluidOn) renderFluid();
 
     document.addEventListener("mousemove", onMove);
     document.documentElement.addEventListener("mouseleave", onLeave);
@@ -576,8 +575,6 @@ export default function LiquidReveal() {
 
     return () => {
       removeFade();
-      canvas.style.background = "#808080";
-      dim.style.background = DIM_GREY;
       stopped = true;
       cancelAnimationFrame(raf);
       if (idleTimer) clearTimeout(idleTimer);
@@ -590,19 +587,14 @@ export default function LiquidReveal() {
   if (!active) return null;
 
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        aria-hidden
-        style={{ background: "#808080" }}
-        className="pointer-events-none fixed inset-0 z-[76] block h-full w-full mix-blend-saturation"
-      />
-      <canvas
-        ref={dimRef}
-        aria-hidden
-        style={{ background: DIM_GREY }}
-        className="pointer-events-none fixed inset-0 z-[77] block h-full w-full mix-blend-multiply"
-      />
-    </>
+    /* screen blend = the dye behaves like light cast onto the page: the
+       dark backdrop takes the sunset colour while text and objects under
+       the splat stay visible, tinted into the same palette — nothing is
+       painted over or lost */
+    <canvas
+      ref={canvasRef}
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-30 block h-full w-full mix-blend-screen"
+    />
   );
 }

@@ -5,7 +5,6 @@ import useActiveSection from "@/lib/useActiveSection";
 import RollingText from "./RollingText";
 
 const links = [
-  { label: "About", hover: "who?", href: "#about" },
   { label: "Projects", hover: "the builds", href: "#projects" },
   { label: "Skills", hover: "the tools", href: "#skills" },
   { label: "Journey", hover: "play it!", href: "/journey" },
@@ -24,7 +23,7 @@ export default function Navbar() {
         initial={{ y: -70, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, delay: 1.9, ease: [0.21, 0.47, 0.32, 0.98] }}
-        className="pointer-events-auto flex items-center gap-1 rounded-full border border-line bg-cream/80 p-1.5 shadow-[0_2px_20px_rgba(28,25,23,0.06)] backdrop-blur-md"
+        className="pointer-events-auto flex items-center gap-1 rounded-full border border-line bg-cream/80 p-1.5 shadow-[0_4px_28px_rgba(0,0,0,0.55)] backdrop-blur-md"
       >
         <a
           href="#top"

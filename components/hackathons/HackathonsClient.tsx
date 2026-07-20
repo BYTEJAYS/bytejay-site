@@ -143,10 +143,10 @@ function BadgeViewer({ badge, onClose }: { badge: Badge; onClose: () => void }) 
         </div>
       </motion.div>
       <div className="pointer-events-none mt-8 text-center">
-        <p className="font-display text-3xl font-bold tracking-tight text-cream">{badge.name}</p>
+        <p className="font-display text-3xl font-bold tracking-tight text-ink">{badge.name}</p>
         <p className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.3em] text-accent">{badge.title}</p>
       </div>
-      <p className="pointer-events-none mt-4 font-mono text-[9px] uppercase tracking-[0.25em] text-cream/35">
+      <p className="pointer-events-none mt-4 font-mono text-[9px] uppercase tracking-[0.25em] text-ink/35">
         drag to spin — click outside to close
       </p>
     </motion.div>
@@ -311,16 +311,16 @@ export default function HackathonsClient() {
                 [0, 180].map((face) => (
                   <div
                     key={face}
-                    className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-cream/20 bg-white/[0.03]"
+                    className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-ink/20 bg-white/[0.03]"
                     style={{
                       backfaceVisibility: "hidden",
                       transform: `rotateY(${face}deg) translateZ(1px)`,
                     }}
                   >
-                    <p className="font-display text-4xl font-bold text-cream/15">
+                    <p className="font-display text-4xl font-bold text-ink/15">
                       {String(i + 1).padStart(2, "0")}
                     </p>
-                    <p className="font-mono text-[8px] uppercase tracking-[0.3em] text-cream/25">
+                    <p className="font-mono text-[8px] uppercase tracking-[0.3em] text-ink/25">
                       awaiting badge
                     </p>
                   </div>
@@ -330,7 +330,7 @@ export default function HackathonsClient() {
           </div>
           {badge && (
             <div className="pointer-events-none mt-4 text-center">
-              <p className="font-display text-lg font-bold tracking-tight text-cream">
+              <p className="font-display text-lg font-bold tracking-tight text-ink">
                 {badge.name}
               </p>
               <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.3em] text-accent">
@@ -347,7 +347,7 @@ export default function HackathonsClient() {
     for (let j = 0; j < copies.ny + 1; j++) copyList.push([i, j] as const);
 
   return (
-    <main className="fixed inset-0 overflow-hidden bg-[#0E0D0C] text-cream">
+    <main className="fixed inset-0 overflow-hidden bg-[#0E0D0C] text-ink">
       {/* the plane */}
       <div
         ref={wrapRef}
@@ -382,24 +382,24 @@ export default function HackathonsClient() {
       {/* chrome */}
       <Link
         href="/"
-        className="absolute left-5 top-5 z-20 font-mono text-[10px] uppercase tracking-[0.22em] text-cream/50 transition-colors hover:text-accent"
+        className="absolute left-5 top-5 z-20 font-mono text-[10px] uppercase tracking-[0.22em] text-ink/50 transition-colors hover:text-accent"
       >
         ← bytejay
       </Link>
       <div className="pointer-events-none absolute bottom-6 left-5 z-20">
-        <p className="font-display text-xl font-bold tracking-tight text-cream">
+        <p className="font-display text-xl font-bold tracking-tight text-ink">
           <span className="text-accent">/</span> HACKATHONS
         </p>
-        <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.25em] text-cream/40">
+        <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.25em] text-ink/40">
           the badge collection — drag anywhere, click a badge
         </p>
       </div>
-      <div className="pointer-events-none absolute bottom-6 right-5 z-20 space-y-1 text-right font-mono text-[9px] uppercase tracking-[0.25em] text-cream/40">
+      <div className="pointer-events-none absolute bottom-6 right-5 z-20 space-y-1 text-right font-mono text-[9px] uppercase tracking-[0.25em] text-ink/40">
         <p>
-          drift <span className="text-cream/80">{drift}</span>
+          drift <span className="text-ink/80">{drift}</span>
         </p>
         <p>
-          collected <span className="text-cream/80">{String(BADGES.length).padStart(2, "0")}</span>
+          collected <span className="text-ink/80">{String(BADGES.length).padStart(2, "0")}</span>
           <span>/{TOTAL_SLOTS}</span>
         </p>
       </div>

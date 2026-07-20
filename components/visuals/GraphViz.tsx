@@ -25,7 +25,7 @@ export default function GraphViz() {
           y1={y}
           x2={hub[0]}
           y2={hub[1]}
-          stroke="#E9E2D6"
+          stroke="#2A2A2A"
           strokeWidth="1.5"
         />
       ))}
@@ -37,7 +37,7 @@ export default function GraphViz() {
           y1={hub[1]}
           x2={x}
           y2={y}
-          stroke="#E9E2D6"
+          stroke="#2A2A2A"
           strokeWidth="1.5"
         />
       ))}
@@ -55,7 +55,7 @@ export default function GraphViz() {
       ))}
       {/* pulses fanning out */}
       {targets.map(([x, y], i) => (
-        <circle key={`po${i}`} r="3" fill="#1C1917" opacity="0.55">
+        <circle key={`po${i}`} r="3" fill="#FAFAFA" opacity="0.55">
           <animateMotion
             dur="2.6s"
             begin={`${1.3 + i * 0.7}s`}
@@ -67,7 +67,7 @@ export default function GraphViz() {
 
       {/* account nodes */}
       {[...sources, ...targets].map(([x, y], i) => (
-        <circle key={`n${i}`} cx={x} cy={y} r="7" fill="#FBF8F2" stroke="#1C1917" strokeWidth="1.5" />
+        <circle key={`n${i}`} cx={x} cy={y} r="7" fill="#141414" stroke="#FAFAFA" strokeWidth="1.5" />
       ))}
 
       {/* flagged mule account */}
@@ -84,7 +84,7 @@ export default function GraphViz() {
         y="192"
         textAnchor="middle"
         fontSize="10"
-        fill="#8A8074"
+        fill="#8F8B84"
         fontFamily="var(--font-space)"
         letterSpacing="2"
       >

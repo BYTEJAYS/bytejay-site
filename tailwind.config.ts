@@ -5,12 +5,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#FBF8F2",
-        surface: "#FFFFFF",
-        ink: { DEFAULT: "#1C1917", soft: "#57534E" },
-        muted: "#8A8074",
-        line: "#E9E2D6",
-        accent: { DEFAULT: "#FF4D24", soft: "#FFEDE5" },
+        cream: "#0A0A0A",
+        surface: "#141414",
+        ink: { DEFAULT: "#FAFAFA", soft: "#A8A29E" },
+        muted: "#8F8B84",
+        line: "#262626",
+        accent: { DEFAULT: "#FF4D24", soft: "#2A150C" },
+        pop: "#21FFC0",
       },
       fontFamily: {
         display: ["var(--font-space)", "sans-serif"],

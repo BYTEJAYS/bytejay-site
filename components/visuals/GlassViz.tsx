@@ -3,7 +3,7 @@ const CELLS = Array.from({ length: 60 }, (_, i) => i);
 export default function GlassViz() {
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="relative overflow-hidden rounded-2xl border border-line bg-white/70 p-4 shadow-sm [transform:perspective(700px)_rotateX(14deg)] transition-transform duration-500 group-hover:[transform:perspective(700px)_rotateX(6deg)]">
+      <div className="relative overflow-hidden rounded-2xl border border-line bg-white/[0.07] p-4 shadow-sm [transform:perspective(700px)_rotateX(14deg)] transition-transform duration-500 group-hover:[transform:perspective(700px)_rotateX(6deg)]">
         <div className="grid grid-cols-10 gap-1.5">
           {CELLS.map((i) => (
             <span

@@ -6,12 +6,11 @@ import MorphBlob from "@/components/MorphBlob";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import SmoothScroll from "@/components/SmoothScroll";
-import About from "@/components/sections/About";
 import Contact from "@/components/sections/Contact";
 import Hero from "@/components/sections/Hero";
 import Interests from "@/components/sections/Interests";
-import Projects from "@/components/sections/Projects";
 import Skills from "@/components/sections/Skills";
+import SpiralProjects from "@/components/sections/SpiralProjects";
 import Terminal from "@/components/sections/Terminal";
 
 export default function Home() {
@@ -21,13 +20,12 @@ export default function Home() {
       <Intro />
       <ScrollProgress />
       <CursorGlow />
-      <CustomCursor />
+      <CustomCursor dark />
       <MorphBlob />
       <Navbar />
       <main className="relative z-10">
         <Hero />
-        <About />
-        <Projects />
+        <SpiralProjects />
         <Skills />
         <Interests />
         <Terminal />

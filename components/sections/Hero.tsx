@@ -4,7 +4,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import HeroCanvas from "../HeroCanvas";
 import LiveClock from "../LiveClock";
-import SaintBernard from "../SaintBernard";
 import SpotlightReveal from "../SpotlightReveal";
 import MagneticButton from "../MagneticButton";
 import RollingText from "../RollingText";
@@ -42,9 +41,9 @@ export default function Hero() {
   const canvasY = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const canvasOpacity = useTransform(scrollYProgress, [0, 0.9], [1, 0.2]);
 
-  const inkText = "text-ink";
-  const softText = "text-ink-soft";
-  const hudText = "text-ink/60";
+  const inkText = "text-white";
+  const softText = "text-white/95";
+  const hudText = "text-ink/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]";
 
   return (
     <section
@@ -55,22 +54,14 @@ export default function Hero() {
       {/* dotted paper, faded at the edges */}
       <div className="absolute inset-0 bg-dots [mask-image:radial-gradient(ellipse_75%_60%_at_50%_40%,black,transparent)]" />
       {/* under the paper: a blueprint, revealed by the cursor's torch */}
-      <SpotlightReveal dark={false} />
+      <SpotlightReveal dark />
 
       {/* the instrument: an interactive drifting graph */}
       <motion.div
         style={{ y: canvasY, opacity: canvasOpacity }}
         className="absolute inset-0"
       >
-        <HeroCanvas onBurst={onBurst} />
-      </motion.div>
-
-      {/* the resident: a saint bernard on patrol, behind the title */}
-      <motion.div
-        style={{ y: canvasY, opacity: canvasOpacity }}
-        className="pointer-events-none absolute inset-0 z-[5]"
-      >
-        <SaintBernard />
+        <HeroCanvas dark onBurst={onBurst} />
       </motion.div>
 
       {/* ── HUD: left — local time ── */}
@@ -113,7 +104,7 @@ export default function Hero() {
       >
         <div className="relative">
           <h1
-            className={`font-display text-[clamp(3.6rem,13vw,9rem)] font-bold leading-none tracking-tight transition-colors duration-700 ${inkText}`}
+            className={`font-display text-[clamp(3.6rem,13vw,9rem)] font-bold leading-none tracking-tight transition-colors duration-700 [text-shadow:0_2px_22px_rgba(0,0,0,0.6),0_1px_4px_rgba(0,0,0,0.5)] ${inkText}`}
           >
             {NAME.map((char, i) => (
               <span key={i} className="inline-block overflow-hidden align-bottom">
@@ -157,14 +148,14 @@ export default function Hero() {
         </div>
 
         <p
-          className={`mx-auto mt-8 max-w-2xl font-display text-xl leading-relaxed transition-colors duration-700 sm:text-2xl ${softText}`}
+          className={`mx-auto mt-8 max-w-2xl font-display text-xl leading-relaxed transition-colors duration-700 [text-shadow:0_1px_14px_rgba(0,0,0,0.6),0_1px_3px_rgba(0,0,0,0.45)] sm:text-2xl ${softText}`}
         >
           {TAGLINE.map((word, i) => (
             <motion.span
               key={i}
               className={`inline-block ${
                 HIGHLIGHTS.has(word)
-                  ? `font-medium transition-colors duration-700 ${inkText}`
+                  ? `font-semibold transition-colors duration-700 ${inkText}`
                   : ""
               }`}
               initial={{ opacity: 0, y: 14 }}
@@ -213,7 +204,7 @@ export default function Hero() {
         <motion.span
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className="block h-8 w-px bg-ink/30"
+          className="block h-8 w-px bg-ink/60"
         />
       </motion.div>
     </section>

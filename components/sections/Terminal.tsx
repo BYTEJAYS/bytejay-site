@@ -28,7 +28,7 @@ function Prompt() {
   return (
     <span className="select-none">
       <span className="text-accent">jay@bytejay</span>
-      <span className="text-cream/40">:~$&nbsp;</span>
+      <span className="text-ink/40">:~$&nbsp;</span>
     </span>
   );
 }
@@ -38,7 +38,7 @@ function OutLine({ text }: { text: string }) {
   if (text.startsWith("→")) {
     return (
       <span>
-        <span className="text-cream/40">→&nbsp;</span>
+        <span className="text-ink/40">→&nbsp;</span>
         <a
           href={`mailto:${email}`}
           className="text-accent underline decoration-accent/40 underline-offset-4 transition-colors hover:decoration-accent"
@@ -52,14 +52,14 @@ function OutLine({ text }: { text: string }) {
   if (badge) {
     return (
       <span>
-        <span className="text-cream/45">{badge[1]}</span>
-        <span className="text-cream/30">{badge[2]}</span>
+        <span className="text-ink/45">{badge[1]}</span>
+        <span className="text-ink/30">{badge[2]}</span>
         {badge[3] && <span className="font-bold text-accent">{badge[3]}</span>}
-        <span className="text-cream/85">{badge[4]}</span>
+        <span className="text-ink/85">{badge[4]}</span>
       </span>
     );
   }
-  return <span className="text-cream/85">{text}</span>;
+  return <span className="text-ink/85">{text}</span>;
 }
 
 export default function Terminal() {
@@ -103,15 +103,15 @@ export default function Terminal() {
         <span className="text-accent">$</span> for the ones who read terminals
       </p>
 
-      <div className="overflow-hidden rounded-2xl border border-ink/10 bg-ink shadow-[0_24px_80px_rgba(28,25,23,0.18)]">
+      <div className="overflow-hidden rounded-2xl border border-ink/10 bg-[#101010] shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
         {/* title bar */}
-        <div className="flex items-center justify-between border-b border-cream/10 px-4 py-2.5">
+        <div className="flex items-center justify-between border-b border-ink/10 px-4 py-2.5">
           <div className="flex gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full bg-accent/80" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#F5C542]/70" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#3FB950]/70" />
           </div>
-          <p className="font-mono text-[10px] tracking-[0.18em] text-cream/35">
+          <p className="font-mono text-[10px] tracking-[0.18em] text-ink/35">
             bytejay — zsh — 80×24
           </p>
           <span className="w-10" />
@@ -123,7 +123,7 @@ export default function Terminal() {
             line.kind === "cmd" ? (
               <p key={i}>
                 <Prompt />
-                <span className="text-cream">{line.text}</span>
+                <span className="text-ink">{line.text}</span>
               </p>
             ) : (
               <p key={i} className="pl-1">
@@ -136,8 +136,8 @@ export default function Terminal() {
           {!done && SESSION[step]?.kind === "cmd" && (
             <p>
               <Prompt />
-              <span className="text-cream">{SESSION[step].text.slice(0, chars)}</span>
-              <span className="blink -mb-0.5 inline-block h-4 w-[7px] bg-cream/80" />
+              <span className="text-ink">{SESSION[step].text.slice(0, chars)}</span>
+              <span className="blink -mb-0.5 inline-block h-4 w-[7px] bg-ink/80" />
             </p>
           )}
 
@@ -145,7 +145,7 @@ export default function Terminal() {
           {done && (
             <p>
               <Prompt />
-              <span className="blink -mb-0.5 inline-block h-4 w-[7px] bg-cream/80" />
+              <span className="blink -mb-0.5 inline-block h-4 w-[7px] bg-ink/80" />
             </p>
           )}
         </div>

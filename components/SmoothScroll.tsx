@@ -11,7 +11,10 @@ export default function SmoothScroll() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const lenis = new Lenis({ duration: 1.15 });
+    const lenis = new Lenis({
+      duration: 1.35,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
     let raf = requestAnimationFrame(function loop(time) {
       lenis.raf(time);
       raf = requestAnimationFrame(loop);
@@ -25,7 +28,11 @@ export default function SmoothScroll() {
       const el = document.querySelector(link.hash);
       if (!el) return;
       e.preventDefault();
-      lenis.scrollTo(el as HTMLElement, { offset: link.hash === "#top" ? 0 : -24 });
+      lenis.scrollTo(el as HTMLElement, {
+        offset: link.hash === "#top" ? 0 : -24,
+        duration: 1.7,
+        easing: (t) => 1 - Math.pow(1 - t, 4),
+      });
     };
     document.addEventListener("click", onClick);
 

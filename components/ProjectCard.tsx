@@ -29,7 +29,7 @@ export default function ProjectCard({
     <motion.article
       whileHover={{ y: -6 }}
       transition={{ type: "spring", stiffness: 250, damping: 22 }}
-      className="group grid overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_2px_24px_rgba(28,25,23,0.04)] transition-shadow duration-500 hover:shadow-[0_12px_44px_rgba(28,25,23,0.09)] md:grid-cols-2"
+      className="group grid overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_2px_24px_rgba(0,0,0,0.4)] transition-shadow duration-500 hover:shadow-[0_12px_44px_rgba(28,25,23,0.09)] md:grid-cols-2"
     >
       <div
         data-cursor-label="alive ✦"

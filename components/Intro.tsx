@@ -39,14 +39,14 @@ export default function Intro() {
       initial={{ y: 0 }}
       animate={{ y: done ? "-100%" : 0 }}
       transition={{ duration: reduced ? 0 : 0.75, ease: [0.76, 0, 0.24, 1] }}
-      className="pointer-events-none fixed inset-0 z-[80] flex flex-col items-center justify-center gap-8 bg-ink"
+      className="pointer-events-none fixed inset-0 z-[80] flex flex-col items-center justify-center gap-8 bg-cream"
       aria-hidden
     >
       <motion.p
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
-        className="font-display text-3xl font-bold tracking-tight text-cream"
+        className="font-display text-3xl font-bold tracking-tight text-ink"
       >
         Byte<span className="text-accent">Jay.</span>
       </motion.p>
@@ -58,20 +58,20 @@ export default function Intro() {
         className="flex flex-col items-center gap-3"
       >
         {/* segmented bar */}
-        <div className="flex gap-[3px] rounded-md border border-cream/20 p-[5px]">
+        <div className="flex gap-[3px] rounded-md border border-ink/20 p-[5px]">
           {Array.from({ length: SEGS }, (_, i) => (
             <span
               key={i}
               className={`h-2.5 w-2 rounded-[2px] transition-colors duration-100 ${
-                i < filled ? "bg-accent" : "bg-cream/10"
+                i < filled ? "bg-accent" : "bg-ink/10"
               }`}
             />
           ))}
         </div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-cream/50">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-ink/50">
           {progress < 100 ? (
             <>
-              loading world… <span className="tabular-nums text-cream/80">{progress}%</span>
+              loading world… <span className="tabular-nums text-ink/80">{progress}%</span>
             </>
           ) : (
             <span className="text-accent">ready ▶</span>

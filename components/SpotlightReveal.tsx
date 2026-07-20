@@ -75,7 +75,7 @@ export default function SpotlightReveal({ dark }: { dark: boolean }) {
   }, []);
 
   const line = dark ? "rgba(251,248,242,0.16)" : "rgba(28,25,23,0.14)";
-  const noteColor = dark ? "text-cream/50" : "text-ink/45";
+  const noteColor = dark ? "text-ink/50" : "text-cream/45";
   const mask =
     "radial-gradient(circle var(--sr,0px) at var(--sx,-9999px) var(--sy,-9999px), black 55%, rgba(0,0,0,0.4) 78%, transparent 100%)";
 

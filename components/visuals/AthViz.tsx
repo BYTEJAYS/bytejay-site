@@ -69,8 +69,8 @@ export default function AthViz() {
             transition={{ duration: 1.1, ease: "easeInOut" }}
           />
         </AnimatePresence>
-        <circle cx="20" cy="45" r="4" fill="#1C1917" />
-        <circle cx="260" cy="45" r="4" fill="#1C1917" />
+        <circle cx="20" cy="45" r="4" fill="#FAFAFA" />
+        <circle cx="260" cy="45" r="4" fill="#FAFAFA" />
       </svg>
 
       <p className="font-display text-[10px] uppercase tracking-[0.2em] text-muted">

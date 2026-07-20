@@ -19,12 +19,12 @@ type Bubble = {
 
 /* ── the dog, in boxes (x = forward, y = up, z = side) ──────────── */
 
-const CREAM: RGB = [246, 239, 226];
-const CREAM_D: RGB = [228, 218, 202];
-const BROWN: RGB = [146, 88, 54];
-const DARKBROWN: RGB = [96, 62, 42];
-const DARK: RGB = [58, 46, 40];
-const BARREL: RGB = [196, 74, 48];
+const CREAM: RGB = [240, 221, 190];
+const CREAM_D: RGB = [219, 195, 160];
+const BROWN: RGB = [158, 84, 38];
+const DARKBROWN: RGB = [90, 53, 28];
+const DARK: RGB = [42, 33, 27];
+const BARREL: RGB = [224, 68, 32];
 const TONGUE: RGB = [232, 112, 110];
 
 const HEAD_PIVOT: V3 = [0.85, 1.4, 0];
@@ -365,10 +365,10 @@ export default function SaintBernard({ dark = false }: { dark?: boolean }) {
       for (const f of faces) {
         const len = Math.hypot(...f.n) || 1;
         const lit = Math.max(0, (f.n[0] * L[0] + f.n[1] * L[1] + f.n[2] * L[2]) / len);
-        const shade = 0.62 + 0.38 * lit;
+        const shade = 0.55 + 0.45 * lit;
         const [r, g, b] = f.color.map((c) => Math.round(c * shade));
         ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.strokeStyle = `rgb(${Math.round(r * 0.78)},${Math.round(g * 0.78)},${Math.round(b * 0.78)})`;
+        ctx.strokeStyle = `rgb(${Math.round(r * 0.66)},${Math.round(g * 0.66)},${Math.round(b * 0.66)})`;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(f.pts[0].x, f.pts[0].y);

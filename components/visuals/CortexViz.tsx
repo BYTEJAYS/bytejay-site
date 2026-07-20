@@ -20,7 +20,7 @@ export default function CortexViz() {
       <polyline
         points={DOTS.map((d) => `${d.x.toFixed(1)},${d.y.toFixed(1)}`).join(" ")}
         fill="none"
-        stroke="#1C1917"
+        stroke="#FAFAFA"
         strokeWidth="0.75"
         opacity="0.08"
       />
@@ -32,16 +32,16 @@ export default function CortexViz() {
           cx={d.x.toFixed(1)}
           cy={d.y.toFixed(1)}
           r={d.accent ? 3 : 2}
-          fill={d.accent ? "#FF4D24" : "#1C1917"}
+          fill={d.accent ? "#FF4D24" : "#FAFAFA"}
           className="twinkle"
           style={{ animationDelay: `${i * 90}ms` }}
         />
       ))}
 
       {/* life timeline */}
-      <line x1="40" y1="172" x2="280" y2="172" stroke="#E9E2D6" strokeWidth="1.5" />
+      <line x1="40" y1="172" x2="280" y2="172" stroke="#2A2A2A" strokeWidth="1.5" />
       {[40, 100, 160, 220, 280].map((x) => (
-        <line key={x} x1={x} y1="168" x2={x} y2="176" stroke="#8A8074" strokeWidth="1" />
+        <line key={x} x1={x} y1="168" x2={x} y2="176" stroke="#8F8B84" strokeWidth="1" />
       ))}
       <circle r="4" fill="#FF4D24">
         <animateMotion
@@ -56,7 +56,7 @@ export default function CortexViz() {
         y="194"
         textAnchor="middle"
         fontSize="10"
-        fill="#8A8074"
+        fill="#8F8B84"
         fontFamily="var(--font-space)"
         letterSpacing="2"
       >

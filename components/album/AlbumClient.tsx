@@ -69,10 +69,10 @@ const CORNER_HYSTERESIS = 0.35; // deadzone so the picked corner doesn't flicker
 
 const TONE_STYLES: Record<Photo["tone"], string> = {
   paper: "border-line bg-surface text-ink",
-  sand: "border-line bg-[#EDE4D3] text-ink",
+  sand: "border-line bg-[#EDE4D3] text-[#1C1917]",
   blush: "border-accent/20 bg-accent-soft text-ink",
-  sage: "border-line bg-[#DFE5DB] text-ink",
-  ink: "border-cream/15 bg-[#26211E] text-cream",
+  sage: "border-line bg-[#DFE5DB] text-[#1C1917]",
+  ink: "border-ink/15 bg-[#26211E] text-ink",
   accent: "border-accent bg-accent text-white",
 };
 
@@ -402,22 +402,22 @@ export default function AlbumClient() {
           <HeroLine
             index={0}
             refs={lineRefs}
-            className="font-mono text-[11px] uppercase tracking-[0.3em] text-cream/40"
+            className="font-mono text-[11px] uppercase tracking-[0.3em] text-ink/40"
           />
           <HeroLine
             index={1}
             refs={lineRefs}
-            className="mt-4 block font-display text-6xl font-bold tracking-tight text-cream sm:text-7xl"
+            className="mt-4 block font-display text-6xl font-bold tracking-tight text-ink sm:text-7xl"
           />
           <HeroLine
             index={2}
             refs={lineRefs}
-            className="mt-5 block text-base text-cream/60"
+            className="mt-5 block text-base text-ink/60"
           />
           <HeroLine
             index={3}
             refs={lineRefs}
-            className="mt-8 block font-mono text-xs text-cream/40"
+            className="mt-8 block font-mono text-xs text-ink/40"
           />
         </div>
       </div>
@@ -447,7 +447,7 @@ export default function AlbumClient() {
                 src={photo.src}
                 alt=""
                 draggable={false}
-                className="h-full w-full rounded-xl border border-cream/15 object-cover shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
+                className="h-full w-full rounded-xl border border-ink/15 object-cover shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
               />
             ) : (
               <PlaceholderCard photo={photo} index={i} />
@@ -466,12 +466,12 @@ export default function AlbumClient() {
 
       {/* nav */}
       <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-5">
-        <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-cream/40">
+        <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-ink/40">
           album / {String(PHOTOS.length).padStart(2, "0")} frames
         </span>
         <a
           href="/"
-          className="rounded-full border border-cream/15 bg-cream/5 px-4 py-1.5 text-sm text-cream/70 backdrop-blur-md transition-colors hover:text-cream"
+          className="rounded-full border border-ink/15 bg-ink/5 px-4 py-1.5 text-sm text-ink/70 backdrop-blur-md transition-colors hover:text-ink"
         >
           ← home
         </a>
