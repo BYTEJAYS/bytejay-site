@@ -23,11 +23,11 @@ document.documentElement.classList.add('js');
   requestAnimationFrame(() => requestAnimationFrame(() => {
     root.classList.remove('site-entering');
     root.classList.add('site-entered');
-    window.setTimeout(() => root.classList.remove('site-intro-active'), 2450);
+    window.setTimeout(() => root.classList.remove('site-intro-active'), 1900);
   }));
 
   // Never leave the page in its prepared state if loading is interrupted.
-  safetyTimer = window.setTimeout(finish, 3600);
+  safetyTimer = window.setTimeout(finish, 2800);
 }());
 
 // ===== Scroll reveal (blur-in titles + fade-up elements) =====
