@@ -92,7 +92,6 @@ if (
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const roleWords = {
     backend: ['apis', 'systems', 'python', 'fastapi', 'postgresql', 'redis', 'async', 'queues', 'security', 'scale', 'graphs', 'services', 'data', 'workers', 'testing', 'reliability', 'architecture', 'performance'],
-    software: ['craft', 'interfaces', 'architecture', 'products', 'typescript', 'next.js', 'design', 'testing', 'systems', 'performance', 'delivery', 'accessibility', 'motion', 'quality', 'web', 'tooling', 'clean code', 'experience'],
     ai: ['agents', 'models', 'pytorch', 'inference', 'memory', 'tools', 'reasoning', 'orchestration', 'embeddings', 'local ai', 'evaluation', 'vision', 'graphs', 'automation', 'context', 'learning', 'retrieval', 'intelligence']
   };
   const homes = [
