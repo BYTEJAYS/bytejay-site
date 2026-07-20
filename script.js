@@ -981,6 +981,7 @@ if (contactSection) {
   const LenisCtor = window.Lenis && (window.Lenis.default || window.Lenis);
   gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.config({ ignoreMobileResize: true });
+  gsap.ticker.lagSmoothing(0);
 
   // Dismiss after ©2026, remain hidden during the entire upward journey,
   // and restore only when the document reaches its top boundary.
@@ -1024,10 +1025,10 @@ if (contactSection) {
   // One Lenis instance, driven by GSAP's ticker and connected to ScrollTrigger.
   if (LenisCtor) {
     lenis = new LenisCtor({
-      lerp: 0.145,
+      lerp: 0.11,
       smoothWheel: true,
       syncTouch: false,
-      wheelMultiplier: 0.92,
+      wheelMultiplier: 0.88,
       touchMultiplier: 1
     });
     lenis.on('scroll', ScrollTrigger.update);
@@ -1085,9 +1086,9 @@ if (contactSection) {
         trigger: scene,
         start: 'top top',
         end: () => `+=${window.innerHeight}`,
-        // Lenis already interpolates the wheel. A direct scrub keeps the card
-        // attached to that position and makes direction changes immediate.
-        scrub: true,
+        // A very short scrub softens frame-to-frame wheel deltas without
+        // making the portrait feel detached from the page.
+        scrub: 0.12,
         invalidateOnRefresh: true,
         onLeave: () => scene.classList.add('hero-settled'),
         onEnterBack: () => scene.classList.remove('hero-settled')
@@ -1134,12 +1135,14 @@ if (contactSection) {
 
   window.addEventListener('pageshow', (event) => {
     if (!event.persisted) return;
-    requestAnimationFrame(() => {
+    const restoredY = window.scrollY;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
       lenis?.resize();
-      ScrollTrigger.refresh(true);
+      lenis?.scrollTo(restoredY, { immediate: true, force: true });
+      ScrollTrigger.refresh();
       ScrollTrigger.update();
       restoreNavAtTop();
-    });
+    }));
   });
 })();
 
