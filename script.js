@@ -1235,21 +1235,17 @@ if (contactSection) {
     return;
   }
 
-  function writeEl(el, stagger = 0) {
+  const perChar = 22; // ms per character
+  function writeEl(el) {
     return new Promise((res) => {
       el.classList.add('writing');
       const chars = el._chars, pen = el._pen, N = chars.length;
-      const duration = Math.min(1500, Math.max(850, N * 5));
+      pen.classList.add('on');
       let start = null;
-      let inked = 0;
       function step(ts) {
-        if (start === null) start = ts + stagger;
-        if (ts < start) { requestAnimationFrame(step); return; }
-        pen.classList.add('on');
-        const progress = Math.min(1, (ts - start) / duration);
-        const n = Math.min(N, Math.ceil(progress * N));
-        for (let i = inked; i < n; i += 1) chars[i].classList.add('inked');
-        inked = n;
+        if (start === null) start = ts;
+        const n = Math.min(N, Math.floor((ts - start) / perChar));
+        for (let i = 0; i < n; i++) if (!chars[i].classList.contains('inked')) chars[i].classList.add('inked');
         const cur = chars[Math.min(n, N - 1)];
         if (cur) pen.style.transform = 'translate(' + (cur.offsetLeft + cur.offsetWidth - 2) + 'px,' + (cur.offsetTop - cur.offsetHeight * 0.55) + 'px)';
         if (n >= N) { el.classList.add('done'); pen.classList.remove('on'); setTimeout(() => pen.remove(), 220); res(); return; }
@@ -1260,11 +1256,7 @@ if (contactSection) {
   }
 
   let started = false;
-  function runAll() {
-    if (started) return;
-    started = true;
-    nodes.forEach((el, index) => writeEl(el, index * 110));
-  }
+  async function runAll() { if (started) return; started = true; for (const el of nodes) await writeEl(el); }
 
   const trigger = document.querySelector('#about') || nodes[0];
   const io2 = new IntersectionObserver((ents) => {
