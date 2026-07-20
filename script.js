@@ -378,12 +378,13 @@ if (
   resize();
   document.fonts?.load('italic 500 18px Newsreader').then(() => draw(0, 1));
   document.addEventListener('visibilitychange', startLoop);
-  window.addEventListener('pagehide', () => {
+  window.addEventListener('pagehide', (event) => {
+    if (event.persisted) return;
     window.clearTimeout(touchTimer);
     if (frame) cancelAnimationFrame(frame);
     resizeObserver.disconnect();
     document.removeEventListener('visibilitychange', startLoop);
-  }, { once: true });
+  });
 })();
 
 // ===== Project particles: one shared, visibility-aware canvas loop =====
@@ -731,12 +732,13 @@ if (
   if (visibilityObserver) states.forEach((state) => visibilityObserver.observe(state.canvas));
 
   document.addEventListener('visibilitychange', ensureLoop);
-  window.addEventListener('pagehide', () => {
+  window.addEventListener('pagehide', (event) => {
+    if (event.persisted) return;
     if (animationFrame) cancelAnimationFrame(animationFrame);
     resizeObserver.disconnect();
     visibilityObserver?.disconnect();
     document.removeEventListener('visibilitychange', ensureLoop);
-  }, { once: true });
+  });
 })();
 
 // ===== Statement: a reversible, compositor-friendly word reveal =====
@@ -1113,7 +1115,10 @@ if (contactSection) {
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
   window.addEventListener('load', () => ScrollTrigger.refresh());
 
-  window.addEventListener('pagehide', () => {
+  // A persisted pagehide means the browser is placing this page in its
+  // back-forward cache. Keep the scene alive so Back can resume it intact.
+  window.addEventListener('pagehide', (event) => {
+    if (event.persisted) return;
     scene.classList.remove('hero-settled');
     window.removeEventListener('scroll', restoreNavAtTop);
     if (navDismissTrigger) navDismissTrigger.kill();
@@ -1125,7 +1130,17 @@ if (contactSection) {
       lenis.destroy();
       if (window.__lenis === lenis) delete window.__lenis;
     }
-  }, { once: true });
+  });
+
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    requestAnimationFrame(() => {
+      lenis?.resize();
+      ScrollTrigger.refresh(true);
+      ScrollTrigger.update();
+      restoreNavAtTop();
+    });
+  });
 })();
 
 // ===== About: pencil-write reveal — text inks in char-by-char with a ✏️ following the line =====
