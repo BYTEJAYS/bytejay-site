@@ -375,7 +375,11 @@
           <a href="mailto:codes404z@gmail.com" aria-label="Email">@</a>
         </div>
       </div>
-      <form class="contact__form terminal" data-reveal aria-label="Contact terminal">
+      <form class="contact__form terminal" action="https://formsubmit.co/codes404z@gmail.com" method="POST" data-reveal aria-label="Contact terminal">
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" hidden />
+        <input type="hidden" name="_subject" value="New message from bytejay.in" />
+        <input type="hidden" name="_template" value="table" />
+        <input type="hidden" name="_captcha" value="false" />
         <div class="terminal__bar">
           <span class="terminal__lights" aria-hidden="true"><i></i><i></i><i></i></span>
           <span class="terminal__title">jay@bytejay: ~/messages/new</span>
@@ -408,7 +412,7 @@
             <span class="btn-submit__label">Execute message.send()</span>
             <span class="btn-submit__key" aria-hidden="true">ENTER &crarr;</span>
           </button>
-          <p class="contact__note" role="status" aria-live="polite" hidden><strong>[OK]</strong> Demo command complete. Send for real via <a href="mailto:codes404z@gmail.com">codes404z@gmail.com</a>.</p>
+          <p class="contact__note" role="status" aria-live="polite" hidden></p>
         </div>
       </form>
     </section>
@@ -439,6 +443,6 @@
   <script src="assets/vendor/gsap.min.js"></script>
   <script src="assets/vendor/ScrollTrigger.min.js"></script>
   <script src="assets/vendor/lenis.min.js"></script>
-  <script src="script.js?v=37"></script>
+  <script src="script.js?v=38"></script>
 </body>
 </html>

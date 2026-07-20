@@ -847,10 +847,10 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
   });
 }
 
-// ===== Demo contact form =====
+// ===== Contact form: deliver messages through FormSubmit =====
 const form = document.querySelector('.contact__form');
 if (form) {
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const note = form.querySelector('.contact__note');
     const button = form.querySelector('.btn-submit');
@@ -858,16 +858,37 @@ if (form) {
     if (!button || !label) return;
 
     button.disabled = true;
-    label.textContent = 'Executing...';
+    label.textContent = 'Sending message...';
     form.classList.add('is-running');
+    if (note) note.hidden = true;
 
-    window.setTimeout(() => {
+    try {
+      const payload = Object.fromEntries(new FormData(form).entries());
+      const response = await fetch('https://formsubmit.co/ajax/codes404z@gmail.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok || result.success === false || result.success === 'false') {
+        throw new Error('Message delivery failed');
+      }
+
       form.reset();
+      if (note) {
+        note.innerHTML = '<strong>[OK]</strong> Message delivered. I’ll get back to you soon.';
+        note.hidden = false;
+      }
+    } catch (error) {
+      if (note) {
+        note.innerHTML = '<strong>[ERROR]</strong> Message could not be sent. Please email <a href="mailto:codes404z@gmail.com">codes404z@gmail.com</a> directly.';
+        note.hidden = false;
+      }
+    } finally {
       form.classList.remove('is-running');
       button.disabled = false;
       label.textContent = 'Execute message.send()';
-      if (note) note.hidden = false;
-    }, 650);
+    }
   });
 }
 
