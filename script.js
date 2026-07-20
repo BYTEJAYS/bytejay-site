@@ -1,6 +1,35 @@
 // mark that JS is active so pre-animation "hidden" states only apply with JS on
 document.documentElement.classList.add('js');
 
+// ===== Opening composition: blur resolves as hero layers settle into place =====
+(function siteEntrance() {
+  const root = document.documentElement;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let safetyTimer;
+
+  const finish = () => {
+    root.classList.remove('site-entering', 'site-intro-active');
+    root.classList.add('site-entered');
+    window.clearTimeout(safetyTimer);
+  };
+
+  if (reduceMotion) {
+    finish();
+    return;
+  }
+
+  // Two frames guarantee the browser paints the prepared state before the
+  // staggered CSS entrance begins. Keep scrolling locked until it resolves.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    root.classList.remove('site-entering');
+    root.classList.add('site-entered');
+    window.setTimeout(() => root.classList.remove('site-intro-active'), 2450);
+  }));
+
+  // Never leave the page in its prepared state if loading is interrupted.
+  safetyTimer = window.setTimeout(finish, 3600);
+}());
+
 // ===== Scroll reveal (blur-in titles + fade-up elements) =====
 const io = new IntersectionObserver((entries) => {
   entries.forEach((e) => {

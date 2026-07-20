@@ -39,6 +39,67 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   outline:2px solid #6d5cff;outline-offset:3px;
 }
 
+/* ===== Opening composition =====
+   A short, one-time blur-to-focus sequence inspired by the reference site's
+   entrance rhythm. Each hero layer resolves on its own beat. */
+html.site-intro-active,html.site-intro-active body{overflow:hidden}
+html.site-entering .nav,
+html.site-entering .floaters,
+html.site-entering .hero__title,
+html.site-entering .hero__year,
+html.site-entering .hero__since,
+html.site-entering .hero-card-stage,
+html.site-entering .grain{opacity:0}
+
+html.site-entered .hero__title{
+  animation:site-enter-title 1.55s cubic-bezier(.16,1,.3,1) .08s backwards;
+}
+html.site-entered .hero__year{
+  animation:site-enter-from-left 1.15s cubic-bezier(.16,1,.3,1) .92s backwards;
+}
+html.site-entered .hero__since{
+  animation:site-enter-from-right 1.15s cubic-bezier(.16,1,.3,1) 1.04s backwards;
+}
+html.site-entered .hero-card-stage{
+  animation:site-enter-portrait 1.2s cubic-bezier(.16,1,.3,1) 1.02s backwards;
+}
+html.site-entered .nav{
+  animation:site-enter-nav 1.05s cubic-bezier(.16,1,.3,1) .78s backwards;
+}
+html.site-entered .floaters{
+  animation:site-enter-floaters .9s cubic-bezier(.16,1,.3,1) 1.34s backwards;
+}
+html.site-entered .grain{
+  animation:site-enter-grain 1.6s ease .6s backwards;
+}
+
+@keyframes site-enter-title{
+  0%{opacity:.08;filter:blur(24px);transform:translate3d(0,22px,0) scale(1.075);color:#c3bfb9}
+  42%{opacity:.72;filter:blur(9px);transform:translate3d(0,8px,0) scale(1.025)}
+  100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes site-enter-nav{
+  0%{opacity:0;filter:blur(12px);transform:translateX(-50%) translateY(-22px) scale(.94)}
+  100%{opacity:1;filter:blur(0);transform:translateX(-50%) translateY(0) scale(1)}
+}
+@keyframes site-enter-portrait{
+  0%{opacity:0;filter:blur(18px);transform:translate3d(0,34px,0) scale(.9)}
+  100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes site-enter-from-left{
+  0%{opacity:0;filter:blur(10px);transform:translate3d(-30px,12px,0)}
+  100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0)}
+}
+@keyframes site-enter-from-right{
+  0%{opacity:0;filter:blur(10px);transform:translate3d(30px,12px,0)}
+  100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0)}
+}
+@keyframes site-enter-floaters{
+  0%{opacity:0;filter:blur(8px);transform:translate3d(18px,18px,0) scale(.94)}
+  100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes site-enter-grain{0%{opacity:0}100%{opacity:.5}}
+
 /* film grain overlay */
 .grain{
   position:fixed;inset:0;z-index:1;pointer-events:none;
