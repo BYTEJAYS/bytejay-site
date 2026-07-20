@@ -82,10 +82,22 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 .nav.open .nav__panel{grid-template-rows:1fr}
 .nav__panel-inner{
   overflow:hidden;min-height:0;
-  display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding-top:0;
+  display:flex;align-items:stretch;justify-content:space-between;gap:12px;padding-top:0;
   transition:padding-top .42s var(--ease);
 }
 .nav.open .nav__panel-inner{padding-top:14px}
+.nav__links{display:flex;flex-direction:column;align-items:flex-start;gap:8px;flex:1 1 auto;min-width:0}
+/* 3D lucky-cat lives in the empty space beside the links */
+.nav__cat{
+  flex:0 0 118px;width:118px;align-self:stretch;
+  border-radius:14px;background:var(--cream);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .4s var(--ease) .22s,transform .4s var(--ease) .22s;
+}
+.nav.open .nav__cat{opacity:1;transform:translateY(0)}
+.nav__cat-canvas{width:100%;height:100%;display:block;cursor:grab}
+.nav__cat-canvas:active{cursor:grabbing}
 .nav__panel a{
   background:var(--cream);color:var(--ink);
   font-size:16px;font-weight:500;letter-spacing:-.01em;

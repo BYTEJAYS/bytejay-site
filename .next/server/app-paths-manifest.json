@@ -1,0 +1,9 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
+  "/icon.jpg/route": "app/icon.jpg/route.js",
+  "/album/page": "app/album/page.js",
+  "/hackathons/page": "app/hackathons/page.js",
+  "/projects/page": "app/projects/page.js",
+  "/journey/page": "app/journey/page.js"
+}
