@@ -161,10 +161,11 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
   padding:6px 11px;border-radius:12px 12px 3px 12px;
   box-shadow:0 5px 14px rgba(0,0,0,.35);
   transform:translateX(50%) scale(0.2) translateY(6px);transform-origin:bottom center;opacity:0;
+  transition:transform .24s cubic-bezier(.4,0,1,1),opacity .18s ease-in;
 }
 .nav.open .nav__buddy-bubble{
   opacity:1;transform:translateX(50%) scale(1) translateY(0);
-  transition:transform .34s cubic-bezier(.2,1.5,.4,1) .42s,opacity .2s ease .42s;
+  transition:transform .34s cubic-bezier(.2,1.5,.4,1) .18s,opacity .2s ease-out .18s;
 }
 @media(max-width:520px){.nav__buddy{flex-basis:132px;width:132px;margin-right:2px}.nav__buddy-bubble{font-size:11px;max-width:145px}}
 .nav__panel a{
@@ -186,7 +187,7 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 .floaters{
   position:fixed;right:20px;bottom:20px;z-index:40;
   width:180px;height:118px;pointer-events:none;
-  transition:transform .46s cubic-bezier(.4,0,1,1),opacity .34s ease-in;
+  transition:transform .46s cubic-bezier(.4,0,1,1),opacity .34s ease-out;
 }
 body.contact-in-view .floaters{opacity:0;transform:translate3d(calc(100% + 30px),0,0);pointer-events:none}
 .floater{
@@ -313,8 +314,8 @@ body.floater-github-visible .floater--github{transition-delay:.14s}
 /* pencil-write reveal: text inks in char-by-char with a pencil following the line */
 .js [data-write]{opacity:0;position:relative}
 .js [data-write].writing,.js [data-write].done{opacity:1}
-[data-write] .w-ch{opacity:0;filter:blur(1.4px)}
-[data-write] .w-ch.inked{opacity:1;filter:none;transition:opacity .13s ease,filter .13s ease}
+[data-write] .w-ch{opacity:0}
+[data-write] .w-ch.inked{opacity:1;transition:opacity .12s ease-out}
 .write-pencil{position:absolute;top:0;left:0;pointer-events:none;font-size:1.05em;line-height:1;
   opacity:0;transition:opacity .18s ease;transform:translate(-999px,-999px);z-index:2;
   filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
@@ -359,9 +360,10 @@ html:not(.js) .portrait-destination img{visibility:visible}
 .service{
   display:grid;grid-template-columns:80px 1.2fr 2fr;gap:24px;align-items:baseline;
   padding:36px 0;border-bottom:1px solid rgba(17,17,17,.12);
-  transition:padding-left .4s var(--ease);
+  transition:background .3s ease;
 }
-.service:hover{padding-left:16px}
+.service>*{transition:transform .34s var(--ease)}
+@media (hover:hover) and (pointer:fine){.service:hover>*{transform:translate3d(12px,0,0)}}
 .service__no{font-size:16px;color:var(--gray);font-weight:600}
 .service h3{font-size:clamp(24px,2.4vw,34px);font-weight:500;letter-spacing:-.02em}
 .service p{font-size:17px;line-height:1.5;color:var(--gray)}
@@ -467,13 +469,13 @@ html:not(.js) .portrait-destination img{visibility:visible}
 }
 .project-card__arrow svg{width:19px;height:19px}
 @media (hover:hover) and (pointer:fine){
-  .project-card.flip-in:hover{
+  .project-card.card--interactive:hover{
     transform:translate3d(0,-8px,0) rotateX(var(--card-rx)) rotateY(var(--card-ry));
     border-color:rgba(17,17,17,.28);box-shadow:0 28px 62px rgba(0,0,0,.18);
   }
-  .project-card:hover .project-card__canvas{transform:translate3d(var(--image-x),var(--image-y),0) scale(1.075)}
-  .project-card:hover .project-card__info{transform:translate3d(0,-4px,30px);box-shadow:0 22px 42px rgba(0,0,0,.27)}
-  .project-card:hover .project-card__arrow{transform:translate3d(2px,-2px,0);background:#fff}
+  .project-card.card--interactive:hover .project-card__canvas{transform:translate3d(var(--image-x),var(--image-y),0) scale(1.075)}
+  .project-card.card--interactive:hover .project-card__info{transform:translate3d(0,-4px,30px);box-shadow:0 22px 42px rgba(0,0,0,.27)}
+  .project-card.card--interactive:hover .project-card__arrow{transform:translate3d(2px,-2px,0);background:#fff}
 }
 .project-card:focus-visible{border-color:#111;box-shadow:0 0 0 4px rgba(17,17,17,.12),0 22px 54px rgba(0,0,0,.16)}
 .work__grid .project-card.card--interactive{transition-delay:0s}
@@ -712,6 +714,7 @@ html:not(.js) .portrait-destination img{visibility:visible}
 }
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important}
+  .nav__buddy{display:none}
   [data-reveal],[data-reveal-title]{opacity:1!important;filter:none!important;transform:none!important}
   .hero-journey{height:auto}
   .hero-card-stage{display:none}

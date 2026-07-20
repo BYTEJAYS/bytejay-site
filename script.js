@@ -8,6 +8,15 @@ document.documentElement.classList.add('js');
   let safetyTimer;
   let completed = false;
 
+  // Reloads, history returns, and direct section links should restore their
+  // state immediately instead of replaying the homepage-only composition.
+  if (root.classList.contains('site-intro-skip')) {
+    root.classList.remove('site-entering', 'site-intro-active');
+    root.classList.add('site-intro-complete');
+    queueMicrotask(() => window.dispatchEvent(new Event('siteintrocomplete')));
+    return;
+  }
+
   const finish = () => {
     if (completed) return;
     completed = true;
@@ -16,6 +25,12 @@ document.documentElement.classList.add('js');
     window.clearTimeout(safetyTimer);
     window.dispatchEvent(new Event('siteintrocomplete'));
   };
+
+  // If the page is cached while the intro is mid-flight, complete it on
+  // restoration rather than resuming a stale, partially painted timeline.
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) finish();
+  });
 
   if (reduceMotion) {
     finish();
@@ -1017,7 +1032,8 @@ if (contactSection) {
     if (window.__setNavHidden) window.__setNavHidden(true);
   };
   const restoreNavAtTop = () => {
-    if (!navDismissed || window.scrollY > 2) return;
+    // Lenis can settle a few subpixels above zero after a fast reverse scroll.
+    if (!navDismissed || window.scrollY > 16) return;
     navDismissed = false;
     if (window.__setNavHidden) window.__setNavHidden(false);
   };
@@ -1035,10 +1051,11 @@ if (contactSection) {
 
   // Reduced motion is handled in CSS: no sticky bridge and a normal portrait in About.
   if (reduce) {
-    window.addEventListener('pagehide', () => {
+    window.addEventListener('pagehide', (event) => {
+      if (event.persisted) return;
       window.removeEventListener('scroll', restoreNavAtTop);
       navDismissTrigger?.kill();
-    }, { once: true });
+    });
     return;
   }
 
@@ -1218,17 +1235,21 @@ if (contactSection) {
     return;
   }
 
-  const perChar = 22; // ms per character
-  function writeEl(el) {
+  function writeEl(el, stagger = 0) {
     return new Promise((res) => {
       el.classList.add('writing');
       const chars = el._chars, pen = el._pen, N = chars.length;
-      pen.classList.add('on');
+      const duration = Math.min(1500, Math.max(850, N * 5));
       let start = null;
+      let inked = 0;
       function step(ts) {
-        if (start === null) start = ts;
-        const n = Math.min(N, Math.floor((ts - start) / perChar));
-        for (let i = 0; i < n; i++) if (!chars[i].classList.contains('inked')) chars[i].classList.add('inked');
+        if (start === null) start = ts + stagger;
+        if (ts < start) { requestAnimationFrame(step); return; }
+        pen.classList.add('on');
+        const progress = Math.min(1, (ts - start) / duration);
+        const n = Math.min(N, Math.ceil(progress * N));
+        for (let i = inked; i < n; i += 1) chars[i].classList.add('inked');
+        inked = n;
         const cur = chars[Math.min(n, N - 1)];
         if (cur) pen.style.transform = 'translate(' + (cur.offsetLeft + cur.offsetWidth - 2) + 'px,' + (cur.offsetTop - cur.offsetHeight * 0.55) + 'px)';
         if (n >= N) { el.classList.add('done'); pen.classList.remove('on'); setTimeout(() => pen.remove(), 220); res(); return; }
@@ -1239,7 +1260,11 @@ if (contactSection) {
   }
 
   let started = false;
-  async function runAll() { if (started) return; started = true; for (const el of nodes) await writeEl(el); }
+  function runAll() {
+    if (started) return;
+    started = true;
+    nodes.forEach((el, index) => writeEl(el, index * 110));
+  }
 
   const trigger = document.querySelector('#about') || nodes[0];
   const io2 = new IntersectionObserver((ents) => {
