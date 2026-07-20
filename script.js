@@ -747,10 +747,30 @@ if (stmt) {
 const nav = document.querySelector('.nav');
 const menuBtn = document.querySelector('.nav__menu');
 if (nav && menuBtn) {
+  const buddyImg = nav.querySelector('.nav__buddy-img');
+  const buddyBubble = nav.querySelector('.nav__buddy-bubble');
+  const buddyJokes = [
+    'My code works. I won\'t touch it.',
+    'I debug with good vibes.',
+    'Backend: where the magic hides.',
+    'That bug was a feature audition.',
+    'Anyway, here\'s Wonderwall.'
+  ];
+  let lastBuddyMode = -1;
+  const playBuddyMoment = () => {
+    if (!buddyImg || !buddyBubble) return;
+    let mode = Math.floor(Math.random() * 3);
+    if (mode === lastBuddyMode) mode = (mode + 1) % 3;
+    lastBuddyMode = mode;
+    const baseSrc = mode === 1 ? buddyImg.dataset.guitarSrc : buddyImg.dataset.waveSrc;
+    buddyImg.src = `${baseSrc}?play=${Date.now()}`;
+    buddyBubble.textContent = mode === 0 ? 'Hi!' : mode === 1 ? 'Tiny concert!' : buddyJokes[Math.floor(Math.random() * buddyJokes.length)];
+  };
   const toggle = (open) => {
     nav.classList.toggle('open', open);
     menuBtn.setAttribute('aria-expanded', String(open));
     menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    if (open) playBuddyMoment();
   };
   menuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggle(!nav.classList.contains('open')); });
   nav.querySelectorAll('.nav__panel a').forEach((a) => a.addEventListener('click', () => toggle(false)));

@@ -89,23 +89,24 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 .nav__links{display:flex;flex-direction:column;align-items:flex-start;gap:8px;flex:1 1 auto;min-width:0}
 /* waving voxel buddy in the empty side of the menu */
 .nav__buddy{
-  position:relative;flex:0 0 120px;width:120px;align-self:stretch;
+  position:relative;flex:0 0 150px;width:150px;align-self:stretch;margin-right:20px;
   display:flex;align-items:flex-end;justify-content:center;
   opacity:0;transition:opacity .3s var(--ease) .12s;
 }
 .nav.open .nav__buddy{opacity:1}
-.nav__buddy-img{width:100%;height:auto;display:block}
+.nav__buddy-img{width:100%;height:auto;display:block;transform:translateX(-4px)}
 .nav__buddy-bubble{
-  position:absolute;top:0;right:2px;z-index:2;
+  position:absolute;top:0;right:50%;z-index:2;max-width:180px;width:max-content;
   background:#fff;color:#111;font-weight:700;font-size:13px;line-height:1;
   padding:6px 11px;border-radius:12px 12px 3px 12px;
   box-shadow:0 5px 14px rgba(0,0,0,.35);
-  transform:scale(0.2) translateY(6px);transform-origin:bottom right;opacity:0;
+  transform:translateX(50%) scale(0.2) translateY(6px);transform-origin:bottom center;opacity:0;
 }
 .nav.open .nav__buddy-bubble{
-  opacity:1;transform:scale(1) translateY(0);
+  opacity:1;transform:translateX(50%) scale(1) translateY(0);
   transition:transform .34s cubic-bezier(.2,1.5,.4,1) .42s,opacity .2s ease .42s;
 }
+@media(max-width:520px){.nav__buddy{flex-basis:132px;width:132px;margin-right:2px}.nav__buddy-bubble{font-size:11px;max-width:145px}}
 .nav__panel a{
   background:var(--cream);color:var(--ink);
   font-size:16px;font-weight:500;letter-spacing:-.01em;
