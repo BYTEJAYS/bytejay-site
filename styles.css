@@ -218,7 +218,6 @@ body.contact-in-view .floaters{opacity:0;transform:translate3d(calc(100% + 30px)
 .intro__col--lead p,.intro__col--body p:first-child{font-size:clamp(18px,1.55vw,22px);font-weight:600;line-height:1.32}
 .intro__col--body{padding-bottom:1px}
 .intro__col--body p{font-size:clamp(16px,1.25vw,18px);line-height:1.38;color:var(--gray);margin-bottom:24px}
-.intro__col--body p:first-child{color:var(--ink)}
 .portrait-destination{
   width:100%;aspect-ratio:400/456;border-radius:20px;overflow:hidden;background:#851818;
 }
