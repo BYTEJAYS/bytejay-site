@@ -49,8 +49,9 @@
   function setBar(p){p=Math.max(shown,Math.min(100,p));shown=p;fill.style.width=p+'%';
     status.textContent=p>=100?'island ready':('raising the island · '+Math.round(p)+'%');}
   function markReady(){if(ready)return;ready=true;setBar(100);el.classList.add('jl-ready');}
+  function hideOrig(){var d=document.getElementsByTagName('div');for(var i=0;i<d.length;i++){var c=d[i].className;if(typeof c==='string'&&c.indexOf('#14110E')>=0){d[i].style.display='none';}}}
   var iv=setInterval(function(){
-    if(done)return;ensure();
+    if(done)return;ensure();hideOrig();
     if(travelBtn()||underlyingPct()>=100){markReady();return;}
     var real=underlyingPct();
     setBar(real>=0?real:Math.min(90,(Date.now()-start)/72));
@@ -61,6 +62,7 @@
     var tb=travelBtn();
     if(tb){tb.click();}
     else{['keydown','keyup'].forEach(function(ty){var ev=new KeyboardEvent(ty,{key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true});window.dispatchEvent(ev);document.dispatchEvent(ev);});}
+    hideOrig();var hk=setInterval(hideOrig,40);setTimeout(function(){clearInterval(hk);},2000);
     el.classList.add('jl-done');
     setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},1050);
   }
