@@ -657,11 +657,91 @@ if (
     stroke(ctx, { x: cursor.x + 8, y: cursor.y + 12 }, cursor, palette.ink, 1.2, .8);
   };
 
+  const drawBrain = (state, time) => {
+    drawBackdrop(state);
+    const { ctx, width, height, pointer, seed } = state;
+    const cx = width * .5 + (pointer.x - .5) * 8;
+    const cy = height * .4 + (pointer.y - .5) * 6;
+    const rx = width * .3;
+    const ry = height * .25;
+    const phase = time * .003;
+
+    // brain silhouette — a gyrus-wobbled ellipse, drawn as dotted arcs
+    let prev = null;
+    for (let i = 0; i <= 48; i += 1) {
+      const a = i / 48 * TAU - Math.PI / 2;
+      const wob = 1 + Math.sin(a * 7 + time * .0006) * .05 + Math.sin(a * 13 - time * .0004) * .03;
+      const p = { x: cx + Math.cos(a) * rx * wob, y: cy + Math.sin(a) * ry * wob };
+      if (prev) dottedSegment(ctx, prev, p, 4, phase + i * .2, i % 3 === 0 ? palette.ink : palette.mid);
+      prev = p;
+    }
+
+    // central fissure dividing the two hemispheres
+    for (let i = 0; i < 8; i += 1) {
+      const t0 = i / 8, t1 = (i + 1) / 8;
+      const p0 = { x: cx + Math.sin(t0 * TAU + time * .0008) * rx * .05, y: cy - ry * .82 + ry * 1.64 * t0 };
+      const p1 = { x: cx + Math.sin(t1 * TAU + time * .0008) * rx * .05, y: cy - ry * .82 + ry * 1.64 * t1 };
+      stroke(ctx, p0, p1, palette.mid, .9, .5);
+    }
+
+    // neuron nodes scattered across both hemispheres
+    const nodes = [];
+    for (let i = 0; i < 16; i += 1) {
+      const h = fract(Math.sin((i + 1) * (seed + 7.3)) * 4137.11);
+      const g = fract(Math.sin((i + 3) * (seed + 3.1)) * 9931.77);
+      const side = i % 2 === 0 ? -1 : 1;
+      let ux = (.14 + h * .74) * side;
+      let uy = (g - .5) * 1.7;
+      const rr = Math.hypot(ux, uy);
+      if (rr > .94) { ux *= .94 / rr; uy *= .94 / rr; }
+      nodes.push({
+        x: cx + ux * rx * .92 + Math.sin(time * .0009 + i) * 1.4,
+        y: cy + uy * ry * .92 + Math.cos(time * .0011 + i) * 1.2
+      });
+    }
+
+    // synapses — each neuron links to its two nearest neighbours, with a travelling signal
+    const edges = [];
+    nodes.forEach((n, i) => {
+      nodes.map((m, j) => ({ j, d: i === j ? 1e9 : Math.hypot(n.x - m.x, n.y - m.y) }))
+        .sort((a, b) => a.d - b.d).slice(0, 2)
+        .forEach(({ j }) => { if (i < j) edges.push([i, j]); });
+    });
+    edges.forEach(([a, b], index) => {
+      stroke(ctx, nodes[a], nodes[b], palette.light, .8, .6);
+      const sig = pointBetween(nodes[a], nodes[b], fract(time * .00013 + index * .17));
+      dot(ctx, sig.x, sig.y, 1.5, palette.ink, .68);
+    });
+
+    // firing neurons
+    const activeIndex = Math.floor(time / 600) % nodes.length;
+    nodes.forEach((n, i) => {
+      const firing = i === activeIndex;
+      dot(ctx, n.x, n.y, firing ? 2.5 : 1.9, palette.ink, .9);
+      if (firing) {
+        const pulse = fract(time / 600);
+        ring(ctx, n.x, n.y, 4 + pulse * 9, palette.ink, 1, .5 * (1 - pulse));
+      } else if (i % 3 === 0) {
+        ring(ctx, n.x, n.y, 4.6, palette.mid, .8, .5);
+      }
+    });
+
+    // brainstem — a short tail below the centre
+    let stem = { x: cx, y: cy + ry * .8 };
+    for (let i = 1; i <= 3; i += 1) {
+      const p = { x: cx + Math.sin(time * .001 + i) * 2, y: cy + ry * .8 + i * (ry * .16) };
+      stroke(ctx, stem, p, palette.mid, 1, .55);
+      dot(ctx, p.x, p.y, 1.6, palette.ink, .78);
+      stem = p;
+    }
+  };
+
   const drawers = {
     graph: drawGraph,
     governance: drawGovernance,
     growth: drawGrowth,
-    portfolio: drawPortfolio
+    portfolio: drawPortfolio,
+    brain: drawBrain
   };
 
   const states = canvases.map((canvas, index) => {
