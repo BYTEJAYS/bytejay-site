@@ -1264,3 +1264,236 @@ if (contactSection) {
   }, { threshold: 0.12 });
   io2.observe(trigger);
 })();
+
+// ===== About lamp: pull-cord physics ported from bytejay-framer's lampPullPhysics —
+// a damped spring with pointer-driven tension. Grab the bead and it eases toward the
+// pointer through a stiff damped spring (never pinned, so no ball-like throw); release
+// and a softer spring + gravity hangs it home. Pulling past a threshold (or a tap /
+// Enter) toggles the "lights": the section dims and the blurred story resolves. It
+// drops into the corner when About is entered, then stays pinned. Scroll up = off. =====
+(function aboutLamp() {
+  const about = document.getElementById('about');
+  const lamp = document.querySelector('[data-lamp]');
+  if (!about || !lamp) return;
+  const path = lamp.querySelector('.lamp__cord-path');
+  const bead = lamp.querySelector('.lamp__bead');
+  const hint = lamp.querySelector('.lamp__hint');
+  const heroYear = document.querySelector('.hero__year');   // ©2026 line — the cord drops in once this scrolls past
+  const heroScene = document.getElementById('heroScene');   // scene wrapper — drives the red-card blur
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+  // ---- geometry (local px in the fixed lamp layer) ----
+  const anchor = { x: 26, y: 0 };     // cord ceiling point
+  const rest = { x: 26, y: 240 };     // bead resting point
+  const pullThreshold = 70;           // downward pull past rest that arms the toggle
+  let wallL = -60;                    // viewport's left edge, in local coords
+  const measureWall = () => { wallL = 10 - lamp.getBoundingClientRect().left; };
+  const limits = () => ({ left: wallL, right: 146, top: 200, bottom: 370 });
+
+  // ---- spring state ----
+  const state = {
+    x: rest.x, y: rest.y, vx: 0, vy: 0, targetX: rest.x, targetY: rest.y,
+    dragging: false, pointerId: null, moved: false, maxPull: 0,
+    frame: 0, lastTime: 0, startClientX: 0, startClientY: 0,
+    grabOffsetX: 0, grabOffsetY: 0, suppressClick: false, suppressTimer: 0, deployed: false, dropping: false
+  };
+
+  // ---- lights: the dark room + resolved text (scoped to #about) and the lit cord ----
+  let on = false;
+  const restHint = () => on ? 'lights on' : 'pull to read';
+  const setLights = (next) => {
+    if (next === on) return;
+    on = next;
+    about.classList.toggle('lights-on', on);
+    lamp.classList.toggle('is-lit', on);
+    if (heroScene) heroScene.classList.toggle('lights-on', on);   // unblurs the red portrait card
+    bead.setAttribute('aria-pressed', String(on));
+    if (hint && !state.dragging) hint.textContent = restHint();
+  };
+
+  // ---- render: a bowing cubic cord + a bead that leans into the swing ----
+  const render = () => {
+    const lateral = state.x - anchor.x;
+    const length = state.y - anchor.y;
+    const sway = clamp(state.vx * 0.016, -15, 15);
+    const c1x = anchor.x + lateral * 0.12 - sway * 0.08;
+    const c2x = state.x - lateral * 0.2 - sway;
+    path.setAttribute('d', `M${anchor.x} ${anchor.y} C${c1x.toFixed(2)} ${(anchor.y + length * 0.34).toFixed(2)} ${c2x.toFixed(2)} ${(anchor.y + length * 0.72).toFixed(2)} ${state.x.toFixed(2)} ${state.y.toFixed(2)}`);
+    const rot = clamp(lateral * 0.12 + state.vx * 0.018, -14, 14);
+    bead.style.transform = `translate(${state.x.toFixed(2)}px,${state.y.toFixed(2)}px) translate(-50%,0) rotate(${rot.toFixed(2)}deg)`;
+    lamp.classList.toggle('is-armed', state.maxPull >= pullThreshold && state.dragging);
+    if (hint && state.dragging) hint.textContent = state.maxPull >= pullThreshold ? 'release' : restHint();
+  };
+  const layoutHint = () => { if (hint) hint.style.transform = `translate(${rest.x}px, ${rest.y + 40}px) translateX(-50%)`; };
+
+  // ---- integrator: pointer-tension spring while dragging, hang spring on release ----
+  const stop = () => { if (state.frame) cancelAnimationFrame(state.frame); state.frame = 0; state.lastTime = 0; };
+  const tick = (time) => {
+    state.frame = 0;
+    const dt = state.lastTime ? Math.min((time - state.lastTime) / 1000, 0.032) : 1 / 60;
+    state.lastTime = time;
+    const lim = limits();
+
+    if (state.dragging) {
+      const stiffness = 560, damping = 34;
+      state.vx += ((state.targetX - state.x) * stiffness - state.vx * damping) * dt;
+      state.vy += ((state.targetY - state.y) * stiffness - state.vy * damping) * dt;
+    } else {
+      // neutral point sits above rest; gravity pulls it down into equilibrium for a natural hang
+      const spring = 105, damping = 12.8, gravity = 1365;
+      const neutralY = rest.y - gravity / spring;
+      state.vx += ((rest.x - state.x) * spring - state.vx * damping) * dt;
+      state.vy += ((neutralY - state.y) * spring + gravity - state.vy * damping) * dt;
+    }
+    state.x += state.vx * dt;
+    state.y += state.vy * dt;
+
+    if (state.dropping && state.y >= lim.top) state.dropping = false;   // the drop has fallen into normal range
+    if (state.y > lim.bottom) { state.y = lim.bottom; state.vy *= -0.24; }
+    else if (state.y < lim.top && !state.dropping) { state.y = lim.top; state.vy = Math.abs(state.vy) * 0.2; }
+    if (state.x < lim.left || state.x > lim.right) { state.x = clamp(state.x, lim.left, lim.right); state.vx *= -0.28; }
+
+    render();
+    const settled = !state.dragging &&
+      Math.abs(state.x - rest.x) < 0.08 && Math.abs(state.y - rest.y) < 0.08 &&
+      Math.abs(state.vx) < 0.35 && Math.abs(state.vy) < 0.35;
+    if (settled) {
+      state.x = rest.x; state.y = rest.y; state.vx = 0; state.vy = 0; state.maxPull = 0; state.dropping = false;
+      lamp.classList.remove('is-armed');
+      if (hint) hint.textContent = restHint();
+      render(); stop(); return;
+    }
+    state.frame = requestAnimationFrame(tick);
+  };
+  const start = () => { if (!state.frame && !motionQuery.matches) state.frame = requestAnimationFrame(tick); };
+
+  // ---- pointer interaction ----
+  const pointFromEvent = (e) => { const b = lamp.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
+  const onPointerDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    const p = pointFromEvent(e);
+    state.dragging = true; state.pointerId = e.pointerId; state.moved = false; state.maxPull = 0;
+    state.startClientX = e.clientX; state.startClientY = e.clientY;
+    state.grabOffsetX = p.x - state.x; state.grabOffsetY = p.y - state.y;
+    state.targetX = state.x; state.targetY = state.y;
+    lamp.classList.add('is-dragging');
+    bead.setPointerCapture?.(e.pointerId);
+    measureWall();
+    if (motionQuery.matches) { state.x = state.targetX; state.y = state.targetY; render(); } else start();
+  };
+  const onPointerMove = (e) => {
+    if (!state.dragging || e.pointerId !== state.pointerId) return;
+    const p = pointFromEvent(e);
+    const lim = limits();
+    state.targetX = clamp(p.x - state.grabOffsetX, lim.left, lim.right);
+    state.targetY = clamp(p.y - state.grabOffsetY, lim.top, lim.bottom);
+    state.maxPull = Math.max(state.maxPull, state.targetY - rest.y);
+    state.moved ||= Math.hypot(e.clientX - state.startClientX, e.clientY - state.startClientY) > 5;
+    if (motionQuery.matches) { state.x = state.targetX; state.y = state.targetY; render(); } else start();
+  };
+  const releasePointer = (e, cancelled = false) => {
+    if (!state.dragging || (e.pointerId !== undefined && e.pointerId !== state.pointerId)) return;
+    if (!cancelled && Number.isFinite(e.clientX)) {
+      const p = pointFromEvent(e);
+      const lim = limits();
+      const finalY = clamp(p.y - state.grabOffsetY, lim.top, lim.bottom);
+      state.maxPull = Math.max(state.maxPull, finalY - rest.y);
+      state.moved ||= Math.hypot(e.clientX - state.startClientX, e.clientY - state.startClientY) > 5;
+    }
+    const shouldToggle = !cancelled && state.maxPull >= pullThreshold;
+    state.dragging = false; state.pointerId = null;
+    state.suppressClick = state.moved;
+    window.clearTimeout(state.suppressTimer);
+    state.suppressTimer = window.setTimeout(() => { state.suppressClick = false; }, 0);
+    state.targetX = rest.x; state.targetY = rest.y;
+    lamp.classList.remove('is-dragging', 'is-armed');
+    if (hint) hint.textContent = restHint();
+    if (shouldToggle) setLights(!on);
+    if (motionQuery.matches) { state.x = rest.x; state.y = rest.y; state.vx = 0; state.vy = 0; state.maxPull = 0; render(); stop(); } else start();
+  };
+  const simulatePull = () => {                                      // tap / keyboard: toggle with a small tug
+    setLights(!on);
+    if (motionQuery.matches) return;
+    state.vy = Math.max(state.vy, 720);
+    state.vx += on ? 46 : -46;
+    state.maxPull = pullThreshold;
+    start();
+  };
+
+  bead.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', releasePointer);
+  window.addEventListener('pointercancel', (e) => releasePointer(e, true));
+  bead.addEventListener('click', (e) => {
+    if (state.suppressClick) { state.suppressClick = false; e.preventDefault(); return; }
+    simulatePull();
+  });
+  bead.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); simulatePull(); }
+  });
+
+  // ---- deploy (drop in) once we've scrolled past ©2026; then persist ----
+  let leaveTimer = 0;
+  const deploy = () => {
+    if (state.deployed) return;
+    window.clearTimeout(leaveTimer);
+    lamp.classList.remove('is-leaving');
+    state.deployed = true;
+    lamp.hidden = false;
+    measureWall(); layoutHint();
+    if (motionQuery.matches) { state.x = rest.x; state.y = rest.y; render(); return; }
+    state.x = rest.x; state.y = 0; state.vx = 0; state.vy = 0; state.dropping = true;   // drop the cord from the ceiling
+    render(); start();
+  };
+  // Retract the cord with an animation (fade + drift up) instead of snapping it away.
+  const finalizeVanish = () => {
+    lamp.hidden = true; lamp.classList.remove('is-leaving');
+    state.x = rest.x; state.y = rest.y; state.vx = 0; state.vy = 0; state.maxPull = 0;
+    render();
+  };
+  const vanish = () => {
+    if (!state.deployed) return;
+    state.deployed = false; state.dropping = false;
+    setLights(false);
+    if (motionQuery.matches) { stop(); finalizeVanish(); return; }
+    lamp.classList.add('is-leaving');                 // CSS fades opacity → 0 and drifts it up
+    window.clearTimeout(leaveTimer);
+    leaveTimer = window.setTimeout(() => { stop(); finalizeVanish(); }, 520);
+  };
+  // How far the ©2026 line's bottom sits from the top of the viewport (falls back to
+  // About's own position if that line is ever missing).
+  const yearBottom = () => {
+    const r = heroYear && heroYear.getBoundingClientRect();
+    return r ? r.bottom : about.getBoundingClientRect().top - 18;
+  };
+  const DEPLOY_AT = 8;    // ©2026 has scrolled up past the top → drop the cord in
+  const RETRACT_AT = 60;  // ©2026 has come back onto the screen → retract (hysteresis gap)
+
+  // Deploy the moment we're past ©2026 (any scroll — a narrow one-frame window would be
+  // skipped by the site's scroll cadence); retract once it's clearly back on screen.
+  let lastY = window.scrollY, upAccum = 0;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY, dy = y - lastY; lastY = y;
+    const yb = yearBottom();
+    if (!state.deployed) {
+      if (yb <= DEPLOY_AT) deploy();
+    } else {
+      if (yb >= RETRACT_AT) vanish();
+      if (dy < -1) { upAccum -= dy; if (on && upAccum > 36) setLights(false); }
+      else if (dy > 1) upAccum = 0;
+    }
+  }, { passive: true });
+
+  // Direct deep-links / reloads can land already past ©2026 — deploy without a scroll.
+  requestAnimationFrame(() => { if (!state.deployed && yearBottom() <= DEPLOY_AT) deploy(); });
+
+  // Leaving About entirely also turns the lights off.
+  new IntersectionObserver((ents) => {
+    ents.forEach((e) => { if (!e.isIntersecting) setLights(false); });
+  }, { threshold: 0 }).observe(about);
+
+  window.addEventListener('resize', () => { measureWall(); layoutHint(); });
+  render();
+})();

@@ -325,6 +325,91 @@ body.floater-github-visible .floater--github{transition-delay:.14s}
   [data-write] .w-ch{opacity:1;filter:none}
   .write-pencil{display:none}
 }
+/* ===== About "lights": copy that hides in daylight and resolves in the dark =====
+   The about prose reads as unmistakable writing but stays illegible while this
+   section shares the site's cream daylight. Pulling the cord dims *only* this
+   section to a night-time room and brings the words into focus; scrolling back
+   up turns the light off and the words blur again. */
+#about{transition:background-color .9s var(--ease)}
+#about::before{                       /* warm lamp pool + floor vignette, lit with the switch */
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  opacity:0;transition:opacity .9s var(--ease);
+  background:
+    radial-gradient(44% 48% at 10% 22%, rgba(255,206,150,.22), rgba(255,206,150,0) 60%),
+    radial-gradient(130% 100% at 50% 120%, rgba(0,0,0,.45), rgba(0,0,0,0) 60%);
+}
+#about.lights-on{background-color:#100f13;color:var(--on-dark)}
+#about.lights-on::before{opacity:1}
+
+/* the pencil still writes the story, but ALL of it stays blurred until the lamp is on (JS only) */
+.js #about h2,
+.js #about .intro__col--lead p,
+.js #about .intro__col--body p,
+.js #about .intro__col--body .link-arrow{
+  filter:blur(6px);will-change:filter;user-select:none;
+  transition:filter .95s var(--ease),color .95s var(--ease);
+}
+/* …resolved sharp under the light, and lightened so it reads in the dark room */
+.js #about.lights-on h2,
+.js #about.lights-on .intro__col--lead p,
+.js #about.lights-on .intro__col--body p,
+.js #about.lights-on .intro__col--body .link-arrow{filter:blur(0);user-select:text}
+.js #about.lights-on h2,
+.js #about.lights-on .intro__col--lead p,
+.js #about.lights-on .intro__col--body p{color:var(--on-dark)}
+
+/* heading + CTA follow the room into the dark */
+#about.lights-on .link-arrow__box{border-color:rgba(243,239,233,.5)}
+#about.lights-on .link-arrow:hover .link-arrow__box{
+  background:var(--on-dark);color:#100f13;border-color:var(--on-dark);
+}
+/* the portrait catches a soft rim of lamplight */
+#about.lights-on .portrait-destination{
+  box-shadow:0 0 60px 2px rgba(255,206,150,.12),0 0 150px 24px rgba(255,150,90,.06);
+}
+
+/* ---- Pull-cord lamp: a physics-driven cord, pinned to the corner (driven by script.js) ---- */
+.lamp{
+  position:absolute;top:0;left:clamp(18px,6vw,84px);z-index:5;
+  width:300px;height:560px;pointer-events:none;      /* only the bead is interactive; scrolls with #about */
+  transition:opacity .5s var(--ease),transform .5s var(--ease);
+}
+.lamp.is-leaving{opacity:0;transform:translateY(-16px)}   /* animated retract instead of a sudden hide */
+.lamp__cord{position:absolute;inset:0;overflow:visible}
+.lamp__cord-path{
+  fill:none;stroke:#b4afa6;stroke-width:2;stroke-linecap:round;
+  transition:stroke .7s var(--ease);
+}
+.lamp.is-lit .lamp__cord{filter:drop-shadow(0 0 6px rgba(255,193,110,.45))}
+.lamp.is-lit .lamp__cord-path{stroke:#f0c58a}
+.lamp__bead{
+  position:absolute;top:0;left:0;width:24px;height:32px;
+  transform-origin:50% 0;transform:translate(26px,240px) translate(-50%,0);
+  padding:0;border:0;background:transparent;cursor:grab;pointer-events:auto;
+  touch-action:none;-webkit-tap-highlight-color:transparent;will-change:transform;
+}
+.lamp__bead:active{cursor:grabbing}
+.lamp__bead-dot{
+  display:block;width:100%;height:100%;border-radius:12px/14px;
+  background:linear-gradient(#e6e0d6,#a9a39a);
+  box-shadow:0 3px 8px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.7);
+  transition:background .7s var(--ease),box-shadow .7s var(--ease);
+}
+.lamp.is-lit .lamp__bead-dot{
+  background:radial-gradient(circle at 50% 34%,#fff3d8,#ffcf87 58%,#efa94e 100%);
+  box-shadow:0 0 20px 6px rgba(255,193,110,.6),0 3px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.8);
+}
+.lamp.is-dragging .lamp__bead{cursor:grabbing}
+.lamp.is-armed .lamp__hint{opacity:1;color:#e7b06a}      /* pulled far enough — release to toggle */
+.lamp__bead:focus-visible{outline:2px solid #6d5cff;outline-offset:4px;border-radius:12px}
+.lamp__hint{
+  position:absolute;top:0;left:0;transform:translate(26px,280px) translateX(-50%);white-space:nowrap;
+  font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gray);opacity:.72;transition:color .7s var(--ease),opacity .4s ease;pointer-events:none;
+}
+.lamp.is-lit .lamp__hint{color:rgba(255,216,174,.9);opacity:.9}
+html:not(.js) .lamp{display:none}      /* no JS: no cord, copy stays plainly readable */
+@media (prefers-reduced-motion:reduce){ .lamp__bead-dot{transition:none} }
 .portrait-destination{
   width:100%;aspect-ratio:400/456;border-radius:20px;overflow:hidden;background:#851818;
 }

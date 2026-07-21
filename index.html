@@ -162,6 +162,18 @@
 
       <!-- The animated card settles into the centre column of this section. -->
       <section class="intro" id="about" aria-labelledby="aboutTitle">
+        <!-- Pull-cord lamp — physics-driven; drops in when About is entered and scrolls
+             WITH the section (absolute), so it never floats over the rest of the page.
+             Grab / swing / pull the bead; a downward pull (or tap / Enter) toggles the
+             About "lights". Positioned by script.js; hidden until deployed. -->
+        <div class="lamp" data-lamp hidden>
+          <svg class="lamp__cord" width="300" height="560" aria-hidden="true"><path class="lamp__cord-path"></path></svg>
+          <button class="lamp__bead" type="button" aria-pressed="false"
+                  aria-label="Pull the cord to turn on the light and read Jay's story">
+            <span class="lamp__bead-dot" aria-hidden="true"></span>
+          </button>
+          <span class="lamp__hint" aria-hidden="true">pull to read</span>
+        </div>
         <div class="intro__col intro__col--lead">
           <h2 id="aboutTitle">Hey!</h2>
           <p data-reveal>I&rsquo;m Jay, a backend developer &amp; AI engineer based in India, building intelligent backend systems and graph analytics.</p>
