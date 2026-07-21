@@ -62,9 +62,18 @@
     var tb=travelBtn();
     if(tb){tb.click();}
     else{['keydown','keyup'].forEach(function(ty){var ev=new KeyboardEvent(ty,{key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true});window.dispatchEvent(ev);document.dispatchEvent(ev);});}
-    hideOrig();var hk=setInterval(hideOrig,40);setTimeout(function(){clearInterval(hk);},2000);
-    el.classList.add('jl-done');
-    setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},1050);
+    /* Warm-up hold: the island's Three.js materials compile their shaders on the first
+       frames after entering — that's the hitch you feel "as soon as you enter", which then
+       smooths out. This opaque loader stays up a few seconds longer so that compilation
+       happens BEHIND it; the scene renders + warms while hidden, then fades in already smooth.
+       (Entry logic above is untouched — only the fade-out is delayed.) */
+    var WARMUP=(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)?0:3000;
+    hideOrig();var hk=setInterval(hideOrig,40);setTimeout(function(){clearInterval(hk);},WARMUP+1400);
+    if(status)status.textContent='warming the island';
+    setTimeout(function(){
+      el.classList.add('jl-done');
+      setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},1050);
+    },WARMUP);
   }
   cta.addEventListener('click',enter);
   window.addEventListener('keydown',function(e){if(e.key==='Enter'&&ready&&!done){e.stopPropagation();enter();}},true);
