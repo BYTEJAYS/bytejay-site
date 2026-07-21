@@ -346,7 +346,7 @@ body.floater-github-visible .floater--github{transition-delay:.14s}
 .js #about .intro__col--lead p,
 .js #about .intro__col--body p,
 .js #about .intro__col--body .link-arrow{
-  filter:blur(6px);will-change:filter;user-select:none;
+  filter:blur(3px);will-change:filter;user-select:none;
   transition:filter .95s var(--ease),color .95s var(--ease);
 }
 /* …resolved sharp under the light, and lightened so it reads in the dark room */
