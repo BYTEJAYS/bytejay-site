@@ -1597,3 +1597,81 @@ if (contactSection) {
   window.addEventListener('resize', () => { measureWall(); layoutHint(); });
   render();
 })();
+
+// ===== Journey departure: a treasure scroll drops before the island loads =====
+// Clicking "Journey" shouldn't hard-cut to a blank page while the WebGL island
+// boots. Instead we darken the room, drop a rolled map from above, prefetch the
+// journey document + its chunks, then navigate — the journey page paints the
+// same dark backdrop and unfolds that very scroll into a route across Jay's
+// chapters. The two documents share a backdrop so the hop is invisible.
+(function journeyDeparture() {
+  const link = document.querySelector('a[href="/journey/"], a[href="/journey"]');
+  if (!link) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let leaving = false;
+
+  // Warm the destination on intent (hover/focus) so navigation is near-instant.
+  let warmed = false;
+  const warm = () => {
+    if (warmed) return; warmed = true;
+    [
+      '/journey/',
+      '/_next/static/chunks/app/journey/page-59d19a1ad7a16946.js',
+      '/_next/static/chunks/276.ab31ee0a949415fb.js',
+      '/_next/static/chunks/945-bae57af0201e0822.js',
+    ].forEach((href) => {
+      const l = document.createElement('link');
+      l.rel = href.endsWith('/') ? 'prefetch' : 'preload';
+      if (l.rel === 'preload') l.as = 'script';
+      l.href = href; document.head.appendChild(l);
+    });
+  };
+  link.addEventListener('pointerenter', warm, { once: true });
+  link.addEventListener('focus', warm, { once: true });
+
+  const go = () => { window.location.href = '/journey/'; };
+
+  link.addEventListener('click', (e) => {
+    // respect new-tab / modified clicks
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (leaving) return; leaving = true;
+    warm();
+    try { sessionStorage.setItem('bytejay:jrny-depart', '1'); } catch (err) {}
+    try { window.__lenis && window.__lenis.stop(); } catch (err) {}
+
+    if (reduce) { go(); return; }
+
+    // Build the departure overlay: same dark backdrop + a rolled scroll dropping in.
+    const ov = document.createElement('div');
+    ov.className = 'jrny-depart';
+    ov.setAttribute('aria-hidden', 'true');
+    ov.innerHTML =
+      '<div class="jd-vignette"></div>' +
+      '<div class="jd-scroll">' +
+        '<div class="jd-rod jd-rod--top"></div>' +
+        '<div class="jd-roll"></div>' +
+        '<div class="jd-rod jd-rod--bottom"></div>' +
+      '</div>' +
+      '<p class="jd-word">Charting the route…</p>';
+    document.body.appendChild(ov);
+
+    // Drop the scroll with weight + a small landing overshoot (GSAP if present).
+    const scroll = ov.querySelector('.jd-scroll');
+    const word = ov.querySelector('.jd-word');
+    if (window.gsap) {
+      const tl = window.gsap.timeline();
+      tl.to(ov, { opacity: 1, duration: 0.28, ease: 'power2.out' }, 0)
+        .fromTo(scroll,
+          { yPercent: -170, rotate: -3 },
+          { yPercent: 0, rotate: 0, duration: 0.92, ease: 'back.out(1.5)' }, 0.06)
+        .to(scroll, { rotate: 1.1, duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: -1 }, 0.9)
+        .fromTo(word, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5 }, 0.6);
+    } else {
+      requestAnimationFrame(() => ov.classList.add('is-in'));
+    }
+
+    // Navigate once the scroll has visibly landed (min beat), continuing on arrival.
+    setTimeout(go, 1050);
+  });
+})();

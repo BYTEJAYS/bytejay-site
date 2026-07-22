@@ -1,42 +1,346 @@
 <!DOCTYPE html><html lang="en" class="__variable_dd5b2f __variable_f367f3 __variable_97f5e1 __variable_e8b655"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" href="/_next/static/media/36966cca54120369-s.p.woff2" as="font" crossorigin="" type="font/woff2"/><link rel="preload" href="/_next/static/media/46bdd75a3ff56824-s.p.woff2" as="font" crossorigin="" type="font/woff2"/><link rel="preload" href="/_next/static/media/806de4d605d3ad01-s.p.woff2" as="font" crossorigin="" type="font/woff2"/><link rel="preload" href="/_next/static/media/e4af272ccee01ff0-s.p.woff2" as="font" crossorigin="" type="font/woff2"/><link rel="preload" href="/_next/static/media/fc727f226c737876-s.p.woff2" as="font" crossorigin="" type="font/woff2"/><link rel="stylesheet" href="/_next/static/css/44379167eec9605f.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-a857f2bb85db10e8.js"/><script src="/_next/static/chunks/2200cc46-eaf2b06ed874b93c.js" async=""></script><script src="/_next/static/chunks/945-bae57af0201e0822.js" async=""></script><script src="/_next/static/chunks/main-app-00dc2fbcd787b9ac.js" async=""></script><script src="/_next/static/chunks/app/journey/page-59d19a1ad7a16946.js" async=""></script><script src="/_next/static/chunks/app/layout-6c0eb73d411e5b02.js" async=""></script><title>The Journey — ByteJay</title><meta name="description" content="An explorable, cinematic WebGL world telling Jay&#x27;s journey — fly the path, pass the chapters, meet the milestones."/><meta name="robots" content="index, follow"/><link rel="canonical" href="https://bytejay.in/journey/"/><meta property="og:title" content="The Journey — ByteJay"/><meta property="og:description" content="Explore Jay&#x27;s milestones in a cinematic, playable 3D island."/><meta property="og:url" content="https://bytejay.in/journey/"/><meta property="og:site_name" content="ByteJay"/><meta property="og:type" content="website"/><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="The Journey — ByteJay"/><meta name="twitter:description" content="Explore Jay&#x27;s milestones in a cinematic, playable 3D island."/><link rel="icon" href="/assets/icons/favicon-circle-96.png"/><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon-circle.png"/><meta name="next-size-adjust"/><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet"/><style>
-#jrny-loader{position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;color:#faf7f3;font-family:'Archivo',system-ui,-apple-system,sans-serif;background:radial-gradient(125% 120% at 50% 0%,#1b1815 0%,#131110 46%,#0d0b0a 100%);opacity:1;transition:opacity .95s cubic-bezier(.22,1,.36,1);overflow:hidden;-webkit-font-smoothing:antialiased}
-#jrny-loader::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(250,247,243,.05) 1px,transparent 1px);background-size:24px 24px;opacity:.55;pointer-events:none}
-#jrny-loader::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 95% at 50% 42%,transparent 52%,rgba(0,0,0,.6) 100%);pointer-events:none}
-#jrny-loader.jl-done{opacity:0;pointer-events:none}
-#jrny-loader .jl-in{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;max-width:640px}
-#jrny-loader .jl-eyebrow{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:rgba(250,247,243,.5)}
-#jrny-loader .jl-title{margin-top:16px;font-weight:800;letter-spacing:-.02em;line-height:.96;font-size:clamp(3rem,10vw,5.5rem);color:#faf7f3}
-#jrny-loader .jl-sub{margin-top:16px;font-family:'Newsreader',Georgia,serif;font-style:italic;font-weight:400;font-size:clamp(1.05rem,2.5vw,1.4rem);color:rgba(250,247,243,.58)}
-#jrny-loader .jl-track{margin-top:46px;width:min(340px,72vw);height:2px;background:rgba(250,247,243,.13);border-radius:2px;overflow:hidden}
-#jrny-loader .jl-fill{height:100%;width:0%;background:#faf7f3;transition:width .55s cubic-bezier(.22,1,.36,1)}
-#jrny-loader .jl-status{display:flex;align-items:center;gap:9px;margin-top:18px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(250,247,243,.46)}
-#jrny-loader .jl-dot{width:7px;height:7px;border-radius:50%;background:#25b86a;box-shadow:0 0 0 4px rgba(37,184,106,.16);animation:jlpulse 1.5s ease-in-out infinite}
-#jrny-loader.jl-ready .jl-dot{animation:none}
-#jrny-loader .jl-cta{margin-top:38px;opacity:0;transform:translateY(10px);pointer-events:none;cursor:pointer;border:1px solid #faf7f3;border-radius:999px;background:#faf7f3;color:#141210;padding:13px 30px;font-family:'Archivo',sans-serif;font-weight:600;font-size:14px;letter-spacing:.005em;transition:opacity .6s ease,transform .6s cubic-bezier(.22,1,.36,1),background-color .3s ease,color .3s ease}
-#jrny-loader.jl-ready .jl-cta{opacity:1;transform:none;pointer-events:auto}
-#jrny-loader .jl-cta:hover{background:transparent;color:#faf7f3}
-@keyframes jlpulse{0%,100%{box-shadow:0 0 0 4px rgba(37,184,106,.16)}50%{box-shadow:0 0 0 7px rgba(37,184,106,.05)}}
-@media (prefers-reduced-motion:reduce){#jrny-loader,#jrny-loader .jl-fill,#jrny-loader .jl-cta,#jrny-loader .jl-dot{transition:none!important;animation:none!important}}
-</style><script>
+/* ============================================================================
+   The Journey — cinematic treasure-map loader
+   A rolled parchment descends, unfolds, and traces Jay's real chapters
+   (Origins · Discovery · The Search · The Detour · In Between) while the
+   WebGL island loads behind it. When the island is truly ready AND the
+   map sequence has run its minimum arc, the marker reaches the Isle of Jay,
+   the shaders warm up behind the parchment, then the map opens to reveal it.
+   Built to reuse the page's existing readiness signals (the "raising the
+   island · N%" text + the "Travel" button) — no fake timers.
+   ============================================================================ */
+#jrny-map{--jm-ink:#211f1c;--jm-paper:#f1ede7;--jm-paper-deep:#d7c8b0;--jm-accent:#ef5a35;--jm-water:#397f7a;
+  position:fixed;inset:0;z-index:2147483647;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(125% 120% at 50% 0%,#24221f 0%,#171614 46%,#0f0e0d 100%);
+  color:#faf7f3;font-family:'Archivo',system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  transition:opacity 1.05s cubic-bezier(.22,1,.36,1);opacity:1}
+#jrny-map.jm-gone{opacity:0;pointer-events:none}
+/* faint dot-grid + heavy vignette so it reads as a lantern-lit map table */
+#jrny-map::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(250,247,243,.05) 1px,transparent 1px);
+  background-size:26px 26px;opacity:.5}
+#jrny-map::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 100% at 50% 44%,transparent 46%,rgba(0,0,0,.66) 100%);
+  transition:opacity .8s ease}
+
+/* the moving scroll unit (perspective gives the paper a little real depth) */
+.jm-stage{position:relative;width:min(940px,92vw);
+  perspective:1700px;perspective-origin:50% 42%;
+  filter:drop-shadow(0 46px 70px rgba(0,0,0,.6));
+  will-change:transform;transform:translateY(-124vh)}
+.jm-scroll{position:relative;transform-style:preserve-3d}
+
+/* wooden scroll rods, top & bottom */
+.jm-rod{position:absolute;left:-3.4%;width:106.8%;height:26px;left:50%;
+  transform:translateX(-50%);border-radius:14px;z-index:5;
+  background:linear-gradient(180deg,#7c5230 0%,#5f3c20 12%,#8a5c34 32%,#4e3018 62%,#3a2312 100%);
+  box-shadow:inset 0 2px 1px rgba(255,214,170,.45),inset 0 -4px 6px rgba(0,0,0,.5),
+    0 10px 20px rgba(0,0,0,.42)}
+.jm-rod::before,.jm-rod::after{content:"";position:absolute;top:50%;width:20px;height:34px;
+  border-radius:7px;transform:translateY(-50%);
+  background:radial-gradient(120% 120% at 35% 30%,#9a6a3c 0%,#6b4324 46%,#3a2312 100%);
+  box-shadow:0 5px 10px rgba(0,0,0,.5),inset 0 2px 1px rgba(255,214,170,.5)}
+.jm-rod::before{left:-16px}
+.jm-rod::after{right:-16px}
+.jm-rod--top{top:0}
+.jm-rod--bottom{bottom:0}
+
+/* the rolled-up lips just under each rod — thickness shrinks as it unrolls */
+.jm-roll{position:absolute;left:50%;transform:translateX(-50%);width:99%;height:34px;z-index:4;
+  background:linear-gradient(180deg,#d9c39a 0%,#c6ac7e 40%,#b2966a 72%,#93764c 100%);
+  box-shadow:inset 0 3px 4px rgba(255,255,255,.4),0 8px 14px rgba(0,0,0,.4);
+  transform-origin:50% 50%}
+.jm-roll--top{top:20px;border-radius:6px 6px 3px 3px}
+.jm-roll--bottom{bottom:20px;border-radius:3px 3px 6px 6px}
+
+/* the parchment sheet — height animates open from the centre outward */
+.jm-window{position:relative;width:99%;margin:0 auto;overflow:hidden;height:0;
+  border-radius:3px;z-index:3;will-change:height;
+  box-shadow:0 30px 50px rgba(0,0,0,.45)}
+.jm-sheet{position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;
+  aspect-ratio:1000/640;
+  /* aged paper: warm base + uneven sun-bleaching + burnt edge vignette */
+  background:
+    radial-gradient(140% 120% at 22% 12%,rgba(255,255,255,.72) 0%,rgba(255,255,255,0) 55%),
+    radial-gradient(120% 130% at 88% 96%,rgba(57,127,122,.15) 0%,rgba(57,127,122,0) 52%),
+    radial-gradient(160% 150% at 50% 50%,#f7f3ec 0%,var(--jm-paper) 48%,#e5dbca 76%,var(--jm-paper-deep) 100%);
+  -webkit-mask:var(--deckle);mask:var(--deckle);
+  -webkit-mask-size:100% 100%;mask-size:100% 100%}
+/* fibrous grain + faint fold creases layered over the paper */
+.jm-sheet::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:var(--fibre);background-size:340px 340px;opacity:.5;mix-blend-mode:multiply}
+.jm-sheet::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,transparent 33%,rgba(120,86,48,.09) 33.3%,transparent 33.6%),
+    linear-gradient(90deg,transparent 66%,rgba(120,86,48,.07) 66.3%,transparent 66.6%),
+    linear-gradient(0deg,transparent 49.6%,rgba(120,86,48,.08) 50%,transparent 50.4%);
+  opacity:.6;mix-blend-mode:multiply}
+
+.jm-svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* corner titles engraved on the map */
+.jm-eyebrow{position:absolute;left:5.4%;top:6%;z-index:4;margin:0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:clamp(8px,1vw,11px);letter-spacing:.34em;text-transform:uppercase;
+  color:rgba(74,48,24,.6)}
+.jm-heading{position:absolute;right:5.4%;top:5%;z-index:4;margin:0;text-align:right;
+  font-weight:800;letter-spacing:-.02em;line-height:.9;
+  font-size:clamp(1.5rem,4vw,2.6rem);color:#4a3018;
+  text-shadow:0 1px 0 rgba(255,255,255,.35)}
+.jm-heading small{display:block;font-family:'Newsreader',Georgia,serif;font-style:italic;
+  font-weight:400;font-size:.42em;letter-spacing:0;color:rgba(74,48,24,.62);margin-top:.35em}
+
+/* the narrative caption that crossfades as the marker reaches each landmark */
+.jm-caption{position:absolute;left:0;right:0;bottom:6.5%;z-index:6;text-align:center;
+  padding:0 8%;pointer-events:none}
+.jm-caption .jm-chapter{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:clamp(8px,1vw,10px);letter-spacing:.32em;text-transform:uppercase;
+  color:rgba(74,48,24,.55)}
+.jm-caption .jm-line{margin-top:6px;font-family:'Newsreader',Georgia,serif;font-style:italic;
+  font-size:clamp(1rem,2.6vw,1.5rem);color:#3a2513;line-height:1.2}
+.jm-caption .jm-swap{display:inline-block;opacity:0;transform:translateY(9px);
+  transition:opacity .5s ease,transform .55s cubic-bezier(.22,1,.36,1)}
+.jm-caption.is-in .jm-swap{opacity:1;transform:none}
+
+/* SVG landmark + route styling */
+.jm-terrain{opacity:.9}
+.jm-route{fill:none;stroke:var(--jm-accent);stroke-width:3.4;stroke-linecap:round;
+  stroke-dasharray:2 11;filter:url(#jm-ink)}
+.jm-route-glow{fill:none;stroke:var(--jm-accent);stroke-width:8;stroke-linecap:round;
+  opacity:.16;filter:blur(4px)}
+.jm-land{opacity:0;transition:opacity .6s ease}
+.jm-land.is-seen{opacity:1}
+.jm-land .jm-ink{stroke:var(--jm-ink);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.jm-land .jm-fillink{fill:var(--jm-ink)}
+.jm-land .jm-pin{fill:var(--jm-accent);opacity:0}
+.jm-land.is-active .jm-pin{opacity:1}
+.jm-land .jm-halo{fill:var(--jm-accent);opacity:0;transform-box:fill-box;transform-origin:center}
+.jm-land.is-active .jm-halo{animation:jmpulse 1.9s ease-out infinite}
+.jm-label{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;fill:var(--jm-ink);
+  letter-spacing:.01em}
+.jm-label--num{font-family:'Newsreader',Georgia,serif;font-style:italic;font-weight:500;
+  font-size:13px;fill:rgba(74,48,24,.6)}
+@keyframes jmpulse{0%{opacity:.42;transform:scale(1)}70%{opacity:0;transform:scale(3.4)}
+  100%{opacity:0;transform:scale(3.4)}}
+
+/* the travelling compass marker */
+.jm-marker{opacity:0;transition:opacity .5s ease}
+.jm-marker.is-on{opacity:1}
+.jm-marker .jm-disc{fill:#faf7f3;stroke:var(--jm-ink);stroke-width:2.4}
+.jm-marker .jm-needle-n{fill:var(--jm-accent)}
+.jm-marker .jm-needle-s{fill:var(--jm-ink)}
+.jm-marker .jm-ring{fill:none;stroke:var(--jm-accent);stroke-width:2;opacity:.5}
+.jm-marker .jm-trail{fill:var(--jm-accent)}
+
+/* the X that stamps onto the destination */
+.jm-x{opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(2.4) rotate(-12deg)}
+.jm-x.is-stamped{opacity:1;transform:scale(1) rotate(-8deg);
+  transition:opacity .28s ease,transform .34s cubic-bezier(.34,1.7,.5,1)}
+.jm-x path{stroke:var(--jm-accent);stroke-width:5;stroke-linecap:round}
+
+/* a quiet enter affordance if the visitor wants to skip ahead once ready */
+.jm-enter{position:absolute;left:50%;bottom:26px;transform:translateX(-50%) translateY(8px);
+  z-index:8;opacity:0;pointer-events:none;cursor:pointer;
+  border:1px solid rgba(250,247,243,.55);border-radius:999px;background:transparent;
+  color:rgba(250,247,243,.82);padding:9px 20px;font:600 12px 'Archivo',sans-serif;
+  letter-spacing:.14em;text-transform:uppercase;
+  transition:opacity .6s ease,transform .6s cubic-bezier(.22,1,.36,1),
+    background-color .25s ease,color .25s ease}
+#jrny-map.jm-ready .jm-enter{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.jm-enter:hover{background:rgba(250,247,243,.94);color:#141210;border-color:rgba(250,247,243,.94)}
+
+@media (prefers-reduced-motion:reduce){
+  #jrny-map,#jrny-map *{transition-duration:.001s!important;animation:none!important}
+}
+</style>
+<script>
 (function(){
-  if(window.__jrnyLoader)return;window.__jrnyLoader=1;
-  var el=document.createElement('div');el.id='jrny-loader';el.setAttribute('role','status');el.setAttribute('aria-label','Loading The Journey');
-  el.innerHTML='<div class="jl-in">'
-   +'<span class="jl-eyebrow">Journey_Sequence / 01</span>'
-   +'<h1 class="jl-title">The Journey</h1>'
-   +'<p class="jl-sub">an island, not a webpage</p>'
-   +'<div class="jl-track"><div class="jl-fill" id="jlFill"></div></div>'
-   +'<p class="jl-status"><span class="jl-dot" aria-hidden="true"></span><span id="jlStatus">raising the island &middot; 0%</span></p>'
-   +'<button type="button" class="jl-cta" id="jlCta">Enter the Journey &#9166;</button>'
-   +'</div>';
+  if(window.__jrnyMap)return;window.__jrnyMap=1;
+  var REDUCE=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
+  /* did we arrive from the portfolio's Journey click? then the scroll is already
+     mid-flight and we continue seamlessly rather than dropping it in again. */
+  var HANDOFF=false;
+  try{HANDOFF=sessionStorage.getItem('bytejay:jrny-depart')==='1';sessionStorage.removeItem('bytejay:jrny-depart');}catch(e){}
+
+  /* ---- real journey chapters (pulled from the island itself) ---------------- */
+  var STOPS=[
+    {t:0.00,ch:'Chapter I · Origins',      line:'A curious kid shows up — no map, no plan.'},
+    {t:0.24,ch:'Chapter II · Discovery',   line:'One "Hello, World", and something clicks.'},
+    {t:0.50,ch:'Chapter III · The Search', line:'Finding what breaks becomes a sport.'},
+    {t:0.75,ch:'Chapter IV · The Detour',  line:'New freedom, no structure — the trail wanders.'},
+    {t:1.00,ch:'Chapter V · In Between',   line:'Somewhere in between — still building the island.'}
+  ];
+  /* hand-drawn route control points across a 1000×640 map */
+  var PTS=[[128,436],[236,300],[352,388],[486,262],[560,404],[712,250],[812,388],[884,432]];
+  /* which control-point index each named stop sits on */
+  var STOP_IDX=[0,2,4,6,7];
+
+  /* ---- paper texture (feTurbulence) + worn deckle edge, as data URIs -------- */
+  var fibre="url(\"data:image/svg+xml,"+encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340">'+
+    '<filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/>'+
+    '<feColorMatrix type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.30  0 0 0 0 0.16  0 0 0 0.5 0"/></filter>'+
+    '<rect width="340" height="340" filter="url(%23f)"/></svg>')+"\")";
+  var deckle="url(\"data:image/svg+xml,"+encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="640" preserveAspectRatio="none">'+
+    '<filter id="r"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" seed="4" result="n"/>'+
+    '<feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G"/></filter>'+
+    '<rect x="10" y="10" width="980" height="620" rx="14" fill="%23fff" filter="url(%23r)"/></svg>')+"\")";
+
+  /* ---- build the map’s inner SVG ------------------------------------------- */
+  function d(pts){ // catmull-rom -> cubic bezier smooth path
+    var p='M'+pts[0][0]+' '+pts[0][1];
+    for(var i=0;i<pts.length-1;i++){
+      var p0=pts[i>0?i-1:i],p1=pts[i],p2=pts[i+1],p3=pts[i+2<pts.length?i+2:i+1];
+      var c1x=p1[0]+(p2[0]-p0[0])/6,c1y=p1[1]+(p2[1]-p0[1])/6;
+      var c2x=p2[0]-(p3[0]-p1[0])/6,c2y=p2[1]-(p3[1]-p1[1])/6;
+      p+=' C'+c1x+' '+c1y+','+c2x+' '+c2y+','+p2[0]+' '+p2[1];
+    }
+    return p;
+  }
+  var ROUTE=d(PTS);
+
+  // little inline landmark drawings (elegant single-weight line art)
+  var LAND=[
+    /* Origins — a starting tent + campfire */
+    '<path class="jm-ink" d="M-16 8 L0 -18 L16 8 Z"/><path class="jm-ink" d="M0 -18 L0 8"/>'+
+      '<path class="jm-ink" d="M6 14 q4 -5 0 -9 M12 14 q5 -6 0 -11"/>',
+    /* Discovery — a telescope on a stand */
+    '<path class="jm-ink" d="M-14 12 L2 -14 M-14 12 L-4 14 M2 -14 l7 3 l-4 8 Z"/>'+
+      '<path class="jm-ink" d="M-6 13 L-6 4 M2 13 L-6 4"/>',
+    /* The Search — a magnifier over crossed markers */
+    '<circle class="jm-ink" cx="-3" cy="-3" r="10"/><path class="jm-ink" d="M5 5 L15 15"/>'+
+      '<path class="jm-ink" d="M-7 -3 L1 -3 M-3 -7 L-3 1"/>',
+    /* The Detour — a forked signpost */
+    '<path class="jm-ink" d="M0 14 L0 -14"/><path class="jm-ink" d="M0 -12 L14 -8 L10 -3 L0 -6 Z"/>'+
+      '<path class="jm-ink" d="M0 -2 L-13 2 L-9 7 L0 5 Z"/>',
+    /* In Between — the isle of Jay with a flag */
+    '<path class="jm-ink" d="M-16 12 q16 8 32 0 q-4 -8 -16 -8 q-12 0 -16 8 Z"/>'+
+      '<path class="jm-ink" d="M2 4 L2 -16 L14 -12 L2 -9"/>'
+  ];
+
+  var lands='',lb='';
+  for(var i=0;i<STOPS.length;i++){
+    var pt=PTS[STOP_IDX[i]];var s=STOPS[i];
+    var above=pt[1]>320; // put the label above the pin low on the map, below when high
+    var ly=above?pt[1]-46:pt[1]+40;
+    var num=['I','II','III','IV','V'][i];
+    var short=s.ch.split('· ')[1];
+    lands+='<g class="jm-land" data-i="'+i+'" transform="translate('+pt[0]+','+pt[1]+')">'+
+      '<circle class="jm-halo" cx="0" cy="0" r="6"/>'+
+      '<g transform="translate(0,-2)">'+LAND[i]+'</g>'+
+      '<circle class="jm-pin" cx="0" cy="6" r="3.6"/>'+
+      '<text class="jm-label" x="0" y="'+(above?-30:44)+'" text-anchor="middle">'+short+'</text>'+
+      '<text class="jm-label jm-label--num" x="0" y="'+(above?-30+15:44+15)+'" text-anchor="middle">'+num+'</text>'+
+      '</g>';
+  }
+
+  var svg=
+    '<svg class="jm-svg" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
+      '<defs>'+
+        '<filter id="jm-ink" x="-8%" y="-40%" width="116%" height="180%">'+
+          '<feTurbulence type="fractalNoise" baseFrequency="0.018 0.03" numOctaves="2" seed="9" result="n"/>'+
+          '<feDisplacementMap in="SourceGraphic" in2="n" scale="7"/></filter>'+
+        '<radialGradient id="jm-sea" cx="50%" cy="50%" r="60%">'+
+          '<stop offset="0%" stop-color="#c9b184" stop-opacity="0"/>'+
+          '<stop offset="100%" stop-color="#b89a67" stop-opacity="0.5"/></radialGradient>'+
+      '</defs>'+
+      /* a complete hand-drawn world: coast, islands, contour lines and waves */
+      '<g class="jm-terrain" fill="none" stroke="#397f7a" stroke-width="1.35" opacity="0.5">'+
+        '<path d="M46 485 q95 -42 178 -14 q86 31 164 6 q76 -25 142 -3 q92 31 174 -4 q103 -43 250 9"/>'+
+        '<path d="M72 502 q88 -35 166 -8 q82 29 154 7 q78 -24 144 -2 q91 31 174 -4 q102 -41 218 4" opacity=".45"/>'+
+        '<path d="M92 253 q55 -38 122 -10 q37 17 69 -4 q47 -30 102 -7 M594 294 q61 -46 137 -11 q42 20 84 -6" opacity=".7"/>'+
+        '<path d="M64 342 q12 11 0 22 M47 368 q12 11 0 22 M935 306 q12 11 0 22 M958 332 q12 11 0 22"/>'+
+      '</g>'+
+      '<g fill="#397f7a" opacity=".1" stroke="#397f7a" stroke-width="1.4">'+
+        '<path d="M238 150 q34 -26 72 -3 q34 21 75 2 q31 -14 61 10 q-23 27 -65 24 q-55 -4 -101 10 q-33 -8 -42 -43Z"/>'+
+        '<path d="M670 123 q41 -26 81 2 q26 18 61 8 q31 18 13 43 q-45 13 -78 -2 q-43 -19 -86 1 q-20 -27 9 -52Z"/>'+
+        '<path d="M774 493 q37 -31 79 -4 q32 20 70 3 q25 30 -7 51 q-41 -10 -76 7 q-45 10 -66 -18 q-12 -17 0 -39Z"/>'+
+      '</g>'+
+      '<g fill="none" stroke="#211f1c" stroke-width="1.1" opacity=".22">'+
+        '<path d="M258 158 q45 -19 92 3 q29 13 61 1 M690 139 q48 -17 96 6 M796 508 q45 -18 91 4"/>'+
+        '<path d="M875 184 l12 -19 l12 19 l-12 19Z M91 552 l9 -14 l9 14 l-9 14Z"/>'+
+      '</g>'+
+      /* compass rose, upper-left flourish */
+      '<g transform="translate(150,150)" stroke="#4a3018" fill="#4a3018" opacity="0.5">'+
+        '<circle r="26" fill="none" stroke-width="1.4"/><circle r="17" fill="none" stroke-width="1"/>'+
+        '<path d="M0 -30 L4 -6 L0 0 L-4 -6 Z"/><path d="M0 30 L4 6 L0 0 L-4 6 Z" opacity="0.55"/>'+
+        '<path d="M30 0 L6 4 L0 0 L6 -4 Z" opacity="0.7"/><path d="M-30 0 L-6 4 L0 0 L-6 -4 Z" opacity="0.7"/>'+
+        '<text x="0" y="-34" text-anchor="middle" font-family="Newsreader,serif" font-style="italic" font-size="12">N</text>'+
+      '</g>'+
+      '<path class="jm-route-glow" d="'+ROUTE+'"/>'+
+      '<path class="jm-route" id="jmRoute" d="'+ROUTE+'"/>'+
+      lands+
+      /* X marks the destination */
+      '<g class="jm-x" id="jmX" transform="translate('+PTS[7][0]+','+PTS[7][1]+')">'+
+        '<path d="M-11 -11 L11 11 M11 -11 L-11 11"/></g>'+
+      /* travelling compass marker */
+      '<g class="jm-marker" id="jmMarker">'+
+        '<circle class="jm-ring" r="15"/><circle class="jm-disc" r="10"/>'+
+        '<path class="jm-needle-n" d="M0 -9 L3 0 L0 2 L-3 0 Z"/>'+
+        '<path class="jm-needle-s" d="M0 9 L3 0 L0 -2 L-3 0 Z"/></g>'+
+    '</svg>';
+
+  /* ---- assemble the overlay ------------------------------------------------ */
+  var el=document.createElement('div');el.id='jrny-map';
+  el.setAttribute('role','status');el.setAttribute('aria-label','Charting the journey');
+  el.style.setProperty('--fibre',fibre);
+  el.style.setProperty('--deckle',deckle);
+  el.innerHTML=
+    '<div class="jm-stage" id="jmStage"><div class="jm-scroll">'+
+      '<div class="jm-rod jm-rod--top" id="jmRodTop"></div>'+
+      '<div class="jm-roll jm-roll--top" id="jmRollTop"></div>'+
+      '<div class="jm-window" id="jmWindow"><div class="jm-sheet">'+
+        '<p class="jm-eyebrow">Journey_Sequence / 01</p>'+
+        '<h2 class="jm-heading">The Journey<small>an island, not a webpage</small></h2>'+
+        svg+
+        '<div class="jm-caption" id="jmCaption">'+
+          '<div class="jm-swap"><div class="jm-chapter" id="jmCh"></div>'+
+          '<div class="jm-line" id="jmLine"></div></div></div>'+
+      '</div></div>'+
+      '<div class="jm-roll jm-roll--bottom" id="jmRollBottom"></div>'+
+      '<div class="jm-rod jm-rod--bottom" id="jmRodBottom"></div>'+
+    '</div></div>'+
+    '<button type="button" class="jm-enter" id="jmEnter">Enter the island</button>';
+
   var done=false;
-  function ensure(){if(done)return;var host=document.body||document.documentElement;if(el.parentNode!==host){host.appendChild(el);}}
+  function host(){return document.body||document.documentElement;}
+  function ensure(){if(done)return;if(el.parentNode!==host()){host().appendChild(el);}}
   ensure();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensure);
   window.addEventListener('load',ensure);
   var mo;try{mo=new MutationObserver(ensure);mo.observe(document.documentElement,{childList:true,subtree:true});}catch(e){}
-  var fill=el.querySelector('#jlFill'),status=el.querySelector('#jlStatus'),cta=el.querySelector('#jlCta');
-  var shown=0,ready=false,start=Date.now();
+
+  var stage=el.querySelector('#jmStage'),
+      rodTop=el.querySelector('#jmRodTop'),rodBot=el.querySelector('#jmRodBottom'),
+      rollTop=el.querySelector('#jmRollTop'),rollBot=el.querySelector('#jmRollBottom'),
+      win=el.querySelector('#jmWindow'),route=el.querySelector('#jmRoute'),
+      routeGlow=el.querySelector('.jm-route-glow'),marker=el.querySelector('#jmMarker'),
+      xMark=el.querySelector('#jmX'),caption=el.querySelector('#jmCaption'),
+      chEl=el.querySelector('#jmCh'),lineEl=el.querySelector('#jmLine'),
+      enterBtn=el.querySelector('#jmEnter'),lands=el.querySelectorAll('.jm-land');
+
+  /* window height = full sheet height once open; measure lazily */
+  function sheetH(){return win.querySelector('.jm-sheet').getBoundingClientRect().height||win.clientWidth*0.64;}
+  var routeLen=route.getTotalLength();
+  route.style.strokeDasharray=routeLen;route.style.strokeDashoffset=routeLen;
+  routeGlow.style.strokeDasharray=routeLen;routeGlow.style.strokeDashoffset=routeLen;
+
+  /* ------- tiny critically-damped spring integrator -------------------------- */
+  function Spring(x,k,d){this.x=x;this.v=0;this.t=x;this.k=k;this.d=d;}
+  Spring.prototype.step=function(dt){
+    var a=this.k*(this.t-this.x)-this.d*this.v;this.v+=a*dt;this.x+=this.v*dt;return this.x;};
+
+  var uSpring=new Spring(0,150,22);        // unfold 0..1 (settles firmly)
+  var uEdge=new Spring(0,90,17);           // edges lag behind the centre
+  var mSpring=new Spring(0,70,15);         // marker progress 0..1
+  var descend=new Spring(HANDOFF?0.86:0,90,14); // scroll drop 0..1 (1 = centred)
+  descend.t=1;
+
+  /* ------- readiness plumbing (reuses the island's own signals) -------------- */
+  var shown=0,ready=false,revealing=false,start=Date.now(),unfoldStart=0;
   function underlyingPct(){
     var n=document.querySelectorAll('p,span,div');
     for(var i=0;i<n.length;i++){var t=n[i].textContent||'';
@@ -45,37 +349,132 @@
     return -1;
   }
   function travelBtn(){var b=document.getElementsByTagName('button');
-    for(var i=0;i<b.length;i++){if(b[i]!==cta&&/travel/i.test(b[i].textContent||''))return b[i];}return null;}
-  function setBar(p){p=Math.max(shown,Math.min(100,p));shown=p;fill.style.width=p+'%';
-    status.textContent=p>=100?'island ready':('raising the island · '+Math.round(p)+'%');}
-  function markReady(){if(ready)return;ready=true;setBar(100);el.classList.add('jl-ready');}
-  function hideOrig(){var d=document.getElementsByTagName('div');for(var i=0;i<d.length;i++){var c=d[i].className;if(typeof c==='string'&&c.indexOf('#14110E')>=0){d[i].style.display='none';}}}
-  var iv=setInterval(function(){
-    if(done)return;ensure();hideOrig();
-    if(travelBtn()||underlyingPct()>=100){markReady();return;}
+    for(var i=0;i<b.length;i++){if(b[i]!==enterBtn&&/travel/i.test(b[i].textContent||''))return b[i];}return null;}
+  function hideOrig(){var dv=document.getElementsByTagName('div');
+    for(var i=0;i<dv.length;i++){var c=dv[i].className;
+      if(typeof c==='string'&&c.indexOf('#14110E')>=0){dv[i].style.display='none';}}}
+  function markReady(){if(ready)return;ready=true;shown=100;el.classList.add('jm-ready');}
+  function loadFrac(){
+    if(ready)return 1;
     var real=underlyingPct();
-    setBar(real>=0?real:Math.min(90,(Date.now()-start)/72));
-  },140);
-  setTimeout(function(){if(!done)markReady();},22000);
-  function enter(){
-    if(done||!ready)return;done=true;clearInterval(iv);if(mo){try{mo.disconnect();}catch(e){}}
+    var p=real>=0?real:Math.min(90,(Date.now()-start)/72);
+    shown=Math.max(shown,p);return shown/100;
+  }
+
+  /* ------- caption + landmark state ----------------------------------------- */
+  var curStop=-1;
+  function showStop(i){
+    if(i===curStop)return;curStop=i;var s=STOPS[i];
+    caption.classList.remove('is-in');
+    setTimeout(function(){chEl.textContent=s.ch;lineEl.textContent=s.line;
+      caption.classList.add('is-in');},REDUCE?0:180);
+  }
+  function seeLand(i,active){
+    var g=lands[i];if(!g)return;g.classList.add('is-seen');
+    if(active){for(var k=0;k<lands.length;k++)lands[k].classList.remove('is-active');
+      g.classList.add('is-active');}
+  }
+
+  /* map marker progress -> nearest stop index (for captions/activation) */
+  function stopForT(t){var best=0;for(var i=0;i<STOPS.length;i++){if(t>=STOPS[i].t-0.02)best=i;}return best;}
+
+  var MIN_ROUTE=REDUCE?300:4200;   // minimum drawing arc so it never flashes by
+  var MIN_TOTAL=REDUCE?400:5200;   // minimum whole-sequence duration
+  var last=performance.now();
+
+  function frame(now){
+    if(done){return;}
+    var dt=Math.min(0.05,(now-last)/1000);last=now;
+    ensure();hideOrig();
+
+    // 1) scroll descends & settles
+    var dv=descend.step(dt);
+    var sway=REDUCE?0:Math.sin(now/560)*(1-Math.min(1,dv))*3.2; // pendulum, fades on arrival
+    var over=Math.max(0,dv-1);                                   // tiny landing overshoot handled by spring
+    stage.style.transform='translateY('+((1-dv)*-124)+'vh) rotate('+sway*0.12+'deg)';
+
+    // begin unfolding once the scroll has essentially arrived
+    if(dv>0.9&&!unfoldStart){unfoldStart=now;uSpring.t=1;uEdge.t=1;}
+
+    // 2) unfold — window height grows from centre; edges lag a touch
+    var u=uSpring.step(dt),ue=uEdge.step(dt);
+    var H=sheetH();
+    win.style.height=Math.max(0,u*H)+'px';
+    var half=H*0.5;
+    rodTop.style.transform='translateX(-50%) translateY('+(-ue*half)+'px)';
+    rodBot.style.transform='translateX(-50%) translateY('+(ue*half)+'px)';
+    rollTop.style.transform='translateX(-50%) translateY('+(-ue*(half-28))+'px) scaleY('+(1-0.55*u)+')';
+    rollBot.style.transform='translateX(-50%) translateY('+(ue*(half-28))+'px) scaleY('+(1-0.55*u)+')';
+
+    // 3) trace the route + move the marker, gated by real load
+    if(u>0.72){
+      marker.classList.add('is-on');
+      var elapsed=now-(unfoldStart||now);
+      var byTime=Math.min(1,elapsed/MIN_ROUTE);
+      var gate=ready?1:Math.min(0.92,0.14+0.86*loadFrac()); // can't finish until island ready
+      mSpring.t=Math.min(byTime,gate);
+      var mt=Math.max(0,Math.min(1,mSpring.step(dt)));
+
+      route.style.strokeDashoffset=routeLen*(1-mt);
+      routeGlow.style.strokeDashoffset=routeLen*(1-mt);
+      var L=routeLen*mt;
+      var pos=route.getPointAtLength(L);
+      var ahead=route.getPointAtLength(Math.min(routeLen,L+1.2));
+      var ang=Math.atan2(ahead.y-pos.y,ahead.x-pos.x)*180/Math.PI;
+      var bob=REDUCE?0:Math.sin(now/240)*0.8;
+      marker.setAttribute('transform','translate('+pos.x+','+pos.y+') rotate('+(ang+90)+') translate(0,'+bob+')');
+
+      // reveal landmarks as the ink reaches them; activate the current one
+      for(var i=0;i<STOPS.length;i++){if(mt>=STOPS[i].t-0.03)seeLand(i,false);}
+      var si=stopForT(mt);showStop(si);seeLand(si,true);
+
+      // 4) arrival: stamp X, warm up, then open the map
+      if(ready&&mt>=0.985&&(Date.now()-start)>=MIN_TOTAL&&!revealing){beginReveal();}
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // keep evaluating readiness on a steady beat (cheap, matches old loader cadence)
+  var iv=setInterval(function(){if(done)return;ensure();hideOrig();
+    if(travelBtn()||underlyingPct()>=100)markReady();else loadFrac();},150);
+  setTimeout(function(){if(!done)markReady();},22000); // hard safety net
+
+  /* ------- the reveal: X stamp -> shader warm-up -> parchment opens ---------- */
+  function beginReveal(){
+    if(revealing||done)return;revealing=true;
+    xMark.classList.add('is-stamped');
+    showStop(STOPS.length-1);
+    // enter the underlying island (click Travel / dispatch Enter) so it renders behind us
     var tb=travelBtn();
     if(tb){tb.click();}
-    else{['keydown','keyup'].forEach(function(ty){var ev=new KeyboardEvent(ty,{key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true});window.dispatchEvent(ev);document.dispatchEvent(ev);});}
-    /* Warm-up hold: the island's Three.js materials compile their shaders on the first
-       frames after entering — that's the hitch you feel "as soon as you enter", which then
-       smooths out. This opaque loader stays up a few seconds longer so that compilation
-       happens BEHIND it; the scene renders + warms while hidden, then fades in already smooth.
-       (Entry logic above is untouched — only the fade-out is delayed.) */
-    var WARMUP=(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)?0:3000;
+    else{['keydown','keyup'].forEach(function(ty){var ev=new KeyboardEvent(ty,
+      {key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true});
+      window.dispatchEvent(ev);document.dispatchEvent(ev);});}
+    // warm-up hold: shaders compile behind the opaque parchment, then it opens smooth
+    var WARMUP=REDUCE?0:2600;
     hideOrig();var hk=setInterval(hideOrig,40);setTimeout(function(){clearInterval(hk);},WARMUP+1400);
-    if(status)status.textContent='warming the island';
-    setTimeout(function(){
-      el.classList.add('jl-done');
-      setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},1050);
-    },WARMUP);
+    setTimeout(openMap,WARMUP);
   }
-  cta.addEventListener('click',enter);
-  window.addEventListener('keydown',function(e){if(e.key==='Enter'&&ready&&!done){e.stopPropagation();enter();}},true);
+  function openMap(){
+    if(done)return;done=true;clearInterval(iv);if(mo){try{mo.disconnect();}catch(e){}}
+    el.classList.add('jm-open');
+    // fling the rods apart and lift the parchment away, then fade the whole overlay
+    stage.style.transition='transform 1s cubic-bezier(.5,0,.2,1)';
+    stage.style.transform='translateY(-8vh) scale(1.06)';
+    rodTop.style.transition=rodBot.style.transition='transform .9s cubic-bezier(.5,0,.2,1)';
+    rodTop.style.transform='translateX(-50%) translateY(-72vh)';
+    rodBot.style.transform='translateX(-50%) translateY(72vh)';
+    el.querySelector('.jm-scroll').style.transition='opacity .9s ease';
+    el.querySelector('.jm-scroll').style.opacity='0';
+    setTimeout(function(){el.classList.add('jm-gone');
+      setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},1100);},420);
+  }
+
+  /* let a ready visitor skip straight to the arrival */
+  enterBtn.addEventListener('click',function(){if(ready&&!revealing){mSpring.x=1;beginReveal();}});
+  window.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&ready&&!revealing&&!done){e.stopPropagation();mSpring.x=1;beginReveal();}},true);
 })();
-</script></head><body class="bg-cream font-body text-ink antialiased"><!--$!--><template data-dgst="BAILOUT_TO_CLIENT_SIDE_RENDERING"></template><!--/$--><script src="/_next/static/chunks/webpack-a857f2bb85db10e8.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:HL[\"/_next/static/media/36966cca54120369-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n2:HL[\"/_next/static/media/46bdd75a3ff56824-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n3:HL[\"/_next/static/media/806de4d605d3ad01-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n4:HL[\"/_next/static/media/e4af272ccee01ff0-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n5:HL[\"/_next/static/media/fc727f226c737876-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n6:HL[\"/_next/static/css/44379167eec9605f.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"7:I[2433,[],\"\"]\n9:I[7493,[\"695\",\"static/chunks/app/journey/page-59d19a1ad7a16946.js\"],\"default\"]\na:I[176,[],\"\"]\nb:I[9414,[],\"\"]\nc:I[5241,[\"185\",\"static/chunks/app/layout-6c0eb73d411e5b02.js\"],\"default\"]\ne:I[8528,[],\"\"]\nf:[]\n"])</script><script>self.__next_f.push([1,"0:[\"$\",\"$L7\",null,{\"buildId\":\"eWVXNWGQpAJKQM9CIibX3\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"journey\",\"\"],\"initialTree\":[\"\",{\"children\":[\"journey\",{\"children\":[\"__PAGE__\",{}]}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[\"journey\",{\"children\":[\"__PAGE__\",{},[[\"$L8\",[\"$\",\"$L9\",null,{}],null],null],null]},[null,[\"$\",\"$La\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"journey\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$Lb\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/44379167eec9605f.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"className\":\"__variable_dd5b2f __variable_f367f3 __variable_97f5e1 __variable_e8b655\",\"children\":[\"$\",\"body\",null,{\"className\":\"bg-cream font-body text-ink antialiased\",\"children\":[[\"$\",\"$La\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$Lb\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],\"notFoundStyles\":[]}],[\"$\",\"$Lc\",null,{}]]}]}]],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$Ld\"],\"globalErrorComponent\":\"$e\",\"missingSlots\":\"$Wf\"}]\n"])</script><script>self.__next_f.push([1,"d:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"The Journey — ByteJay\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"An explorable, cinematic WebGL world telling Jay's journey — fly the path, pass the chapters, meet the milestones.\"}],[\"$\",\"meta\",\"4\",{\"name\":\"robots\",\"content\":\"index, follow\"}],[\"$\",\"link\",\"5\",{\"rel\":\"canonical\",\"href\":\"https://bytejay.in/journey/\"}],[\"$\",\"meta\",\"6\",{\"property\":\"og:title\",\"content\":\"The Journey — ByteJay\"}],[\"$\",\"meta\",\"7\",{\"property\":\"og:description\",\"content\":\"Explore Jay's milestones in a cinematic, playable 3D island.\"}],[\"$\",\"meta\",\"8\",{\"property\":\"og:url\",\"content\":\"https://bytejay.in/journey/\"}],[\"$\",\"meta\",\"9\",{\"property\":\"og:site_name\",\"content\":\"ByteJay\"}],[\"$\",\"meta\",\"10\",{\"property\":\"og:type\",\"content\":\"website\"}],[\"$\",\"meta\",\"11\",{\"name\":\"twitter:card\",\"content\":\"summary\"}],[\"$\",\"meta\",\"12\",{\"name\":\"twitter:title\",\"content\":\"The Journey — ByteJay\"}],[\"$\",\"meta\",\"13\",{\"name\":\"twitter:description\",\"content\":\"Explore Jay's milestones in a cinematic, playable 3D island.\"}],[\"$\",\"link\",\"14\",{\"rel\":\"icon\",\"href\":\"/assets/icons/favicon-circle-96.png\"}],[\"$\",\"link\",\"15\",{\"rel\":\"apple-touch-icon\",\"href\":\"/assets/icons/apple-touch-icon-circle.png\"}],[\"$\",\"meta\",\"16\",{\"name\":\"next-size-adjust\"}]]\n8:null\n"])</script></body></html>
+</script>
+</head><body class="bg-cream font-body text-ink antialiased"><!--$!--><template data-dgst="BAILOUT_TO_CLIENT_SIDE_RENDERING"></template><!--/$--><script src="/_next/static/chunks/webpack-a857f2bb85db10e8.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:HL[\"/_next/static/media/36966cca54120369-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n2:HL[\"/_next/static/media/46bdd75a3ff56824-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n3:HL[\"/_next/static/media/806de4d605d3ad01-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n4:HL[\"/_next/static/media/e4af272ccee01ff0-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n5:HL[\"/_next/static/media/fc727f226c737876-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n6:HL[\"/_next/static/css/44379167eec9605f.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"7:I[2433,[],\"\"]\n9:I[7493,[\"695\",\"static/chunks/app/journey/page-59d19a1ad7a16946.js\"],\"default\"]\na:I[176,[],\"\"]\nb:I[9414,[],\"\"]\nc:I[5241,[\"185\",\"static/chunks/app/layout-6c0eb73d411e5b02.js\"],\"default\"]\ne:I[8528,[],\"\"]\nf:[]\n"])</script><script>self.__next_f.push([1,"0:[\"$\",\"$L7\",null,{\"buildId\":\"eWVXNWGQpAJKQM9CIibX3\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"journey\",\"\"],\"initialTree\":[\"\",{\"children\":[\"journey\",{\"children\":[\"__PAGE__\",{}]}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[\"journey\",{\"children\":[\"__PAGE__\",{},[[\"$L8\",[\"$\",\"$L9\",null,{}],null],null],null]},[null,[\"$\",\"$La\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"journey\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$Lb\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/44379167eec9605f.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"className\":\"__variable_dd5b2f __variable_f367f3 __variable_97f5e1 __variable_e8b655\",\"children\":[\"$\",\"body\",null,{\"className\":\"bg-cream font-body text-ink antialiased\",\"children\":[[\"$\",\"$La\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$Lb\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],\"notFoundStyles\":[]}],[\"$\",\"$Lc\",null,{}]]}]}]],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$Ld\"],\"globalErrorComponent\":\"$e\",\"missingSlots\":\"$Wf\"}]\n"])</script><script>self.__next_f.push([1,"d:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"The Journey — ByteJay\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"An explorable, cinematic WebGL world telling Jay's journey — fly the path, pass the chapters, meet the milestones.\"}],[\"$\",\"meta\",\"4\",{\"name\":\"robots\",\"content\":\"index, follow\"}],[\"$\",\"link\",\"5\",{\"rel\":\"canonical\",\"href\":\"https://bytejay.in/journey/\"}],[\"$\",\"meta\",\"6\",{\"property\":\"og:title\",\"content\":\"The Journey — ByteJay\"}],[\"$\",\"meta\",\"7\",{\"property\":\"og:description\",\"content\":\"Explore Jay's milestones in a cinematic, playable 3D island.\"}],[\"$\",\"meta\",\"8\",{\"property\":\"og:url\",\"content\":\"https://bytejay.in/journey/\"}],[\"$\",\"meta\",\"9\",{\"property\":\"og:site_name\",\"content\":\"ByteJay\"}],[\"$\",\"meta\",\"10\",{\"property\":\"og:type\",\"content\":\"website\"}],[\"$\",\"meta\",\"11\",{\"name\":\"twitter:card\",\"content\":\"summary\"}],[\"$\",\"meta\",\"12\",{\"name\":\"twitter:title\",\"content\":\"The Journey — ByteJay\"}],[\"$\",\"meta\",\"13\",{\"name\":\"twitter:description\",\"content\":\"Explore Jay's milestones in a cinematic, playable 3D island.\"}],[\"$\",\"link\",\"14\",{\"rel\":\"icon\",\"href\":\"/assets/icons/favicon-circle-96.png\"}],[\"$\",\"link\",\"15\",{\"rel\":\"apple-touch-icon\",\"href\":\"/assets/icons/apple-touch-icon-circle.png\"}],[\"$\",\"meta\",\"16\",{\"name\":\"next-size-adjust\"}]]\n8:null\n"])</script></body></html>
