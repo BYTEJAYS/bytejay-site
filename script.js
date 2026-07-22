@@ -890,9 +890,9 @@ if (nav && menuBtn) {
   const buddyScenes = [
     { name: 'wave', src: 'waveSrc', lines: ['Hi!', 'Oh, hey!', 'Good to see you.'], min: 3600, max: 5200 },
     { name: 'concert', src: 'guitarSrc', lines: ['Tiny concert!', 'One more song?', 'Practising my riffs.'], min: 5200, max: 7200 },
-    { name: 'reading', src: 'waveSrc', lines: ['Just one more chapter…', 'Reading the docs.', 'Plot twist: no bugs.'], min: 5000, max: 7500 },
-    { name: 'dog', src: 'waveSrc', lines: ['Who\'s a good dog?', 'Walkies?', 'My pair programmer!'], min: 5000, max: 7200 },
-    { name: 'resting', src: 'waveSrc', lines: ['Power nap…', 'Compiling dreams.', 'brb, recharging.'], min: 3800, max: 5600 },
+    { name: 'reading', src: 'idleSrc', lines: ['Just one more chapter…', 'Reading the docs.', 'Plot twist: no bugs.'], min: 5000, max: 7500 },
+    { name: 'dog', src: 'idleSrc', lines: ['Who\'s a good dog?', 'Walkies?', 'My pair programmer!'], min: 5000, max: 7200 },
+    { name: 'resting', src: 'idleSrc', lines: ['Power nap…', 'Compiling dreams.', 'brb, recharging.'], min: 3800, max: 5600 },
     { name: 'joke', src: 'waveSrc', lines: buddyJokes, min: 4200, max: 6200 }
   ];
   let lastBuddyMode = -1;
