@@ -375,7 +375,7 @@
     /* Require consecutive painted frames, not merely a mounted canvas. The small
        time floor covers GPU shader compilation on slower laptops. */
     if(painted)worldStableFrames++;else worldStableFrames=0;
-    return worldStableFrames>=18&&(Date.now()-worldStartedAt)>=(REDUCE?120:1800);
+    return worldStableFrames>=45&&(Date.now()-worldStartedAt)>=(REDUCE?180:3200);
   }
   function loadFrac(){
     if(ready)return 1;
@@ -469,7 +469,7 @@
     xMark.classList.add('is-stamped');
     showStop(STOPS.length-1);
     /* The world has already warmed behind us; retain only the tactile X-stamp beat. */
-    setTimeout(openMap,REDUCE?0:520);
+    setTimeout(openMap,REDUCE?0:680);
   }
   function openMap(){
     if(done)return;done=true;clearInterval(iv);if(mo){try{mo.disconnect();}catch(e){}}
