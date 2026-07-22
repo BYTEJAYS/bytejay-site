@@ -1598,12 +1598,7 @@ if (contactSection) {
   render();
 })();
 
-// ===== Journey departure: a treasure scroll drops before the island loads =====
-// Clicking "Journey" shouldn't hard-cut to a blank page while the WebGL island
-// boots. Instead we darken the room, drop a rolled map from above, prefetch the
-// journey document + its chunks, then navigate — the journey page paints the
-// same dark backdrop and unfolds that very scroll into a route across Jay's
-// chapters. The two documents share a backdrop so the hop is invisible.
+// ===== Journey departure: fade directly into the ocean voyage =====
 (function journeyDeparture() {
   const link = document.querySelector('a[href="/journey/"], a[href="/journey"]');
   if (!link) return;
@@ -1642,36 +1637,22 @@ if (contactSection) {
 
     if (reduce) { go(); return; }
 
-    // Build the departure overlay: same dark backdrop + a rolled scroll dropping in.
+    // A short ocean-colored bridge prevents a white navigation flash. The actual
+    // Blender boat voyage begins immediately on the Journey document.
     const ov = document.createElement('div');
     ov.className = 'jrny-depart';
     ov.setAttribute('aria-hidden', 'true');
     ov.innerHTML =
       '<div class="jd-vignette"></div>' +
-      '<div class="jd-scroll">' +
-        '<div class="jd-rod jd-rod--top"></div>' +
-        '<div class="jd-roll"></div>' +
-        '<div class="jd-rod jd-rod--bottom"></div>' +
-      '</div>' +
-      '<p class="jd-word">Charting the route…</p>';
+      '<p class="jd-word">Setting sail…</p>';
     document.body.appendChild(ov);
 
-    // Drop the scroll with weight + a small landing overshoot (GSAP if present).
-    const scroll = ov.querySelector('.jd-scroll');
-    const word = ov.querySelector('.jd-word');
     if (window.gsap) {
-      const tl = window.gsap.timeline();
-      tl.to(ov, { opacity: 1, duration: 0.28, ease: 'power2.out' }, 0)
-        .fromTo(scroll,
-          { yPercent: -170, rotate: -3 },
-          { yPercent: 0, rotate: 0, duration: 0.92, ease: 'back.out(1.5)' }, 0.06)
-        .to(scroll, { rotate: 1.1, duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: -1 }, 0.9)
-        .fromTo(word, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5 }, 0.6);
+      window.gsap.to(ov, { opacity: 1, duration: 0.24, ease: 'power2.out' });
     } else {
       requestAnimationFrame(() => ov.classList.add('is-in'));
     }
 
-    // Navigate once the scroll has visibly landed (min beat), continuing on arrival.
-    setTimeout(go, 1050);
+    setTimeout(go, 260);
   });
 })();
