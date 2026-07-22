@@ -905,7 +905,8 @@ if (nav && menuBtn) {
     const scene = buddyScenes[mode];
     buddy.className = `nav__buddy is-${scene.name}`;
     const baseSrc = buddyImg.dataset[scene.src];
-    buddyImg.src = `${baseSrc}?play=${Date.now()}`;
+    const nextSrc = new URL(baseSrc, window.location.href).href;
+    if (buddyImg.src !== nextSrc) buddyImg.src = baseSrc;
     buddyBubble.textContent = scene.lines[Math.floor(Math.random() * scene.lines.length)];
     clearTimeout(buddyTimer);
     buddyTimer = window.setTimeout(playBuddyMoment, scene.min + Math.random() * (scene.max - scene.min));
