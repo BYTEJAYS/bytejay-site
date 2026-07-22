@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hackathons — ByteJay</title>
+  <meta name="description" content="Jay's hackathon badge collection — real ID cards in 3D on an endless plane. Drag to explore, click a badge to spin it.">
+  <link rel="canonical" href="https://bytejay.in/hackathons/">
+  <link rel="icon" href="/assets/icons/favicon-circle-96.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon-circle.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="playground">
+    <div class="plane" aria-label="Draggable collection of hackathon badges"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <a class="back" href="/">← ByteJay</a>
+    <div class="title-lockup">
+      <h1><span>/</span> HACKATHONS</h1>
+      <p>the badge collection — drag anywhere, click a badge</p>
+    </div>
+    <div class="counter" aria-live="polite">
+      <p>drift <strong id="drift">000</strong></p>
+      <p>collected <strong>01</strong>/21</p>
+    </div>
+  </main>
+
+  <div class="viewer" role="dialog" aria-modal="true" aria-label="IDEA 2.0 badge viewer" hidden>
+    <button class="viewer__close" type="button" aria-label="Close badge viewer">×</button>
+    <div class="viewer__stage">
+      <div class="viewer__card">
+        <div class="face"><img src="/assets/badges/idea20-front.jpg" alt="IDEA 2.0 badge — front" draggable="false"></div>
+        <div class="face face--back"><img src="/assets/badges/idea20-back.jpg" alt="IDEA 2.0 badge — back" draggable="false"></div>
+      </div>
+    </div>
+    <div class="viewer__caption"><h2>IDEA 2.0</h2><p>FINALIST</p><small>drag to spin — click outside to close</small></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

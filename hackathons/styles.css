@@ -1,0 +1,21 @@
+:root{color-scheme:dark;--bg:#0e0d0c;--ink:#f4f0e9;--accent:#ff4d24;--mono:"Roboto Mono",monospace;--display:"Archivo",sans-serif}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--display)}
+button,a{color:inherit}.playground{position:fixed;inset:0;overflow:hidden;background:var(--bg)}
+.plane{position:absolute;inset:0;cursor:grab;touch-action:none;user-select:none}.plane:active{cursor:grabbing}
+.pattern{position:absolute;left:0;top:0;width:2520px;height:1320px;transform-origin:top left;will-change:transform}
+.slot{position:absolute;width:200px}.card{position:relative;width:200px;height:317px;transform-style:preserve-3d;animation:turn var(--speed,9s) linear infinite;animation-delay:var(--delay,0s);will-change:transform}
+.face{position:absolute;inset:0;overflow:hidden;border-radius:12px;backface-visibility:hidden;transform:translateZ(1px);background:#151412;border:1px dashed rgba(244,240,233,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.face--back{transform:rotateY(180deg) translateZ(1px)}.face img{width:100%;height:100%;object-fit:cover}.badge .face{border:0;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.placeholder b{font-size:38px;color:rgba(244,240,233,.15)}.placeholder small{font:8px var(--mono);letter-spacing:.3em;text-transform:uppercase;color:rgba(244,240,233,.25)}
+.slot__caption{text-align:center;margin-top:14px;pointer-events:none}.slot__caption b{display:block;font-size:18px}.slot__caption span{font:9px var(--mono);letter-spacing:.3em;color:var(--accent)}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.58))}
+.back{position:absolute;z-index:3;left:20px;top:20px;text-decoration:none;font:10px var(--mono);letter-spacing:.22em;text-transform:uppercase;color:rgba(244,240,233,.55);transition:color .2s}.back:hover{color:var(--accent)}
+.title-lockup{position:absolute;z-index:3;bottom:24px;left:20px;pointer-events:none}.title-lockup h1{margin:0;font-size:20px;letter-spacing:-.03em}.title-lockup h1 span{color:var(--accent)}
+.title-lockup p,.counter{font:9px var(--mono);letter-spacing:.23em;text-transform:uppercase;color:rgba(244,240,233,.42)}.title-lockup p{margin:5px 0 0}.counter{position:absolute;z-index:3;right:20px;bottom:22px;text-align:right;pointer-events:none}.counter p{margin:5px 0}.counter strong{color:rgba(244,240,233,.82);font-weight:400}
+.viewer{position:fixed;z-index:20;inset:0;background:rgba(0,0,0,.76);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center}.viewer[hidden]{display:none}.viewer__close{position:absolute;right:20px;top:14px;border:0;background:none;font:32px var(--display);cursor:pointer;color:rgba(244,240,233,.65)}
+.viewer__stage{perspective:1400px;cursor:grab;touch-action:none;user-select:none}.viewer__stage:active{cursor:grabbing}.viewer__card{position:relative;height:min(62vh,540px);width:calc(min(62vh,540px)/1.586);transform-style:preserve-3d;will-change:transform}.viewer__card .face{border-radius:18px;border:0;box-shadow:0 30px 70px rgba(0,0,0,.55)}
+.viewer__caption{text-align:center;margin-top:28px;pointer-events:none}.viewer__caption h2{margin:0;font-size:30px}.viewer__caption p{margin:6px 0 15px;font:11px var(--mono);letter-spacing:.3em;color:var(--accent)}.viewer__caption small{font:9px var(--mono);letter-spacing:.22em;text-transform:uppercase;color:rgba(244,240,233,.38)}
+@keyframes turn{to{transform:rotateY(360deg)}}
+@media(max-width:640px){.title-lockup p{max-width:240px;line-height:1.5}.counter{bottom:68px}.viewer__caption small{display:none}}
+@media(prefers-reduced-motion:reduce){.card{animation:none}}

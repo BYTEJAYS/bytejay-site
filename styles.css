@@ -181,6 +181,7 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 .nav.open .nav__panel a:nth-child(3){transition-delay:.26s}
 .nav.open .nav__panel a:nth-child(4){transition-delay:.32s}
 .nav.open .nav__panel a:nth-child(5){transition-delay:.38s}
+.nav.open .nav__panel a:nth-child(6){transition-delay:.44s}
 .nav__panel a:hover{background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.22);transform:translateX(3px)}
 
 /* ===== Floating side actions ===== */
