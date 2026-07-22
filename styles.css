@@ -146,7 +146,7 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
   transition:padding-top .42s var(--ease);
 }
 .nav.open .nav__panel-inner{padding-top:10px}
-.nav__links{display:grid;grid-template-columns:repeat(2,max-content);align-content:start;gap:6px;flex:1 1 auto;min-width:0}
+.nav__links{display:grid;grid-template-columns:repeat(2,max-content);align-content:start;column-gap:6px;row-gap:16px;flex:1 1 auto;min-width:0}
 /* waving voxel buddy in the empty side of the menu */
 .nav__buddy{
   position:relative;flex:0 0 125px;width:125px;align-self:stretch;margin-right:0;
@@ -171,7 +171,7 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 .nav__panel a{
   background:var(--cream);color:var(--ink);
   font-size:15px;font-weight:500;line-height:1.1;letter-spacing:-.01em;
-  padding:7px 14px;border-radius:10px;
+  padding:9px 14px;border-radius:10px;
   opacity:0;transform:translateY(8px);
   transition:opacity .4s var(--ease),transform .4s var(--ease),background .2s,box-shadow .2s;
 }
