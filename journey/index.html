@@ -9,10 +9,10 @@
    Built to reuse the page's existing readiness signals (the "raising the
    island · N%" text + the "Travel" button) — no fake timers.
    ============================================================================ */
-#jrny-map{--jm-ink:#211f1c;--jm-paper:#f1ede7;--jm-paper-deep:#d7c8b0;--jm-accent:#ef5a35;--jm-water:#397f7a;
+#jrny-map{--jm-ink:#19352d;--jm-paper:#e9efe6;--jm-paper-deep:#bdcab8;--jm-accent:#ef6845;--jm-water:#2f7568;
   position:fixed;inset:0;z-index:2147483647;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(125% 120% at 50% 0%,#24221f 0%,#171614 46%,#0f0e0d 100%);
+  background:radial-gradient(125% 120% at 50% 0%,#1d3931 0%,#122720 46%,#091612 100%);
   color:#faf7f3;font-family:'Archivo',system-ui,-apple-system,sans-serif;
   -webkit-font-smoothing:antialiased;
   transition:opacity 1.05s cubic-bezier(.22,1,.36,1);opacity:1}
@@ -28,8 +28,7 @@
 /* the moving scroll unit (perspective gives the paper a little real depth) */
 .jm-stage{position:relative;width:min(940px,92vw);
   perspective:1700px;perspective-origin:50% 42%;
-  filter:drop-shadow(0 46px 70px rgba(0,0,0,.6));
-  will-change:transform;transform:translateY(-124vh)}
+  will-change:transform;transform:translateY(-124vh);contain:layout paint}
 .jm-scroll{position:relative;transform-style:preserve-3d}
 
 /* wooden scroll rods, top & bottom */
@@ -64,8 +63,8 @@
   /* aged paper: warm base + uneven sun-bleaching + burnt edge vignette */
   background:
     radial-gradient(140% 120% at 22% 12%,rgba(255,255,255,.72) 0%,rgba(255,255,255,0) 55%),
-    radial-gradient(120% 130% at 88% 96%,rgba(57,127,122,.15) 0%,rgba(57,127,122,0) 52%),
-    radial-gradient(160% 150% at 50% 50%,#f7f3ec 0%,var(--jm-paper) 48%,#e5dbca 76%,var(--jm-paper-deep) 100%);
+    radial-gradient(120% 130% at 88% 96%,rgba(47,117,104,.2) 0%,rgba(47,117,104,0) 52%),
+    radial-gradient(160% 150% at 50% 50%,#f5f7f1 0%,var(--jm-paper) 48%,#d8e1d4 76%,var(--jm-paper-deep) 100%);
   -webkit-mask:var(--deckle);mask:var(--deckle);
   -webkit-mask-size:100% 100%;mask-size:100% 100%}
 /* fibrous grain + faint fold creases layered over the paper */
@@ -73,9 +72,9 @@
   background:var(--fibre);background-size:340px 340px;opacity:.5;mix-blend-mode:multiply}
 .jm-sheet::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:
-    linear-gradient(90deg,transparent 33%,rgba(120,86,48,.09) 33.3%,transparent 33.6%),
-    linear-gradient(90deg,transparent 66%,rgba(120,86,48,.07) 66.3%,transparent 66.6%),
-    linear-gradient(0deg,transparent 49.6%,rgba(120,86,48,.08) 50%,transparent 50.4%);
+    linear-gradient(90deg,transparent 33%,rgba(35,82,68,.09) 33.3%,transparent 33.6%),
+    linear-gradient(90deg,transparent 66%,rgba(35,82,68,.07) 66.3%,transparent 66.6%),
+    linear-gradient(0deg,transparent 49.6%,rgba(35,82,68,.08) 50%,transparent 50.4%);
   opacity:.6;mix-blend-mode:multiply}
 
 .jm-svg{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -84,22 +83,22 @@
 .jm-eyebrow{position:absolute;left:5.4%;top:6%;z-index:4;margin:0;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   font-size:clamp(8px,1vw,11px);letter-spacing:.34em;text-transform:uppercase;
-  color:rgba(74,48,24,.6)}
+  color:rgba(25,53,45,.64)}
 .jm-heading{position:absolute;right:5.4%;top:5%;z-index:4;margin:0;text-align:right;
   font-weight:800;letter-spacing:-.02em;line-height:.9;
-  font-size:clamp(1.5rem,4vw,2.6rem);color:#4a3018;
+  font-size:clamp(1.5rem,4vw,2.6rem);color:var(--jm-ink);
   text-shadow:0 1px 0 rgba(255,255,255,.35)}
 .jm-heading small{display:block;font-family:'Newsreader',Georgia,serif;font-style:italic;
-  font-weight:400;font-size:.42em;letter-spacing:0;color:rgba(74,48,24,.62);margin-top:.35em}
+  font-weight:400;font-size:.42em;letter-spacing:0;color:rgba(25,53,45,.64);margin-top:.35em}
 
 /* the narrative caption that crossfades as the marker reaches each landmark */
 .jm-caption{position:absolute;left:0;right:0;bottom:6.5%;z-index:6;text-align:center;
   padding:0 8%;pointer-events:none}
 .jm-caption .jm-chapter{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   font-size:clamp(8px,1vw,10px);letter-spacing:.32em;text-transform:uppercase;
-  color:rgba(74,48,24,.55)}
+  color:rgba(25,53,45,.58)}
 .jm-caption .jm-line{margin-top:6px;font-family:'Newsreader',Georgia,serif;font-style:italic;
-  font-size:clamp(1rem,2.6vw,1.5rem);color:#3a2513;line-height:1.2}
+  font-size:clamp(1rem,2.6vw,1.5rem);color:#183b31;line-height:1.2}
 .jm-caption .jm-swap{display:inline-block;opacity:0;transform:translateY(9px);
   transition:opacity .5s ease,transform .55s cubic-bezier(.22,1,.36,1)}
 .jm-caption.is-in .jm-swap{opacity:1;transform:none}
@@ -107,7 +106,7 @@
 /* SVG landmark + route styling */
 .jm-terrain{opacity:.9}
 .jm-route{fill:none;stroke:var(--jm-accent);stroke-width:3.4;stroke-linecap:round;
-  stroke-dasharray:2 11;filter:url(#jm-ink)}
+  stroke-dasharray:2 11}
 .jm-route-glow{fill:none;stroke:var(--jm-accent);stroke-width:8;stroke-linecap:round;
   opacity:.16;filter:blur(4px)}
 .jm-land{opacity:0;transition:opacity .6s ease}
@@ -121,7 +120,7 @@
 .jm-label{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;fill:var(--jm-ink);
   letter-spacing:.01em}
 .jm-label--num{font-family:'Newsreader',Georgia,serif;font-style:italic;font-weight:500;
-  font-size:13px;fill:rgba(74,48,24,.6)}
+  font-size:13px;fill:rgba(25,53,45,.64)}
 @keyframes jmpulse{0%{opacity:.42;transform:scale(1)}70%{opacity:0;transform:scale(3.4)}
   100%{opacity:0;transform:scale(3.4)}}
 
@@ -248,23 +247,23 @@
           '<stop offset="100%" stop-color="#b89a67" stop-opacity="0.5"/></radialGradient>'+
       '</defs>'+
       /* a complete hand-drawn world: coast, islands, contour lines and waves */
-      '<g class="jm-terrain" fill="none" stroke="#397f7a" stroke-width="1.35" opacity="0.5">'+
+      '<g class="jm-terrain" fill="none" stroke="#2f7568" stroke-width="1.35" opacity="0.56">'+
         '<path d="M46 485 q95 -42 178 -14 q86 31 164 6 q76 -25 142 -3 q92 31 174 -4 q103 -43 250 9"/>'+
         '<path d="M72 502 q88 -35 166 -8 q82 29 154 7 q78 -24 144 -2 q91 31 174 -4 q102 -41 218 4" opacity=".45"/>'+
         '<path d="M92 253 q55 -38 122 -10 q37 17 69 -4 q47 -30 102 -7 M594 294 q61 -46 137 -11 q42 20 84 -6" opacity=".7"/>'+
         '<path d="M64 342 q12 11 0 22 M47 368 q12 11 0 22 M935 306 q12 11 0 22 M958 332 q12 11 0 22"/>'+
       '</g>'+
-      '<g fill="#397f7a" opacity=".1" stroke="#397f7a" stroke-width="1.4">'+
+      '<g fill="#2f7568" opacity=".13" stroke="#2f7568" stroke-width="1.4">'+
         '<path d="M238 150 q34 -26 72 -3 q34 21 75 2 q31 -14 61 10 q-23 27 -65 24 q-55 -4 -101 10 q-33 -8 -42 -43Z"/>'+
         '<path d="M670 123 q41 -26 81 2 q26 18 61 8 q31 18 13 43 q-45 13 -78 -2 q-43 -19 -86 1 q-20 -27 9 -52Z"/>'+
         '<path d="M774 493 q37 -31 79 -4 q32 20 70 3 q25 30 -7 51 q-41 -10 -76 7 q-45 10 -66 -18 q-12 -17 0 -39Z"/>'+
       '</g>'+
-      '<g fill="none" stroke="#211f1c" stroke-width="1.1" opacity=".22">'+
+      '<g fill="none" stroke="#19352d" stroke-width="1.1" opacity=".25">'+
         '<path d="M258 158 q45 -19 92 3 q29 13 61 1 M690 139 q48 -17 96 6 M796 508 q45 -18 91 4"/>'+
         '<path d="M875 184 l12 -19 l12 19 l-12 19Z M91 552 l9 -14 l9 14 l-9 14Z"/>'+
       '</g>'+
       /* compass rose, upper-left flourish */
-      '<g transform="translate(150,150)" stroke="#4a3018" fill="#4a3018" opacity="0.5">'+
+      '<g transform="translate(150,150)" stroke="#19352d" fill="#19352d" opacity="0.56">'+
         '<circle r="26" fill="none" stroke-width="1.4"/><circle r="17" fill="none" stroke-width="1"/>'+
         '<path d="M0 -30 L4 -6 L0 0 L-4 -6 Z"/><path d="M0 30 L4 6 L0 0 L-4 6 Z" opacity="0.55"/>'+
         '<path d="M30 0 L6 4 L0 0 L6 -4 Z" opacity="0.7"/><path d="M-30 0 L-6 4 L0 0 L-6 -4 Z" opacity="0.7"/>'+
@@ -342,18 +341,23 @@
   /* ------- readiness plumbing (reuses the island's own signals) -------------- */
   var shown=0,ready=false,revealing=false,start=Date.now(),unfoldStart=0,
       worldStarted=false,worldStartedAt=0,worldStableFrames=0,fastTrack=false;
+  var statusNode=null,origLoader=null;
   function underlyingPct(){
-    var n=document.querySelectorAll('p,span,div');
+    if(statusNode&&statusNode.isConnected){var tx=statusNode.textContent||'',mx=tx.match(/(\d+)\s*%/);
+      if(/island ready/i.test(tx))return 100;if(mx)return parseInt(mx[1],10);}
+    var n=document.querySelectorAll('p,span');
     for(var i=0;i<n.length;i++){var t=n[i].textContent||'';
-      if(/island ready/i.test(t))return 100;
-      if(/raising the island/i.test(t)){var m=t.match(/(\d+)\s*%/);if(m)return parseInt(m[1],10);}}
+      if(/island ready/i.test(t)){statusNode=n[i];return 100;}
+      if(/raising the island/i.test(t)){statusNode=n[i];var m=t.match(/(\d+)\s*%/);if(m)return parseInt(m[1],10);}}
     return -1;
   }
   function travelBtn(){var b=document.getElementsByTagName('button');
     for(var i=0;i<b.length;i++){if(b[i]!==enterBtn&&/travel/i.test(b[i].textContent||''))return b[i];}return null;}
-  function hideOrig(){var dv=document.getElementsByTagName('div');
-    for(var i=0;i<dv.length;i++){var c=dv[i].className;
-      if(typeof c==='string'&&c.indexOf('#14110E')>=0){dv[i].style.display='none';}}}
+  function hideOrig(){
+    if(origLoader&&origLoader.isConnected){origLoader.style.display='none';return;}
+    origLoader=document.querySelector('[class*="#14110E"]');
+    if(origLoader)origLoader.style.display='none';
+  }
   function startWorld(){
     if(worldStarted)return;worldStarted=true;worldStartedAt=Date.now();
     var tb=travelBtn();
@@ -403,12 +407,12 @@
 
   var MIN_ROUTE=REDUCE?300:4200;   // minimum drawing arc so it never flashes by
   var MIN_TOTAL=REDUCE?400:5200;   // minimum whole-sequence duration
-  var last=performance.now();
+  var last=performance.now(),routeSettled=false,settledT=0;
 
   function frame(now){
     if(done){return;}
     var dt=Math.min(0.05,(now-last)/1000);last=now;
-    ensure();hideOrig();
+    ensure();
 
     // 1) scroll descends & settles
     var dv=descend.step(dt);
@@ -430,13 +434,14 @@
     rollBot.style.transform='translateX(-50%) translateY('+(ue*(half-28))+'px) scaleY('+(1-0.55*u)+')';
 
     // 3) trace the route + move the marker, gated by real load
-    if(u>0.72){
+    if(u>0.72&&!routeSettled){
       marker.classList.add('is-on');
       var elapsed=now-(unfoldStart||now);
       var byTime=Math.min(1,elapsed/MIN_ROUTE);
       var gate=ready?1:Math.min(0.92,0.14+0.86*loadFrac()); // can't finish until island ready
       mSpring.t=Math.min(byTime,gate);
       var mt=Math.max(0,Math.min(1,mSpring.step(dt)));
+      settledT=mt;
 
       route.style.strokeDashoffset=routeLen*(1-mt);
       routeGlow.style.strokeDashoffset=routeLen*(1-mt);
@@ -452,8 +457,11 @@
       var si=stopForT(mt);showStop(si);seeLand(si,true);
 
       // 4) arrival: release only when the actual WebGL world has painted steadily
-      if(ready&&mt>=0.985&&(fastTrack||(Date.now()-start)>=MIN_TOTAL)&&worldIsWarm()&&!revealing){beginReveal();}
+      if(mt>=0.998)routeSettled=true;
     }
+    /* Once the route is drawn, stop touching SVG paths entirely so the island gets
+       the full frame budget while its shaders and weather settle underneath. */
+    if(routeSettled&&ready&&settledT>=0.985&&(fastTrack||(Date.now()-start)>=MIN_TOTAL)&&worldIsWarm()&&!revealing){beginReveal();}
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
