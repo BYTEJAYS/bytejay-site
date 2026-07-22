@@ -1598,12 +1598,20 @@ if (contactSection) {
   render();
 })();
 
-// ===== Journey departure: fade directly into the ocean voyage =====
+// ===== Journey departure: warm the destination without a painted bridge =====
 (function journeyDeparture() {
   const link = document.querySelector('a[href="/journey/"], a[href="/journey"]');
   if (!link) return;
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let leaving = false;
+
+  // Older builds inserted a full-screen departure layer and could leave it in
+  // the back/forward cache. Remove any restored layer and resume smooth scroll.
+  const cleanupLegacyDeparture = () => {
+    document.querySelectorAll('.jrny-depart').forEach((node) => node.remove());
+    try { sessionStorage.removeItem('bytejay:jrny-depart'); } catch (err) {}
+    try { window.__lenis && window.__lenis.start(); } catch (err) {}
+  };
+  cleanupLegacyDeparture();
+  window.addEventListener('pageshow', cleanupLegacyDeparture);
 
   // Warm the destination on intent (hover/focus) so navigation is near-instant.
   let warmed = false;
@@ -1623,36 +1631,4 @@ if (contactSection) {
   };
   link.addEventListener('pointerenter', warm, { once: true });
   link.addEventListener('focus', warm, { once: true });
-
-  const go = () => { window.location.href = '/journey/'; };
-
-  link.addEventListener('click', (e) => {
-    // respect new-tab / modified clicks
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
-    if (leaving) return; leaving = true;
-    warm();
-    try { sessionStorage.setItem('bytejay:jrny-depart', '1'); } catch (err) {}
-    try { window.__lenis && window.__lenis.stop(); } catch (err) {}
-
-    if (reduce) { go(); return; }
-
-    // A short ocean-colored bridge prevents a white navigation flash. The actual
-    // Blender boat voyage begins immediately on the Journey document.
-    const ov = document.createElement('div');
-    ov.className = 'jrny-depart';
-    ov.setAttribute('aria-hidden', 'true');
-    ov.innerHTML =
-      '<div class="jd-vignette"></div>' +
-      '<p class="jd-word">Setting sail…</p>';
-    document.body.appendChild(ov);
-
-    if (window.gsap) {
-      window.gsap.to(ov, { opacity: 1, duration: 0.24, ease: 'power2.out' });
-    } else {
-      requestAnimationFrame(() => ov.classList.add('is-in'));
-    }
-
-    setTimeout(go, 260);
-  });
 })();

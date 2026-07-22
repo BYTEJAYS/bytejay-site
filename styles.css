@@ -833,19 +833,3 @@ html:not(.js) .portrait-destination img{visibility:visible}
   .hero-synapse{will-change:auto}
   .project-card__canvas{will-change:auto}
 }
-
-/* ===== Journey departure: short ocean bridge before the Blender voyage ===== */
-.jrny-depart{position:fixed;inset:0;z-index:99999;opacity:0;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(100% 90% at 50% 55%,#123f38 0%,#0b2722 55%,#071611 100%);
-  transition:opacity .3s ease}
-.jrny-depart.is-in{opacity:1}
-.jrny-depart .jd-vignette{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(120% 100% at 50% 44%,transparent 46%,rgba(0,0,0,.66) 100%)}
-.jrny-depart .jd-word{position:absolute;left:0;right:0;bottom:15%;text-align:center;
-  font-family:'Newsreader',Georgia,serif;font-style:italic;font-size:clamp(1rem,2.4vw,1.35rem);
-  color:rgba(250,247,243,.72);opacity:0;transform:translateY(8px)}
-.jrny-depart.is-in .jd-word{opacity:1;transform:none;transition:opacity .5s ease .3s,transform .5s ease .3s}
-@media (prefers-reduced-motion:reduce){
-  .jrny-depart,.jrny-depart *{transition-duration:.001s!important;animation:none!important}
-}
