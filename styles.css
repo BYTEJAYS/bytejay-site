@@ -145,11 +145,11 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
   display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding-top:0;
   transition:padding-top .42s var(--ease);
 }
-.nav.open .nav__panel-inner{padding-top:14px}
-.nav__links{display:flex;flex-direction:column;align-items:flex-start;gap:8px;flex:1 1 auto;min-width:0}
+.nav.open .nav__panel-inner{padding-top:10px}
+.nav__links{display:grid;grid-template-columns:repeat(2,max-content);align-content:start;gap:6px;flex:1 1 auto;min-width:0}
 /* waving voxel buddy in the empty side of the menu */
 .nav__buddy{
-  position:relative;flex:0 0 150px;width:150px;align-self:stretch;margin-right:20px;
+  position:relative;flex:0 0 125px;width:125px;align-self:stretch;margin-right:0;
   display:flex;align-items:flex-end;justify-content:center;
   opacity:0;transition:opacity .3s var(--ease) .12s;
 }
@@ -167,11 +167,11 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
   opacity:1;transform:translateX(50%) scale(1) translateY(0);
   transition:transform .34s cubic-bezier(.2,1.5,.4,1) .18s,opacity .2s ease-out .18s;
 }
-@media(max-width:520px){.nav__buddy{flex-basis:132px;width:132px;margin-right:2px}.nav__buddy-bubble{font-size:11px;max-width:145px}}
+@media(max-width:520px){.nav__buddy{flex-basis:118px;width:118px}.nav__buddy-bubble{font-size:11px;max-width:130px}}
 .nav__panel a{
   background:var(--cream);color:var(--ink);
-  font-size:16px;font-weight:500;letter-spacing:-.01em;
-  padding:9px 16px;border-radius:11px;
+  font-size:15px;font-weight:500;line-height:1.1;letter-spacing:-.01em;
+  padding:7px 14px;border-radius:10px;
   opacity:0;transform:translateY(8px);
   transition:opacity .4s var(--ease),transform .4s var(--ease),background .2s,box-shadow .2s;
 }
