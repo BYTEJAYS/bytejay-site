@@ -886,23 +886,42 @@ if (nav && menuBtn) {
     'That bug was a feature audition.',
     'Anyway, here\'s Wonderwall.'
   ];
+  const buddy = nav.querySelector('.nav__buddy');
+  const buddyScenes = [
+    { name: 'wave', src: 'waveSrc', lines: ['Hi!', 'Oh, hey!', 'Good to see you.'], min: 3600, max: 5200 },
+    { name: 'concert', src: 'guitarSrc', lines: ['Tiny concert!', 'One more song?', 'Practising my riffs.'], min: 5200, max: 7200 },
+    { name: 'reading', src: 'waveSrc', lines: ['Just one more chapter…', 'Reading the docs.', 'Plot twist: no bugs.'], min: 5000, max: 7500 },
+    { name: 'dog', src: 'waveSrc', lines: ['Who\'s a good dog?', 'Walkies?', 'My pair programmer!'], min: 5000, max: 7200 },
+    { name: 'resting', src: 'waveSrc', lines: ['Power nap…', 'Compiling dreams.', 'brb, recharging.'], min: 3800, max: 5600 },
+    { name: 'joke', src: 'waveSrc', lines: buddyJokes, min: 4200, max: 6200 }
+  ];
   let lastBuddyMode = -1;
+  let buddyTimer = 0;
   const playBuddyMoment = () => {
-    if (!buddyImg || !buddyBubble) return;
-    let mode = Math.floor(Math.random() * 3);
-    if (mode === lastBuddyMode) mode = (mode + 1) % 3;
+    if (!buddy || !buddyImg || !buddyBubble || !nav.classList.contains('open')) return;
+    let mode = Math.floor(Math.random() * buddyScenes.length);
+    if (mode === lastBuddyMode) mode = (mode + 1) % buddyScenes.length;
     lastBuddyMode = mode;
-    const baseSrc = mode === 1 ? buddyImg.dataset.guitarSrc : buddyImg.dataset.waveSrc;
+    const scene = buddyScenes[mode];
+    buddy.className = `nav__buddy is-${scene.name}`;
+    const baseSrc = buddyImg.dataset[scene.src];
     buddyImg.src = `${baseSrc}?play=${Date.now()}`;
-    buddyBubble.textContent = mode === 0 ? 'Hi!' : mode === 1 ? 'Tiny concert!' : buddyJokes[Math.floor(Math.random() * buddyJokes.length)];
+    buddyBubble.textContent = scene.lines[Math.floor(Math.random() * scene.lines.length)];
+    clearTimeout(buddyTimer);
+    buddyTimer = window.setTimeout(playBuddyMoment, scene.min + Math.random() * (scene.max - scene.min));
   };
   const toggle = (open) => {
     nav.classList.toggle('open', open);
     menuBtn.setAttribute('aria-expanded', String(open));
     menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     if (open) playBuddyMoment();
+    else {
+      clearTimeout(buddyTimer);
+      if (buddy) buddy.className = 'nav__buddy';
+    }
   };
   menuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggle(!nav.classList.contains('open')); });
+  buddyImg?.addEventListener('click', (e) => { e.stopPropagation(); playBuddyMoment(); });
   nav.querySelectorAll('.nav__panel a').forEach((a) => a.addEventListener('click', () => toggle(false)));
   document.addEventListener('click', (e) => { if (!e.target.closest('.nav')) toggle(false); });
   // nav visibility is driven by the hero ScrollTrigger below (setNavHidden)
