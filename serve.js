@@ -7,7 +7,13 @@ const PORT = 4177;
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
 
 http.createServer((req, res) => {
-  let file = path.join(__dirname, req.url === '/' ? 'index.html' : decodeURIComponent(req.url.split('?')[0]));
+  const pathname = decodeURIComponent(req.url.split('?')[0]);
+  const relativePath = pathname === '/'
+    ? 'index.html'
+    : pathname.endsWith('/')
+      ? `${pathname.slice(1)}index.html`
+      : pathname.slice(1);
+  let file = path.join(__dirname, relativePath);
   fs.readFile(file, (err, data) => {
     // never let the browser cache anything
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
@@ -17,4 +23,4 @@ http.createServer((req, res) => {
     res.setHeader('Content-Type', types[path.extname(file)] || 'text/plain');
     res.end(data);
   });
-}).listen(PORT, () => console.log('ByteJay portfolio running at http://localhost:' + PORT + '/'));
+}).listen(PORT, '127.0.0.1', () => console.log('ByteJay portfolio running at http://localhost:' + PORT + '/'));
