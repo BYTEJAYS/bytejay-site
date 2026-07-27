@@ -113,11 +113,11 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
   position:fixed;top:16px;left:50%;transform:translateX(-50%);
   z-index:50;background:var(--ink);color:#fff;
   border-radius:13px;padding:5px 6px 5px 18px;
-  width:min(372px,calc(100% - 32px));
+  width:min(348px,calc(100% - 32px));
   box-shadow:0 12px 38px rgba(0,0,0,.2);
   transition:transform .4s var(--ease),opacity .35s ease,border-radius .35s var(--ease),box-shadow .35s var(--ease);
 }
-.nav.open{border-radius:24px;box-shadow:0 22px 60px rgba(0,0,0,.32)}
+.nav.open{border-radius:20px;box-shadow:0 22px 60px rgba(0,0,0,.32)}
 /* slides up out of view when scrolling down */
 .nav--hidden{transform:translateX(-50%) translateY(-170%);opacity:0;pointer-events:none}
 .nav__bar{display:flex;align-items:center;justify-content:space-between;gap:22px;min-height:26px}
@@ -142,15 +142,15 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 .nav.open .nav__panel{grid-template-rows:1fr}
 .nav__panel-inner{
   overflow:hidden;min-height:0;
-  display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding-top:0;
+  display:grid;grid-template-columns:138px minmax(0,1fr);align-items:stretch;gap:8px;padding-top:0;
   transition:padding-top .42s var(--ease);
 }
-.nav.open .nav__panel-inner{padding-top:10px}
-.nav__links{display:grid;grid-template-columns:1fr;align-content:start;row-gap:9px;flex:1 1 auto;min-width:0}
+.nav.open .nav__panel-inner{padding-top:8px}
+.nav__links{display:grid;grid-template-columns:minmax(0,138px);align-content:start;justify-content:start;row-gap:10px;flex:1 1 auto;min-width:0}
 /* waving voxel buddy in the empty side of the menu */
 .nav__buddy{
-  position:relative;flex:0 0 125px;width:125px;align-self:stretch;margin-right:0;
-  display:flex;align-items:flex-end;justify-content:center;
+  position:relative;width:110px;max-width:100%;align-self:stretch;justify-self:center;
+  display:flex;align-items:center;justify-content:center;
   opacity:0;transition:opacity .3s var(--ease) .12s;
 }
 .nav.open .nav__buddy{opacity:1}
@@ -189,11 +189,11 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 @keyframes buddy-tail{to{transform:rotate(20deg)}}@keyframes buddy-dog-bounce{to{transform:translateX(2px) translateY(-3px)}}
 @keyframes buddy-heart{50%{transform:translateY(-7px) scale(1.18);opacity:.65}}@keyframes buddy-zzz{0%{transform:translateY(6px);opacity:0}35%{opacity:1}100%{transform:translateY(-12px);opacity:0}}
 @keyframes buddy-stage-bob{to{transform:translateX(-4px) translateY(-3px) rotate(1deg)}}
-@media(max-width:520px){.nav__buddy{flex-basis:118px;width:118px}.nav__buddy-bubble{font-size:10px;max-width:104px}}
+@media(max-width:520px){.nav__buddy{width:106px}.nav__buddy-bubble{font-size:9px;max-width:92px}}
 .nav__panel a{
   background:var(--cream);color:var(--ink);
-  font-size:15px;font-weight:500;line-height:1.1;letter-spacing:-.01em;
-  padding:9px 14px;border-radius:10px;
+  font-size:14px;font-weight:500;line-height:1.1;letter-spacing:-.01em;
+  padding:8px 12px;border-radius:9px;
   opacity:0;transform:translateY(8px);
   transition:opacity .4s var(--ease),transform .4s var(--ease),background .2s,box-shadow .2s;
 }
@@ -803,8 +803,8 @@ html:not(.js) .portrait-destination img{visibility:visible}
   .project-card__info{min-height:108px}
   .project-card__info h3{max-width:none;font-size:22px}
   .quote{aspect-ratio:16/11}
-  .nav{width:calc(100% - 32px)}
-  .nav__panel a{font-size:20px}
+  .nav{width:min(348px,calc(100% - 32px))}
+  .nav__panel a{font-size:16px}
   .floaters{display:none}
   .contact{gap:44px}
   .contact__lede{margin-top:26px}
