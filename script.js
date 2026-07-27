@@ -64,8 +64,8 @@ document.querySelectorAll('[data-reveal], [data-reveal-title]').forEach((el, i) 
   io.observe(el);
 });
 
-// ===== Card entrance: flip open + drop into place once, when scrolled into view =====
-const flipCards = [...document.querySelectorAll('.work__grid .card, .testimonials__grid .card')];
+// ===== Project-card entrance: flip open + drop into place once =====
+const flipCards = [...document.querySelectorAll('.work__grid .card')];
 if (flipCards.length) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) {
@@ -81,6 +81,27 @@ if (flipCards.length) {
       });
     }, { threshold: 0.2, rootMargin: '0px 0px -12% 0px' });
     flipCards.forEach((card) => cardIO.observe(card));
+  }
+}
+
+// ===== Testimonial paper pages: unfold down and settle at individual angles =====
+const testimonialPages = [...document.querySelectorAll('.testimonials__grid .quote')];
+if (testimonialPages.length) {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) {
+    testimonialPages.forEach((page) => page.classList.add('paper-page-in', 'flip-in'));
+  } else {
+    const paperIO = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const index = testimonialPages.indexOf(entry.target);
+        window.setTimeout(() => {
+          entry.target.classList.add('paper-page-in', 'flip-in');
+        }, Math.max(0, index) * 115);
+        paperIO.unobserve(entry.target);
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -10% 0px' });
+    testimonialPages.forEach((page) => paperIO.observe(page));
   }
 }
 
