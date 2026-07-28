@@ -1656,6 +1656,9 @@ if (contactSection) {
 
 // ===== Editorial scroll motion: theatrical, image-led, and deliberately punchy =====
 (function studioInspiredMotion() {
+  const contactTitle = document.querySelector('.contact__title');
+  if (contactTitle) contactTitle.classList.add('in');
+
   if (
     typeof gsap === 'undefined' ||
     typeof ScrollTrigger === 'undefined' ||
@@ -1665,7 +1668,7 @@ if (contactSection) {
   gsap.registerPlugin(ScrollTrigger);
 
   document.querySelectorAll('.section-title').forEach((title, index) => {
-    if (title.closest('.work')) return;
+    if (title.closest('.work') || title.closest('.contact')) return;
     gsap.fromTo(title,
       { xPercent: index % 2 ? 7 : -7, rotate: index % 2 ? 1.6 : -1.6 },
       {
