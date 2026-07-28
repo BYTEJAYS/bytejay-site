@@ -1658,6 +1658,17 @@ if (contactSection) {
 (function studioInspiredMotion() {
   const contactTitle = document.querySelector('.contact__title');
   if (contactTitle) contactTitle.classList.add('in');
+  const testimonialsTitle = document.querySelector('.testimonials .section-title');
+  if (testimonialsTitle) testimonialsTitle.classList.add('in');
+  const projectsTitle = document.querySelector('.work .section-title');
+  if (projectsTitle) {
+    projectsTitle.textContent = 'PROJECTS';
+    projectsTitle.style.fontFamily = 'var(--studio-display)';
+    projectsTitle.style.fontWeight = '900';
+    projectsTitle.style.lineHeight = '.82';
+    projectsTitle.style.letterSpacing = '.01em';
+    projectsTitle.style.textTransform = 'uppercase';
+  }
 
   if (
     typeof gsap === 'undefined' ||
@@ -1668,7 +1679,7 @@ if (contactSection) {
   gsap.registerPlugin(ScrollTrigger);
 
   document.querySelectorAll('.section-title').forEach((title, index) => {
-    if (title.closest('.work') || title.closest('.contact')) return;
+    if (title.closest('.work') || title.closest('.contact') || title.closest('.testimonials')) return;
     gsap.fromTo(title,
       { xPercent: index % 2 ? 7 : -7, rotate: index % 2 ? 1.6 : -1.6 },
       {
