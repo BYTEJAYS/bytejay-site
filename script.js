@@ -1135,6 +1135,8 @@ if (contactSection) {
   const card = document.getElementById('heroCard');
   const underlay = document.querySelector('.hero-card-underlay');
   const shadow = document.querySelector('.hero-card__shadow');
+  const slot = document.querySelector('.hero-card-slot');
+  const destination = document.querySelector('.portrait-destination');
   const heroYear = document.querySelector('.hero__year');
   if (!scene || !card || typeof gsap === 'undefined') return;
 
@@ -1232,8 +1234,13 @@ if (contactSection) {
   const mm = gsap.matchMedia();
   mm.add({ desktop: '(min-width: 901px)', compact: '(max-width: 900px)' }, (context) => {
     const travel = () => Math.min(context.conditions.compact ? window.innerHeight * 0.08 : 114, 114);
+    const landingX = () => {
+      if (!slot || !destination) return 0;
+      return destination.getBoundingClientRect().left - slot.getBoundingClientRect().left;
+    };
 
     gsap.set(card, {
+      x: 0,
       y: travel,
       scale: 0.5,
       rotationX: 0,
@@ -1244,6 +1251,7 @@ if (contactSection) {
       force3D: true
     });
     gsap.set(underlay, {
+      x: 0,
       y: travel,
       scale: 0.5,
       rotationY: 0,
@@ -1252,7 +1260,7 @@ if (contactSection) {
       transformOrigin: '50% 50%',
       force3D: true
     });
-    gsap.set(shadow, { y: travel, opacity: 0.08, scale: 0.42, force3D: true });
+    gsap.set(shadow, { x: 0, y: travel, opacity: 0.08, scale: 0.42, force3D: true });
 
     // One primary trigger: 0–100% maps to exactly one viewport of scroll,
     // matching the measured transition on the live reference.
@@ -1274,15 +1282,16 @@ if (contactSection) {
 
     tl.to(card, {
       duration: 1,
+      x: landingX,
       y: 0,
       scale: 1,
       rotationY: 180,
       z: 0
     }, 0)
-      .to(underlay, { duration: 1, y: 0, scale: 1, rotationY: 180 }, 0)
+      .to(underlay, { duration: 1, x: landingX, y: 0, scale: 1, rotationY: 180 }, 0)
       .to(underlay, { duration: 0.5, opacity: 0.42, z: -22 }, 0)
-      .to(underlay, { duration: 0.5, opacity: 0.06, z: -8 }, 0.5)
-      .to(shadow, { duration: 1, y: 0 }, 0)
+      .to(underlay, { duration: 0.5, opacity: 0, z: -8 }, 0.5)
+      .to(shadow, { duration: 1, x: landingX, y: 0 }, 0)
       .to(shadow, { duration: 0.5, opacity: 0.28, scale: 0.82 }, 0)
       .to(shadow, { duration: 0.5, opacity: 0.06, scale: 0.72 }, 0.5);
 
@@ -1665,6 +1674,18 @@ if (contactSection) {
     aboutHeading.style.lineHeight = '1';
     aboutHeading.style.letterSpacing = '-.05em';
   }
+  document.querySelectorAll('.intro .intro__col').forEach((column) => {
+    column.style.minWidth = '0';
+    column.style.width = '100%';
+  });
+  document.querySelectorAll('.intro .intro__col p').forEach((paragraph) => {
+    paragraph.style.maxWidth = '100%';
+    paragraph.style.whiteSpace = 'normal';
+    paragraph.style.overflowWrap = 'break-word';
+  });
+  document.querySelectorAll('.intro [data-write] .w-ch').forEach((character) => {
+    character.style.whiteSpace = 'normal';
+  });
 
   const contactTitle = document.querySelector('.contact__title');
   if (contactTitle) contactTitle.classList.add('in');
