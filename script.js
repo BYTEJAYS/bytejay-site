@@ -1656,6 +1656,16 @@ if (contactSection) {
 
 // ===== Editorial scroll motion: theatrical, image-led, and deliberately punchy =====
 (function studioInspiredMotion() {
+  const aboutSection = document.querySelector('.intro');
+  const aboutHeading = document.querySelector('.intro__col--lead h2');
+  if (aboutSection) aboutSection.style.fontFamily = "'Archivo', system-ui, sans-serif";
+  if (aboutHeading) {
+    aboutHeading.style.fontFamily = "'Archivo', system-ui, sans-serif";
+    aboutHeading.style.fontWeight = '600';
+    aboutHeading.style.lineHeight = '1';
+    aboutHeading.style.letterSpacing = '-.05em';
+  }
+
   const contactTitle = document.querySelector('.contact__title');
   if (contactTitle) contactTitle.classList.add('in');
   const testimonialsTitle = document.querySelector('.testimonials .section-title');
