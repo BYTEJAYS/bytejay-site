@@ -49,6 +49,47 @@ document.documentElement.classList.add('js');
   safetyTimer = window.setTimeout(finish, 2800);
 }());
 
+// ===== Hero roles + services content =====
+(function expandEngineeringRoles() {
+  const rotator = document.querySelector('.hero__title-rotator');
+  if (rotator && !rotator.querySelector('[data-role="devops"]')) {
+    const item = document.createElement('span');
+    item.className = 'hero__title-item hero__title-item--devops';
+    item.dataset.role = 'devops';
+    item.setAttribute('aria-hidden', 'true');
+    item.innerHTML = '<span>DEVOPS</span><span>ENGINEER</span>';
+    rotator.appendChild(item);
+
+    const accessibleTitle = document.querySelector('.hero__title .sr-only');
+    if (accessibleTitle) accessibleTitle.textContent = 'Backend Engineer, AI Engineer and DevOps Engineer';
+
+    const cycleStyles = document.createElement('style');
+    cycleStyles.textContent = `
+      .hero__title-item{animation-name:hero-role-cycle-three;animation-duration:8.4s}
+      .hero__title-item--backend{animation-delay:-.35s}
+      .hero__title-item--ai{animation-delay:2.45s}
+      .hero__title-item--devops{animation-delay:5.25s}
+      @keyframes hero-role-cycle-three{
+        0%{opacity:0;transform:translate3d(0,.12em,0)}
+        5%,28%{opacity:1;transform:translate3d(0,0,0)}
+        33%{opacity:0;transform:translate3d(0,-.1em,0)}
+        33.01%,100%{opacity:0;transform:translate3d(0,.12em,0)}
+      }
+    `;
+    document.head.appendChild(cycleStyles);
+  }
+
+  const serviceTitles = [...document.querySelectorAll('.services .service h3')];
+  const agentsTitle = serviceTitles.find((title) => title.textContent.trim() === 'AI Agents Development');
+  if (agentsTitle) {
+    agentsTitle.textContent = 'DEVOPS';
+    const description = agentsTitle.nextElementSibling;
+    if (description) {
+      description.textContent = 'Dockerized services, CI/CD pipelines, Linux infrastructure, cloud deployments, observability, and reliable release workflows.';
+    }
+  }
+})();
+
 // ===== Scroll reveal (blur-in titles + fade-up elements) =====
 const io = new IntersectionObserver((entries) => {
   entries.forEach((e) => {
