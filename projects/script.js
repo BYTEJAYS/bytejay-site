@@ -41,6 +41,20 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
   document.documentElement.classList.remove('projects-entering');
 }));
 
+const splitMotionText = (element) => {
+  if (!element || element.querySelector('.motion-char')) return;
+  const lines = element.innerText.split('\n').map((line) => line.trim()).filter(Boolean);
+  const label = lines.join(' ');
+  let index = 0;
+  element.setAttribute('aria-label', label);
+  element.innerHTML = lines.map((line) => [...line].map((char) => char === ' '
+    ? '<span class="motion-space" aria-hidden="true"></span>'
+    : `<span class="motion-char" style="--char-index:${index++}" aria-hidden="true">${char}</span>`
+  ).join('')).join('<br />');
+};
+splitMotionText(document.querySelector('.playlist-copy h1'));
+splitMotionText(document.querySelector('.player-library__head h2'));
+
 const tracks = [...document.querySelectorAll('[data-track]')];
 const playButtons = [...document.querySelectorAll('[data-play]')];
 const bars = document.querySelector('.bars');
@@ -63,6 +77,8 @@ let activeKey = 'site';
 let particles = [];
 let elapsed = 0;
 let lastFrame = 0;
+tracks.forEach((track, index) => track.style.setProperty('--track-index', index));
+document.querySelectorAll('[data-player-track]').forEach((track, index) => track.style.setProperty('--player-index', index));
 
 const buildParticles = (color) => {
   particles = Array.from({length: 54}, (_, index) => ({
@@ -111,6 +127,7 @@ const drawDemo = (time = 0) => {
 
 const setPlaying = (next) => {
   playing = next;
+  document.body.classList.toggle('playlist-playing', playing);
   playButtons.forEach((button) => {
     button.textContent = playing ? 'Ⅱ' : '▶';
     button.setAttribute('aria-pressed', String(playing));
@@ -146,6 +163,7 @@ playButtons.forEach((button) => button.addEventListener('click', () => setPlayin
 const openPlayer = (key) => {
   if (modal) modal.hidden = false;
   document.body.classList.add('modal-open');
+  requestAnimationFrame(() => requestAnimationFrame(() => modal?.classList.add('is-open')));
   selectProject(key);
   window.setTimeout(() => document.querySelector('[data-close-player]')?.focus(), 220);
 };
@@ -167,9 +185,12 @@ filterButtons.forEach((button) => button.addEventListener('click', () => {
   filterProjects();
 }));
 const closePlayer = () => {
-  if (modal) modal.hidden = true;
-  document.body.classList.remove('modal-open');
+  modal?.classList.remove('is-open');
   setPlaying(false);
+  window.setTimeout(() => {
+    if (modal) modal.hidden = true;
+    document.body.classList.remove('modal-open');
+  }, 610);
 };
 const moveProject = (direction) => {
   const keys = Object.keys(projects);
