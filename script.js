@@ -1653,3 +1653,51 @@ if (contactSection) {
   link.addEventListener('pointerenter', warm, { once: true });
   link.addEventListener('focus', warm, { once: true });
 })();
+
+// ===== Editorial scroll motion: theatrical, image-led, and deliberately punchy =====
+(function studioInspiredMotion() {
+  if (
+    typeof gsap === 'undefined' ||
+    typeof ScrollTrigger === 'undefined' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.querySelectorAll('.section-title').forEach((title, index) => {
+    if (title.closest('.work')) return;
+    gsap.fromTo(title,
+      { xPercent: index % 2 ? 7 : -7, rotate: index % 2 ? 1.6 : -1.6 },
+      {
+        xPercent: 0,
+        rotate: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: title,
+          start: 'top 96%',
+          end: 'top 48%',
+          scrub: 0.7,
+        },
+      }
+    );
+  });
+
+  const statement = document.querySelector('.statement p');
+  if (statement) {
+    gsap.fromTo(statement,
+      { rotate: -1.8, scale: 0.91 },
+      {
+        rotate: 1.2,
+        scale: 1.04,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: statement,
+          start: 'top 92%',
+          end: 'bottom 25%',
+          scrub: 0.9,
+        },
+      }
+    );
+  }
+
+})();
