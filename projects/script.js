@@ -208,3 +208,74 @@ window.addEventListener('keydown', (event) => {
 buildParticles(projects.site.color);
 setPlaying(true);
 requestAnimationFrame(drawDemo);
+
+// ===== Supari-inspired physical motion layer =====
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const hero = document.querySelector('.playlist-hero');
+const turntable = document.querySelector('.turntable');
+const heroStar = document.querySelector('.playlist-star');
+const projectScreen = document.querySelector('.project-stage__screen');
+let pointerFrame = 0;
+
+if (!reduceMotion) {
+  requestAnimationFrame(() => document.body.classList.add('supari-motion-ready'));
+
+  window.addEventListener('pointermove', (event) => {
+    if (pointerFrame) return;
+    pointerFrame = requestAnimationFrame(() => {
+      pointerFrame = 0;
+      const x = event.clientX / window.innerWidth;
+      const y = event.clientY / window.innerHeight;
+      document.documentElement.style.setProperty('--pointer-x', `${event.clientX}px`);
+      document.documentElement.style.setProperty('--pointer-y', `${event.clientY}px`);
+      document.documentElement.style.setProperty('--motion-x', `${((x - .5) * 32).toFixed(2)}px`);
+      document.documentElement.style.setProperty('--motion-y', `${((y - .5) * 26).toFixed(2)}px`);
+    });
+  }, {passive: true});
+
+  hero?.addEventListener('pointermove', (event) => {
+    const rect = hero.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - .5;
+    const y = (event.clientY - rect.top) / rect.height - .5;
+    turntable?.style.setProperty('--hero-tilt-x', `${(-y * 7).toFixed(2)}deg`);
+    turntable?.style.setProperty('--hero-tilt-y', `${(x * 9).toFixed(2)}deg`);
+    heroStar?.style.setProperty('--star-x', `${(x * 24).toFixed(1)}px`);
+    heroStar?.style.setProperty('--star-y', `${(y * 24).toFixed(1)}px`);
+  });
+  hero?.addEventListener('pointerleave', () => {
+    turntable?.style.removeProperty('--hero-tilt-x');
+    turntable?.style.removeProperty('--hero-tilt-y');
+    heroStar?.style.removeProperty('--star-x');
+    heroStar?.style.removeProperty('--star-y');
+  });
+
+  projectScreen?.addEventListener('pointermove', (event) => {
+    const rect = projectScreen.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - .5;
+    const y = (event.clientY - rect.top) / rect.height - .5;
+    projectScreen.style.setProperty('--screen-rotate-x', `${(-y * 5).toFixed(2)}deg`);
+    projectScreen.style.setProperty('--screen-rotate-y', `${(x * 7).toFixed(2)}deg`);
+  });
+  projectScreen?.addEventListener('pointerleave', () => {
+    projectScreen.style.removeProperty('--screen-rotate-x');
+    projectScreen.style.removeProperty('--screen-rotate-y');
+  });
+
+  document.querySelectorAll('.hero-play,.play-button,.project-transport__play,.project-modal__close').forEach((button) => {
+    button.classList.add('is-magnetic');
+    button.addEventListener('pointermove', (event) => {
+      const rect = button.getBoundingClientRect();
+      button.style.setProperty('--magnet-x', `${(event.clientX - rect.left - rect.width / 2) * .2}px`);
+      button.style.setProperty('--magnet-y', `${(event.clientY - rect.top - rect.height / 2) * .2}px`);
+    });
+    button.addEventListener('pointerleave', () => {
+      button.style.removeProperty('--magnet-x');
+      button.style.removeProperty('--magnet-y');
+    });
+  });
+
+  tracks.forEach((track) => track.addEventListener('pointermove', (event) => {
+    const rect = track.getBoundingClientRect();
+    track.style.setProperty('--track-x', `${event.clientX - rect.left}px`);
+  }));
+}
