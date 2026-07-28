@@ -1669,6 +1669,11 @@ if (contactSection) {
     projectsTitle.style.letterSpacing = '.01em';
     projectsTitle.style.textTransform = 'uppercase';
   }
+  const servicesTitle = document.querySelector('.services .section-title');
+  if (servicesTitle) {
+    servicesTitle.textContent = 'WHAT I BUILD';
+    servicesTitle.classList.add('in');
+  }
 
   if (
     typeof gsap === 'undefined' ||
@@ -1679,7 +1684,12 @@ if (contactSection) {
   gsap.registerPlugin(ScrollTrigger);
 
   document.querySelectorAll('.section-title').forEach((title, index) => {
-    if (title.closest('.work') || title.closest('.contact') || title.closest('.testimonials')) return;
+    if (
+      title.closest('.work') ||
+      title.closest('.contact') ||
+      title.closest('.testimonials') ||
+      title.closest('.services')
+    ) return;
     gsap.fromTo(title,
       { xPercent: index % 2 ? 7 : -7, rotate: index % 2 ? 1.6 : -1.6 },
       {
