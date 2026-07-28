@@ -1669,10 +1669,12 @@ if (contactSection) {
   const aboutHeading = document.querySelector('.intro__col--lead h2');
   if (aboutSection) aboutSection.style.fontFamily = "'Archivo', system-ui, sans-serif";
   if (aboutHeading) {
-    aboutHeading.style.fontFamily = "'Archivo', system-ui, sans-serif";
-    aboutHeading.style.fontWeight = '600';
-    aboutHeading.style.lineHeight = '1';
-    aboutHeading.style.letterSpacing = '-.05em';
+    aboutHeading.textContent = 'HEY!';
+    aboutHeading.style.fontFamily = 'var(--studio-display)';
+    aboutHeading.style.fontWeight = '900';
+    aboutHeading.style.lineHeight = '.82';
+    aboutHeading.style.letterSpacing = '.01em';
+    aboutHeading.style.textTransform = 'uppercase';
   }
   document.querySelectorAll('.intro .intro__col').forEach((column) => {
     column.style.minWidth = '0';
