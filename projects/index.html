@@ -7,6 +7,7 @@
   <title>ByteJay — Project Playlist</title>
   <meta name="description" content="Explore ByteJay's backend, AI and DevOps projects as an interactive playlist." />
   <link rel="icon" href="../assets/icons/favicon-circle-96.png" />
+  <script>document.documentElement.classList.add('projects-entering');</script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -55,23 +56,15 @@
       </header>
 
       <section class="playlist" aria-label="ByteJay projects">
-        <article class="project-stage" data-project-stage aria-live="polite">
-          <div class="project-stage__screen">
-            <img data-demo-image src="../assets/images/project-transaction-graph-doodle-v1.webp" alt="" />
-            <canvas data-demo-canvas width="960" height="540" aria-label="Animated project demo"></canvas>
-            <span class="project-stage__badge"><i></i> DEMO PLAYING</span>
-            <button class="project-stage__screen-play" type="button" data-play aria-label="Pause project demo">Ⅱ</button>
+        <div class="project-tools">
+          <label class="project-search"><span aria-hidden="true">⌕</span><input type="search" data-project-search placeholder="Search projects" aria-label="Search projects" /></label>
+          <div class="project-filters" aria-label="Filter projects">
+            <button type="button" class="is-active" data-filter="all">All</button>
+            <button type="button" data-filter="Python">Python</button>
+            <button type="button" data-filter="HTML">HTML</button>
           </div>
-          <div class="project-stage__info">
-            <div>
-              <span class="project-stage__eyebrow">NOW PLAYING · PROJECT 01</span>
-              <h2 data-demo-title>Transaction Graph Engine</h2>
-              <p data-demo-description>A graph-native fraud detection engine that follows money across connected accounts, exposes suspicious communities, and helps investigators understand why a transaction was flagged.</p>
-            </div>
-            <a data-demo-link href="https://github.com/BYTEJAYS/TRANSACTION-GRAPH-ENGINE" target="_blank" rel="noopener">VIEW REPOSITORY ↗</a>
-          </div>
-        </article>
-
+          <a href="https://github.com/BYTEJAYS?tab=repositories" target="_blank" rel="noopener">LIVE FROM GITHUB ↗</a>
+        </div>
         <div class="playlist-actions">
           <button class="play-button" type="button" data-play aria-label="Play project playlist" aria-pressed="false">▶</button>
           <span class="equalizer-label" data-status>Choose a project</span>
@@ -79,36 +72,80 @@
 
         <div class="track-head"><span>#</span><span>TITLE</span><span>STACK</span><span>↗</span></div>
 
-        <button class="track is-current" type="button" data-track data-project="graph">
+        <button class="track is-current" type="button" data-track data-project="site" data-language="HTML">
           <span class="track-number">1</span>
-          <span class="track-title"><span class="track-art track-art--graph">TG</span><span><strong>Transaction Graph Engine</strong><small>Fraud-detection graph engine</small></span></span>
+          <span class="track-title"><span class="track-art track-art--graph">BS</span><span><strong>bytejay-site</strong><small>Interactive personal portfolio</small></span></span>
+          <span class="track-stack">HTML · Vercel</span>
+          <span class="track-open">↗</span>
+        </button>
+        <button class="track" type="button" data-track data-project="profile" data-language="Python">
+          <span class="track-number">2</span>
+          <span class="track-title"><span class="track-art track-art--control">BJ</span><span><strong>BYTEJAYS</strong><small>Terminal-style GitHub profile</small></span></span>
+          <span class="track-stack">Python · Terminal</span>
+          <span class="track-open">↗</span>
+        </button>
+        <button class="track" type="button" data-track data-project="graph" data-language="Python">
+          <span class="track-number">3</span>
+          <span class="track-title"><span class="track-art track-art--growth">TG</span><span><strong>TRANSACTION-GRAPH-ENGINE</strong><small>Real-time graph fraud detection</small></span></span>
           <span class="track-stack">Python · NetworkX</span>
           <span class="track-open">↗</span>
         </button>
-        <button class="track" type="button" data-track data-project="control">
-          <span class="track-number">2</span>
-          <span class="track-title"><span class="track-art track-art--control">AI</span><span><strong>AI Control Plane</strong><small>Enterprise AI governance</small></span></span>
-          <span class="track-stack">FastAPI · Next.js</span>
-          <span class="track-open">↗</span>
-        </button>
-        <button class="track" type="button" data-track data-project="growth">
-          <span class="track-number">3</span>
-          <span class="track-title"><span class="track-art track-art--growth">GD</span><span><strong>GrowthDesk</strong><small>Multi-tenant AI agent SaaS</small></span></span>
-          <span class="track-stack">FastAPI · Agents</span>
-          <span class="track-open">↗</span>
-        </button>
-        <button class="track" type="button" data-track data-project="reality">
+        <button class="track" type="button" data-track data-project="bling" data-language="Python">
           <span class="track-number">4</span>
-          <span class="track-title"><span class="track-art track-art--reality">PR</span><span><strong>Personal Reality Layer</strong><small>Local AI companion and memory layer</small></span></span>
-          <span class="track-stack">Local-first · AI</span>
+          <span class="track-title"><span class="track-art track-art--reality">BL</span><span><strong>bling-blue-team</strong><small>Forensic ML fraud pipeline</small></span></span>
+          <span class="track-stack">Python · XGBoost</span>
           <span class="track-open">↗</span>
         </button>
       </section>
     </main>
   </div>
 
+  <div class="project-modal" data-project-modal hidden>
+    <section class="player-library" aria-label="Project playlist">
+      <div class="player-library__head">
+        <span>BYTEJAY PLAYLIST</span>
+        <h2>CODE ON REPEAT</h2>
+        <div><span class="creator-avatar"><img src="../assets/models/boy-idle.png" alt="" /></span><strong>Built by ByteJay</strong><span>• 4 projects</span></div>
+      </div>
+      <div class="player-library__columns"><span>#</span><span>TITLE</span><span>MADE WITH</span><span>TIME</span></div>
+      <div class="player-library__tracks">
+        <button type="button" class="player-track" data-player-track="site"><span>1</span><span><strong>bytejay-site</strong><small>Interactive personal portfolio</small></span><span>HTML · Vercel</span><span>0:18</span></button>
+        <button type="button" class="player-track" data-player-track="profile"><span>2</span><span><strong>BYTEJAYS</strong><small>Terminal-style GitHub profile</small></span><span>Python · Terminal</span><span>0:18</span></button>
+        <button type="button" class="player-track" data-player-track="graph"><span>3</span><span><strong>TRANSACTION-GRAPH-ENGINE</strong><small>Real-time graph fraud detection</small></span><span>Python · NetworkX</span><span>0:18</span></button>
+        <button type="button" class="player-track" data-player-track="bling"><span>4</span><span><strong>bling-blue-team</strong><small>Forensic ML fraud pipeline</small></span><span>Python · XGBoost</span><span>0:18</span></button>
+      </div>
+    </section>
+    <article class="project-stage" data-project-stage role="dialog" aria-modal="true" aria-labelledby="demoTitle" aria-live="polite">
+      <button class="project-modal__close" type="button" data-close-player aria-label="Close project player">×</button>
+      <div class="project-stage__screen">
+        <img data-demo-image src="../assets/images/project-portfolio-doodle-v1.webp" alt="" />
+        <canvas data-demo-canvas width="960" height="540" aria-label="Animated project demo"></canvas>
+        <span class="project-stage__badge"><i></i> DEMO PLAYING</span>
+      </div>
+      <div class="project-stage__info">
+        <span class="project-stage__eyebrow">NOW PLAYING · REPOSITORY 01</span>
+        <h2 id="demoTitle" data-demo-title>bytejay-site</h2>
+        <strong class="project-stage__tools" data-demo-tools>HTML · CSS · JavaScript · Vercel</strong>
+        <p data-demo-description>ByteJay’s interactive personal portfolio, combining a cinematic hero journey, animated project visuals, a 3D timeline and playful interface experiments.</p>
+        <a data-demo-link href="https://github.com/BYTEJAYS/bytejay-site" target="_blank" rel="noopener">VIEW REPOSITORY ↗</a>
+      </div>
+      <div class="project-transport">
+        <div class="project-transport__buttons">
+          <button type="button" data-previous-project aria-label="Previous project">|◀</button>
+          <button class="project-transport__play" type="button" data-play aria-label="Pause project demo">Ⅱ</button>
+          <button type="button" data-next-project aria-label="Next project">▶|</button>
+        </div>
+        <div class="project-progress">
+          <span data-current-time>0:00</span>
+          <span class="project-progress__rail"><i data-progress></i></span>
+          <span>0:18</span>
+        </div>
+      </div>
+    </article>
+  </div>
+
   <footer class="player-bar">
-    <div class="now-playing"><span class="mini-cover">BJ</span><span><strong data-now-title>Transaction Graph Engine</strong><small>ByteJay</small></span></div>
+    <div class="now-playing"><span class="mini-cover">BJ</span><span><strong data-now-title>bytejay-site</strong><small>ByteJay</small></span></div>
     <div class="controls"><button type="button" aria-label="Previous project">↶</button><button type="button" class="control-play" data-play aria-label="Play project playlist">▶</button><button type="button" aria-label="Next project">↷</button></div>
     <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   </footer>

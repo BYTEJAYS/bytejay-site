@@ -1,6 +1,18 @@
 // mark that JS is active so pre-animation "hidden" states only apply with JS on
 document.documentElement.classList.add('js');
 
+// ===== Smooth homepage → project playlist handoff =====
+(function projectsDeparture() {
+  const link = document.querySelector('[data-projects-departure]');
+  if (!link) return;
+  link.addEventListener('click', (event) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    document.body.classList.add('projects-departing');
+    window.setTimeout(() => { window.location.href = link.href; }, 430);
+  });
+})();
+
 // ===== Opening composition: blur resolves as hero layers settle into place =====
 (function siteEntrance() {
   const root = document.documentElement;

@@ -956,3 +956,13 @@ body{font-family:var(--studio-body)}
   .hero-synapse{will-change:auto}
   .project-card__canvas{will-change:auto}
 }
+
+/* Projects handoff: a quick scene transition, never a loading screen. */
+body::after{
+  content:"";position:fixed;z-index:9999;inset:0;background:#000;pointer-events:none;
+  opacity:0;transform:scaleY(0);transform-origin:50% 100%;
+  transition:transform .46s cubic-bezier(.76,0,.24,1),opacity .18s ease;
+}
+body.projects-departing{overflow:hidden}
+body.projects-departing::after{opacity:1;transform:scaleY(1)}
+body.projects-departing .work{transform:scale(.975);filter:blur(3px);opacity:.45;transition:transform .44s ease,filter .3s ease,opacity .3s ease}
