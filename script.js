@@ -1179,6 +1179,8 @@ if (contactSection) {
   const slot = document.querySelector('.hero-card-slot');
   const destination = document.querySelector('.portrait-destination');
   const heroYear = document.querySelector('.hero__year');
+  const heroSince = document.querySelector('.hero__since');
+  const heroNavBoundary = heroYear || heroSince;
   if (!scene || !card || typeof gsap === 'undefined') return;
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1203,9 +1205,9 @@ if (contactSection) {
   };
   window.addEventListener('scroll', restoreNavAtTop, { passive: true });
 
-  const navDismissTrigger = heroYear ? ScrollTrigger.create({
-    id: 'nav-after-hero-year',
-    trigger: heroYear,
+  const navDismissTrigger = heroNavBoundary ? ScrollTrigger.create({
+    id: 'nav-after-hero-boundary',
+    trigger: heroNavBoundary,
     start: 'bottom top',
     onEnter: dismissNav,
     onRefresh: (self) => {
