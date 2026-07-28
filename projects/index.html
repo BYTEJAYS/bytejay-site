@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#121212" />
+  <title>ByteJay — Project Playlist</title>
+  <meta name="description" content="Explore ByteJay's backend, AI and DevOps projects as an interactive playlist." />
+  <link rel="icon" href="../assets/icons/favicon-circle-96.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/">ByteJay</a>
+      <nav aria-label="Project player">
+        <a href="/" class="nav-item"><span>⌂</span> Home</a>
+        <a href="/#work" class="nav-item is-active"><span>▤</span> Projects</a>
+        <a href="https://github.com/BYTEJAYS" target="_blank" rel="noopener" class="nav-item"><span>⌘</span> GitHub</a>
+      </nav>
+      <div class="library">
+        <span>YOUR LIBRARY</span>
+        <p>Backend systems</p>
+        <p>AI experiments</p>
+        <p>DevOps builds</p>
+      </div>
+      <a class="back-link" href="/#work">← Back to portfolio</a>
+    </aside>
+
+    <main>
+      <header class="playlist-hero">
+        <div class="turntable" aria-hidden="true">
+          <span class="turntable__record">
+            <i class="turntable__grooves"></i>
+            <b>BJ</b>
+          </span>
+          <span class="turntable__arm"><i></i></span>
+        </div>
+        <div class="playlist-copy">
+          <span>BYTEJAY PLAYLIST</span>
+          <h1>CODE ON<br />REPEAT</h1>
+          <div class="playlist-meta">
+            <span class="creator-avatar"><img src="../assets/models/boy-idle.png" alt="" /></span>
+            <strong>Built by ByteJay</strong><span>•</span><span>4 projects</span><span>•</span><span>Always shipping</span>
+          </div>
+          <p>A playlist of backend systems, production AI and experiments built with curiosity, stubbornness and a lot of debugging.</p>
+          <div class="hero-actions">
+            <button class="hero-play" type="button" data-play aria-label="Play project playlist" aria-pressed="true">Ⅱ</button>
+            <a href="https://github.com/BYTEJAYS" target="_blank" rel="noopener" aria-label="ByteJay on GitHub">GH</a>
+            <a href="https://linkedin.com/in/bytejay" target="_blank" rel="noopener" aria-label="ByteJay on LinkedIn">in</a>
+            <a href="https://www.instagram.com/_bytejay_/" target="_blank" rel="noopener" aria-label="ByteJay on Instagram">IG</a>
+          </div>
+        </div>
+        <svg class="playlist-star" viewBox="0 0 80 80" aria-hidden="true"><path d="m40 5 8 25 26-1-21 15 9 25-22-15-22 15 9-25L6 29l26 1Z"/></svg>
+      </header>
+
+      <section class="playlist" aria-label="ByteJay projects">
+        <article class="project-stage" data-project-stage aria-live="polite">
+          <div class="project-stage__screen">
+            <img data-demo-image src="../assets/images/project-transaction-graph-doodle-v1.webp" alt="" />
+            <canvas data-demo-canvas width="960" height="540" aria-label="Animated project demo"></canvas>
+            <span class="project-stage__badge"><i></i> DEMO PLAYING</span>
+            <button class="project-stage__screen-play" type="button" data-play aria-label="Pause project demo">Ⅱ</button>
+          </div>
+          <div class="project-stage__info">
+            <div>
+              <span class="project-stage__eyebrow">NOW PLAYING · PROJECT 01</span>
+              <h2 data-demo-title>Transaction Graph Engine</h2>
+              <p data-demo-description>A graph-native fraud detection engine that follows money across connected accounts, exposes suspicious communities, and helps investigators understand why a transaction was flagged.</p>
+            </div>
+            <a data-demo-link href="https://github.com/BYTEJAYS/TRANSACTION-GRAPH-ENGINE" target="_blank" rel="noopener">VIEW REPOSITORY ↗</a>
+          </div>
+        </article>
+
+        <div class="playlist-actions">
+          <button class="play-button" type="button" data-play aria-label="Play project playlist" aria-pressed="false">▶</button>
+          <span class="equalizer-label" data-status>Choose a project</span>
+        </div>
+
+        <div class="track-head"><span>#</span><span>TITLE</span><span>STACK</span><span>↗</span></div>
+
+        <button class="track is-current" type="button" data-track data-project="graph">
+          <span class="track-number">1</span>
+          <span class="track-title"><span class="track-art track-art--graph">TG</span><span><strong>Transaction Graph Engine</strong><small>Fraud-detection graph engine</small></span></span>
+          <span class="track-stack">Python · NetworkX</span>
+          <span class="track-open">↗</span>
+        </button>
+        <button class="track" type="button" data-track data-project="control">
+          <span class="track-number">2</span>
+          <span class="track-title"><span class="track-art track-art--control">AI</span><span><strong>AI Control Plane</strong><small>Enterprise AI governance</small></span></span>
+          <span class="track-stack">FastAPI · Next.js</span>
+          <span class="track-open">↗</span>
+        </button>
+        <button class="track" type="button" data-track data-project="growth">
+          <span class="track-number">3</span>
+          <span class="track-title"><span class="track-art track-art--growth">GD</span><span><strong>GrowthDesk</strong><small>Multi-tenant AI agent SaaS</small></span></span>
+          <span class="track-stack">FastAPI · Agents</span>
+          <span class="track-open">↗</span>
+        </button>
+        <button class="track" type="button" data-track data-project="reality">
+          <span class="track-number">4</span>
+          <span class="track-title"><span class="track-art track-art--reality">PR</span><span><strong>Personal Reality Layer</strong><small>Local AI companion and memory layer</small></span></span>
+          <span class="track-stack">Local-first · AI</span>
+          <span class="track-open">↗</span>
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <footer class="player-bar">
+    <div class="now-playing"><span class="mini-cover">BJ</span><span><strong data-now-title>Transaction Graph Engine</strong><small>ByteJay</small></span></div>
+    <div class="controls"><button type="button" aria-label="Previous project">↶</button><button type="button" class="control-play" data-play aria-label="Play project playlist">▶</button><button type="button" aria-label="Next project">↷</button></div>
+    <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
