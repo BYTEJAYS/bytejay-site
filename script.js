@@ -3,13 +3,20 @@ document.documentElement.classList.add('js');
 
 // ===== Smooth homepage → project playlist handoff =====
 (function projectsDeparture() {
-  const link = document.querySelector('[data-projects-departure]');
-  if (!link) return;
-  link.addEventListener('click', (event) => {
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();
-    document.body.classList.add('projects-departing');
-    window.setTimeout(() => { window.location.href = link.href; }, 430);
+  const links = document.querySelectorAll('[data-projects-departure]');
+  if (!links.length) return;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let departing = false;
+
+  links.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || departing) return;
+      if (reduceMotion) return;
+      event.preventDefault();
+      departing = true;
+      document.body.classList.add('projects-departing');
+      window.setTimeout(() => { window.location.href = link.href; }, 430);
+    });
   });
 })();
 
