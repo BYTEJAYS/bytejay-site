@@ -391,6 +391,11 @@ export class AltarArea extends Area
 
     setDeathZone()
     {
+        // In the guided journey the altar is the exit portal, not a death trap.
+        // LinearJourney owns the arrival animation and home-page transition.
+        if(this.game.linearJourneyMode)
+            return
+
         const position = this.position.clone()
         position.y -= 1.25
         const zone = this.game.zones.create('sphere', position, 2.5)

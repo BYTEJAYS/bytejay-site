@@ -155,7 +155,7 @@ export class CareerArea extends Area
         this.year.originZ = this.year.group.position.z
         this.year.size = 17
         this.year.offsetTarget = 0
-        this.year.start = 2022
+        this.year.start = 2007
         this.year.end = 2026
         this.year.current = this.year.start
 
@@ -366,16 +366,19 @@ export class CareerArea extends Area
         const finalPositionZ = this.year.originZ - this.year.offsetTarget
         this.year.group.position.z += (finalPositionZ - this.year.group.position.z) * this.game.ticker.deltaScaled * 10
 
-        const yearCurrent = clamp(
-            this.year.start + Math.floor(this.year.offsetTarget / this.year.size * (this.year.end - this.year.start + 1)),
-            this.year.start,
-            this.year.end
-        )
-
-        if(yearCurrent !== this.year.current)
+        if(!this.game.linearJourneyMode)
         {
-            this.year.current = yearCurrent
-            this.year.updateDigits(this.year.current)
+            const yearCurrent = clamp(
+                this.year.start + Math.floor(this.year.offsetTarget / this.year.size * (this.year.end - this.year.start + 1)),
+                this.year.start,
+                this.year.end
+            )
+
+            if(yearCurrent !== this.year.current)
+            {
+                this.year.current = yearCurrent
+                this.year.updateDigits(this.year.current)
+            }
         }
     }
 }

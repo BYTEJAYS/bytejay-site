@@ -1,0 +1,389 @@
+.linear-journey
+    --journey-cream #fff7e6
+    --journey-ink #241d29
+    --journey-coral #ff6d6d
+    --journey-violet #8f73ff
+    position fixed
+    inset 0
+    z-index 20
+    pointer-events none
+    color var(--journey-cream)
+    opacity 0
+    transition opacity 0.9s ease
+
+    &::after
+        content ""
+        position fixed
+        inset 0
+        z-index 100
+        background #120d18
+        opacity 0
+        transition opacity 0.9s ease
+        pointer-events none
+
+    .linear-journey-ready &
+        opacity 1
+
+    .linear-journey-exiting &::after
+        opacity 1
+
+.menu-trigger
+.map-trigger
+.notifications
+    display none !important
+
+.linear-journey__top
+    position absolute
+    top clamp(18px, 3vw, 42px)
+    left clamp(18px, 4vw, 64px)
+    right clamp(18px, 4vw, 64px)
+    display flex
+    align-items flex-start
+    justify-content space-between
+    gap 20px
+
+.linear-journey__brand
+    display flex
+    align-items center
+    gap 14px
+
+.linear-journey__brand-mark
+    display grid
+    place-items center
+    width 44px
+    height 44px
+    border 1px solid rgba(255,255,255,0.4)
+    border-radius 50%
+    font-size 11px
+    font-weight 900
+    letter-spacing 0.08em
+    background rgba(36,29,41,0.46)
+    box-shadow 0 12px 35px rgba(19,12,27,0.22)
+    backdrop-filter blur(12px)
+
+.linear-journey__brand-copy
+    display flex
+    flex-direction column
+    gap 2px
+
+    strong
+        font-size clamp(15px, 1.4vw, 20px)
+        letter-spacing 0.08em
+        text-transform uppercase
+
+    span
+        font-size 11px
+        font-weight 800
+        letter-spacing 0.18em
+        text-transform uppercase
+        opacity 0.64
+
+.linear-journey__actions
+    display flex
+    align-items center
+    gap 10px
+    pointer-events auto
+
+.linear-journey__pill
+    min-height 42px
+    padding 0 16px
+    display inline-flex
+    align-items center
+    justify-content center
+    gap 9px
+    border 1px solid rgba(255,255,255,0.35)
+    border-radius 999px
+    background rgba(36,29,41,0.46)
+    box-shadow 0 12px 35px rgba(19,12,27,0.22)
+    backdrop-filter blur(12px)
+    color var(--journey-cream)
+    text-decoration none
+    font-size 11px
+    font-weight 900
+    letter-spacing 0.12em
+    text-transform uppercase
+    transition transform 0.25s ease, background 0.25s ease
+
+    &:hover
+        transform translateY(-2px)
+        background rgba(36,29,41,0.72)
+
+.linear-journey__audio-dot
+    width 8px
+    height 8px
+    border-radius 50%
+    background #b5ff8c
+    box-shadow 0 0 16px rgba(181,255,140,0.9)
+
+    .is-muted &
+        background #ff8585
+        box-shadow none
+
+.linear-journey__card
+    position absolute
+    top 50%
+    left clamp(24px, 5vw, 82px)
+    right auto
+    width min(30vw, 360px)
+    max-width none
+    padding 0
+    border 0
+    background transparent
+    text-align left
+    filter drop-shadow(0 9px 25px rgba(15,8,22,0.82))
+    transform translate(-14px, -50%)
+    opacity 0
+    transition opacity 0.36s ease, transform 0.55s cubic-bezier(.2,.8,.2,1)
+
+    .is-card-visible &
+        opacity 0.98
+        transform translate(0, -50%)
+
+.linear-journey__card-top
+    display flex
+    align-items center
+    justify-content space-between
+    gap 16px
+    margin-bottom 14px
+
+.linear-journey__year
+    font-family "Amatic SC", sans-serif
+    font-size clamp(48px, 5.5vw, 74px)
+    font-weight 800
+    line-height 0.8
+    letter-spacing -0.025em
+    color rgba(255,221,165,0.98)
+    text-shadow 0 3px 18px rgba(24,12,32,0.98), 0 0 2px rgba(36,29,41,0.9)
+
+.linear-journey__counter
+    font-size 10px
+    font-weight 900
+    letter-spacing 0.14em
+    opacity 0.82
+
+.linear-journey__eyebrow
+    margin-bottom 8px
+    color rgba(255,193,172,0.98)
+    font-size 11px
+    font-weight 900
+    letter-spacing 0.18em
+    text-transform uppercase
+
+.linear-journey__title
+    max-width 13ch
+    margin 0 0 12px
+    font-family "Amatic SC", sans-serif
+    font-size clamp(34px, 3.8vw, 50px)
+    font-weight 800
+    line-height 0.92
+    text-shadow 0 3px 18px rgba(24,12,32,1), 0 0 2px rgba(36,29,41,0.95)
+
+.linear-journey__copy
+    max-width 38ch
+    margin 0
+    font-size clamp(12px, 1.05vw, 14px)
+    font-weight 700
+    line-height 1.58
+    color rgba(255,250,240,0.94)
+    text-shadow 0 2px 12px rgba(17,9,24,1), 0 0 2px rgba(36,29,41,0.96)
+
+.linear-journey__bottom
+    position absolute
+    left 50%
+    bottom clamp(18px, 3vw, 40px)
+    width calc(100vw - 36px)
+    max-width 780px
+    transform translateX(-50%)
+
+.linear-journey__rail
+    position relative
+    height 54px
+    display flex
+    align-items center
+    padding 0 22px
+    filter drop-shadow(0 5px 16px rgba(17,10,23,0.72))
+
+.linear-journey__track
+    position absolute
+    left 42px
+    right 42px
+    top 50%
+    height 2px
+    transform translateY(-50%)
+    background rgba(255,255,255,0.26)
+
+.linear-journey__progress
+    position absolute
+    inset 0
+    transform-origin left center
+    transform scaleX(0)
+    background linear-gradient(90deg, #ff7b66, #ffcf7d, #9c87ff)
+    box-shadow 0 0 15px rgba(255,156,111,0.65)
+    transition transform 0.12s linear
+
+.linear-journey__dots
+    position relative
+    z-index 1
+    width 100%
+    display flex
+    justify-content space-between
+    align-items center
+
+.linear-journey__dot
+    position relative
+    width 10px
+    height 10px
+    border 2px solid rgba(255,255,255,0.76)
+    border-radius 50%
+    background rgba(52,42,58,0.78)
+    transition transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease
+
+    &::after
+        content attr(data-year)
+        position absolute
+        left 50%
+        top 16px
+        transform translateX(-50%)
+        font-size 9px
+        font-weight 900
+        letter-spacing 0.08em
+        color rgba(255,255,255,0.58)
+
+    &.is-passed
+        background #ffbd74
+
+    &.is-current
+        transform scale(1.35)
+        background #fff7e6
+        box-shadow 0 0 0 5px rgba(255,189,116,0.18), 0 0 20px rgba(255,189,116,0.82)
+
+.linear-journey__drive-controls
+    position absolute
+    left clamp(18px, 4vw, 64px)
+    bottom clamp(100px, 12vw, 142px)
+    display flex
+    flex-direction column
+    gap 8px
+    pointer-events auto
+    transition opacity 0.45s ease, transform 0.45s ease
+
+    .is-portal-bound &
+        opacity 0
+        transform translateY(12px)
+        pointer-events none
+
+.linear-journey__drive
+    width 54px
+    height 54px
+    display grid
+    place-items center
+    border 1px solid rgba(255,255,255,0.28)
+    border-radius 18px
+    background rgba(36,29,41,0.55)
+    box-shadow 0 15px 35px rgba(17,10,23,0.26)
+    backdrop-filter blur(14px)
+    color var(--journey-cream)
+    font-size 23px
+    transition transform 0.16s ease, background 0.16s ease
+
+    &.is-active
+        transform scale(0.92)
+        background rgba(255,109,109,0.82)
+
+.linear-journey__hint
+    position absolute
+    left clamp(84px, 9vw, 116px)
+    bottom clamp(108px, 12vw, 150px)
+    width 140px
+    font-size 10px
+    font-weight 900
+    line-height 1.45
+    letter-spacing 0.12em
+    text-transform uppercase
+    color rgba(255,247,230,0.62)
+    transition opacity 0.45s ease
+
+    .is-portal-bound &
+        opacity 0
+
+@media only screen and (max-width 820px)
+    .linear-journey__card
+        top 112px
+        left 18px
+        right auto
+        width min(46vw, 300px)
+        max-width none
+        padding 0
+        transform translate(-12px, 0)
+
+        .is-card-visible &
+            transform translate(0, 0)
+
+    .linear-journey__copy
+        max-width 32ch
+        font-size 12px
+        line-height 1.45
+
+    .linear-journey__card-top
+        margin-bottom 10px
+
+    .linear-journey__year
+        font-size 50px
+
+    .linear-journey__title
+        font-size 35px
+        margin-bottom 9px
+
+    .linear-journey__hint
+        display none
+
+    .linear-journey__drive-controls
+        bottom 110px
+
+@media only screen and (max-width 540px)
+    .linear-journey__top
+        align-items center
+
+    .linear-journey__brand-copy
+        display none
+
+    .linear-journey__pill
+        width 44px
+        min-height 44px
+        padding 0
+
+        span
+            display none
+
+    .linear-journey__back
+        display none
+
+    .linear-journey__card
+        top 88px
+        left 18px
+        right auto
+        width min(56vw, 220px)
+
+    .linear-journey__card-top
+        margin-bottom 7px
+
+    .linear-journey__year
+        font-size 43px
+
+    .linear-journey__counter
+        font-size 8px
+
+    .linear-journey__eyebrow
+        margin-bottom 6px
+        font-size 9px
+
+    .linear-journey__title
+        font-size 30px
+
+    .linear-journey__copy
+        font-size 11px
+        line-height 1.38
+
+    .linear-journey__drive-controls
+        left 18px
+        bottom 118px

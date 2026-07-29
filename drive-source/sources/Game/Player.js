@@ -556,15 +556,18 @@ export class Player
         /**
          * Steering
          */
-        // Left / right actions
-        if(this.game.inputs.actions.get('right').active)
-            this.steering -= 1
-        if(this.game.inputs.actions.get('left').active)
-            this.steering += 1
+        if(!this.game.linearJourneyMode)
+        {
+            // Left / right actions
+            if(this.game.inputs.actions.get('right').active)
+                this.steering -= 1
+            if(this.game.inputs.actions.get('left').active)
+                this.steering += 1
 
-        // Gamepad joystick
-        if(this.steering === 0 && this.game.inputs.gamepad.joysticks.left.active)
-            this.steering = - this.game.inputs.gamepad.joysticks.left.safeX
+            // Gamepad joystick
+            if(this.steering === 0 && this.game.inputs.gamepad.joysticks.left.active)
+                this.steering = - this.game.inputs.gamepad.joysticks.left.safeX
+        }
 
         /**
          * Nipple
@@ -583,17 +586,21 @@ export class Player
             this.accelerating = Math.pow(this.game.inputs.nipple.progress, 3)
             // this.boosting = this.game.inputs.nipple.progress > 0.999
 
-            const angleDeltaAbs = Math.abs(this.game.inputs.nipple.smallestAngle)
-            const angleDeltaAbsNormalized = angleDeltaAbs / ((Math.PI * 2 - this.game.inputs.nipple.forwardAmplitude) / 2)
-            const angleDeltaSign = Math.sign(this.game.inputs.nipple.smallestAngle)
-            const steering = - Math.min(angleDeltaAbsNormalized, 1) * angleDeltaSign
+            if(!this.game.linearJourneyMode)
+            {
+                const angleDeltaAbs = Math.abs(this.game.inputs.nipple.smallestAngle)
+                const angleDeltaAbsNormalized = angleDeltaAbs / ((Math.PI * 2 - this.game.inputs.nipple.forwardAmplitude) / 2)
+                const angleDeltaSign = Math.sign(this.game.inputs.nipple.smallestAngle)
+                const steering = - Math.min(angleDeltaAbsNormalized, 1) * angleDeltaSign
 
-            this.steering = steering
+                this.steering = steering
+            }
 
             if(!this.game.inputs.nipple.forward)
             {
                 this.accelerating *= -1
-                this.steering *= -1
+                if(!this.game.linearJourneyMode)
+                    this.steering *= -1
             }
         }
     }

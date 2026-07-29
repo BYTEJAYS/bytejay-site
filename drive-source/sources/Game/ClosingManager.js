@@ -51,7 +51,7 @@ export class ClosingManager
                     this.game.world.areas.lab.close()
 
                 // Nothing opened and used the keyboard Escape key => Open default modal
-                else if(action.activeKeys.has('Keyboard.Escape'))
+                else if(!this.game.linearJourneyMode && action.activeKeys.has('Keyboard.Escape'))
                     this.game.menu.open()
             }
         })

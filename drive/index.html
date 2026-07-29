@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="/drive/">
-    <title>ByteJay's World</title>
+    <title>ByteJay — The Journey</title>
 
-    <meta name="description" content="Drive through ByteJay's interactive world: backend engineering, AI systems, DevOps and graph analytics.">
+    <meta name="description" content="Drive a focused, cinematic timeline through ByteJay's journey in backend engineering, AI systems and DevOps.">
 
     <meta itemprop="name" content="ByteJay">
     <meta itemprop="description" content="ByteJay's interactive engineering portfolio">
@@ -20,8 +20,8 @@
     <meta property="og:site_name" content="ByteJay">
     <meta property="og:type" content="website">
     <meta property="og:url" content="/">
-    <meta property="og:title" content="ByteJay's World">
-    <meta property="og:description" content="A driveable portfolio about backend engineering, AI systems and DevOps.">
+    <meta property="og:title" content="ByteJay — The Journey">
+    <meta property="og:description" content="A cinematic, driveable timeline through backend engineering, AI systems and DevOps.">
     <meta property="og:image" content="../assets/images/project-portfolio-doodle-v1.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,8 +50,8 @@
 
         gtag('config', '%VITE_ANALYTICS_TAG%');
     </script>
-  <script type="module" crossorigin src="./assets/index-CvjES7Gg.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Di03QkGT.css">
+  <script type="module" crossorigin src="./assets/index-B_YI9vrM.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Dxvy4ZSV.css">
 </head>
 <body>
 
@@ -879,6 +879,61 @@
             </div>
 
         </div>
+
+        <!-- Linear journey interface -->
+        <section class="js-linear-journey linear-journey" aria-label="ByteJay journey timeline">
+            <header class="linear-journey__top">
+                <div class="linear-journey__brand">
+                    <span class="linear-journey__brand-mark">BJ</span>
+                    <span class="linear-journey__brand-copy">
+                        <strong>The Journey</strong>
+                        <span>Exploring since 2007</span>
+                    </span>
+                </div>
+                <div class="linear-journey__actions">
+                    <button class="js-linear-journey-audio linear-journey__pill" type="button" aria-label="Turn sound off">
+                        <i class="linear-journey__audio-dot"></i>
+                        <span>Sound on</span>
+                    </button>
+                    <a class="linear-journey__pill linear-journey__back" href="../">
+                        Portfolio ↗
+                    </a>
+                </div>
+            </header>
+
+            <article class="linear-journey__card" aria-live="polite">
+                <div class="linear-journey__card-top">
+                    <strong class="js-linear-journey-year linear-journey__year">2007</strong>
+                    <span class="js-linear-journey-counter linear-journey__counter">01 / 07</span>
+                </div>
+                <p class="js-linear-journey-eyebrow linear-journey__eyebrow">Chapter I · Origins</p>
+                <h1 class="js-linear-journey-title linear-journey__title">Player One Spawns</h1>
+                <p class="js-linear-journey-copy linear-journey__copy">I showed up in 2007 — no master plan, no neat story. Just a curious kid who liked figuring things out because it felt good. That part never left.</p>
+            </article>
+
+            <div class="linear-journey__drive-controls" aria-label="Drive controls">
+                <button class="js-linear-journey-drive linear-journey__drive" data-direction="1" type="button" aria-label="Drive forward">↑</button>
+                <button class="js-linear-journey-drive linear-journey__drive" data-direction="-1" type="button" aria-label="Drive backward">↓</button>
+            </div>
+            <p class="linear-journey__hint">Hold W / ↑ to move through the timeline</p>
+
+            <div class="linear-journey__bottom" aria-label="Journey progress">
+                <div class="linear-journey__rail">
+                    <div class="linear-journey__track">
+                        <i class="js-linear-journey-progress linear-journey__progress"></i>
+                    </div>
+                    <div class="linear-journey__dots">
+                        <i class="js-linear-journey-dot linear-journey__dot is-current" data-year="2007"></i>
+                        <i class="js-linear-journey-dot linear-journey__dot" data-year="2012"></i>
+                        <i class="js-linear-journey-dot linear-journey__dot" data-year="2022"></i>
+                        <i class="js-linear-journey-dot linear-journey__dot" data-year="2023"></i>
+                        <i class="js-linear-journey-dot linear-journey__dot" data-year="2024"></i>
+                        <i class="js-linear-journey-dot linear-journey__dot" data-year="2025"></i>
+                        <i class="js-linear-journey-dot linear-journey__dot" data-year="2026"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Notifications -->
         <div class="js-notifications notifications">

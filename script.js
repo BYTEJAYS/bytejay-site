@@ -1683,9 +1683,9 @@ if (contactSection) {
   render();
 })();
 
-// ===== Journey departure: warm the destination without a painted bridge =====
+// ===== Journey departure: warm the drive experience without a painted bridge =====
 (function journeyDeparture() {
-  const link = document.querySelector('a[href="/journey/"], a[href="/journey"]');
+  const link = document.querySelector('a[href="/drive/"], a[href="/drive"]');
   if (!link) return;
 
   // Older builds inserted a full-screen departure layer and could leave it in
@@ -1703,14 +1703,10 @@ if (contactSection) {
   const warm = () => {
     if (warmed) return; warmed = true;
     [
-      '/journey/',
-      '/_next/static/chunks/app/journey/page-59d19a1ad7a16946.js',
-      '/_next/static/chunks/276.ab31ee0a949415fb.js',
-      '/_next/static/chunks/945-bae57af0201e0822.js',
+      '/drive/',
     ].forEach((href) => {
       const l = document.createElement('link');
-      l.rel = href.endsWith('/') ? 'prefetch' : 'preload';
-      if (l.rel === 'preload') l.as = 'script';
+      l.rel = 'prefetch';
       l.href = href; document.head.appendChild(l);
     });
   };

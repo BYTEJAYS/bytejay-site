@@ -48,7 +48,8 @@ export class ExplosiveCrates
                     contactThreshold: 0,
                     onCollision: () =>
                     {
-                        this.explode(crate)
+                        if(!this.game.linearJourneyMode)
+                            this.explode(crate)
                     }
                 },
             )

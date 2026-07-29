@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu'
 import { Game } from '../Game.js'
 import { Foliage } from './Foliage.js'
 import { color, uniform } from 'three/tsl'
+import { getJourneyPathDistanceSquared } from '../JourneyPath.js'
 
 export class Trees
 {
@@ -101,6 +102,15 @@ export class Trees
     {
         for(const treeReference of this.references)
         {
+            const insideJourneyClearance = this.game.linearJourneyMode &&
+                getJourneyPathDistanceSquared(treeReference.position.x, treeReference.position.z) < 2.35 ** 2
+
+            // Keep the tree and blossom canopy visible, but remove only the
+            // hidden trunk collider when it sits directly inside the guided
+            // driving lane.
+            if(insideJourneyClearance)
+                continue
+
             this.game.objects.add(
                 null,
                 {

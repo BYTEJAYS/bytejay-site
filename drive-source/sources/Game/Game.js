@@ -47,7 +47,8 @@ import { Title } from './Title.js'
 import { PreRenderer } from './PreRenderer.js'
 import { Options } from './Options.js'
 import gsap from 'gsap'
-import { Map } from './Map.js'
+import { LinearJourney } from './LinearJourney.js'
+import { getJourneyYaw, JOURNEY_PATH_POINTS } from './JourneyPath.js'
 
 export class Game
 {
@@ -76,6 +77,7 @@ export class Game
 
         // First batch for intro
         this.scene = new THREE.Scene()
+        this.linearJourneyMode = true
         this.debug = new Debug()
         this.resourcesLoader = new ResourcesLoader()
         this.quality = new Quality()
@@ -109,7 +111,17 @@ export class Game
         ])
         this.options = new Options()
         const requestedSpawn = new URLSearchParams(window.location.search).get('spawn')
-        this.respawns = new Respawns(requestedSpawn || import.meta.env.VITE_PLAYER_SPAWN || 'landing')
+        this.respawns = new Respawns(requestedSpawn || import.meta.env.VITE_PLAYER_SPAWN || 'career')
+
+        if(this.linearJourneyMode && !requestedSpawn)
+        {
+            const journeySpawn = this.respawns.getDefault()
+            const start = JOURNEY_PATH_POINTS[0]
+            const next = JOURNEY_PATH_POINTS[1]
+            journeySpawn.position.set(start.x, journeySpawn.position.y, start.z)
+            journeySpawn.rotation = getJourneyYaw(start, next)
+        }
+
         this.view = new View()
         this.rendering.setPostprocessing()
         this.rendering.start()
@@ -189,12 +201,12 @@ export class Game
         this.physicalVehicle = new PhysicsVehicle()
         this.zones = new Zones()
         this.player = new Player()
+        this.linearJourney = new LinearJourney()
         this.closingManager = new ClosingManager()
         this.interactivePoints = new InteractivePoints()
         this.konamiCode = new KonamiCode()
         this.achievements = new Achievements()
         this.tornado = new Tornado()
-        this.map = new Map()
         this.title = new Title()
         // this.monitoring = new Monitoring()
         this.world.step(1)
