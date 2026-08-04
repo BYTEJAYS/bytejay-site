@@ -8,6 +8,14 @@ document.documentElement.classList.add('js');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let departing = false;
 
+  // A browser can restore this page from its back/forward cache while the
+  // departure wipe is still applied. Reset it every time the homepage appears
+  // so returning from Journey or Projects never leaves a black screen behind.
+  window.addEventListener('pageshow', () => {
+    departing = false;
+    document.body.classList.remove('projects-departing');
+  });
+
   links.forEach((link) => {
     link.addEventListener('click', (event) => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || departing) return;
@@ -1253,11 +1261,13 @@ if (contactSection) {
   // One Lenis instance, driven by GSAP's ticker and connected to ScrollTrigger.
   if (LenisCtor) {
     lenis = new LenisCtor({
-      lerp: 0.11,
+      // A restrained glide: smooth enough to feel intentional, responsive
+      // enough for quick navigation between portfolio sections.
+      lerp: 0.09,
       smoothWheel: true,
       syncTouch: false,
-      wheelMultiplier: 0.88,
-      touchMultiplier: 1
+      wheelMultiplier: 0.8,
+      touchMultiplier: 0.9
     });
     lenis.on('scroll', ScrollTrigger.update);
     ticker = (time) => lenis.raf(time * 1000);
