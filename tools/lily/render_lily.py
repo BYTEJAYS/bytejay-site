@@ -22,8 +22,8 @@ bpy.ops.import_scene.gltf(filepath=GLB)
 scene = bpy.context.scene
 
 scene.render.engine = 'BLENDER_EEVEE'
-scene.render.resolution_x = 1200
-scene.render.resolution_y = 1200
+scene.render.resolution_x = 1800
+scene.render.resolution_y = 1800
 scene.render.film_transparent = True
 if hasattr(scene.render.image_settings, 'media_type'):
     scene.render.image_settings.media_type = 'IMAGE'
@@ -32,7 +32,7 @@ scene.render.image_settings.color_mode = 'RGBA'
 scene.view_settings.view_transform = 'Standard'
 scene.view_settings.look = 'None'
 if hasattr(scene.eevee, 'taa_render_samples'):
-    scene.eevee.taa_render_samples = 64
+    scene.eevee.taa_render_samples = 256
 
 for m in bpy.data.materials:
     print("MATERIAL", m.name)
@@ -43,7 +43,7 @@ world = bpy.data.worlds.new("W")
 scene.world = world
 world.use_nodes = True
 world.node_tree.nodes["Background"].inputs[0].default_value = (1, 1, 1, 1)
-world.node_tree.nodes["Background"].inputs[1].default_value = 1.05
+world.node_tree.nodes["Background"].inputs[1].default_value = 0.45
 
 meshes = [o for o in bpy.data.objects if o.type == 'MESH']
 mins = Vector((1e9,) * 3); maxs = Vector((-1e9,) * 3)
@@ -56,13 +56,19 @@ center = (mins + maxs) / 2
 size = max(maxs - mins)
 print("BOUNDS", [round(v, 3) for v in mins], [round(v, 3) for v in maxs], "size", round(size, 3))
 
-key = bpy.data.lights.new("Key", 'SUN'); key.energy = 3.2
+# Softer key so the petal tips keep their pink instead of clipping to white,
+# a low fill to open the shadows, and a back rim to separate the petals.
+key = bpy.data.lights.new("Key", 'SUN'); key.energy = 2.1
 ko = bpy.data.objects.new("Key", key); scene.collection.objects.link(ko)
-ko.rotation_euler = Vector((-0.5, -0.85, 0.62)).to_track_quat('-Z', 'Y').to_euler()
+ko.rotation_euler = Vector((-0.45, -0.8, 0.75)).to_track_quat('-Z', 'Y').to_euler()
 
-fill = bpy.data.lights.new("Fill", 'SUN'); fill.energy = 1.4
+fill = bpy.data.lights.new("Fill", 'SUN'); fill.energy = 0.75
 fo = bpy.data.objects.new("Fill", fill); scene.collection.objects.link(fo)
-fo.rotation_euler = Vector((0.9, -0.6, 0.25)).to_track_quat('-Z', 'Y').to_euler()
+fo.rotation_euler = Vector((0.95, -0.5, 0.15)).to_track_quat('-Z', 'Y').to_euler()
+
+rim = bpy.data.lights.new("Rim", 'SUN'); rim.energy = 1.5
+ro = bpy.data.objects.new("Rim", rim); scene.collection.objects.link(ro)
+ro.rotation_euler = Vector((-0.2, 0.9, -0.35)).to_track_quat('-Z', 'Y').to_euler()
 
 cam_data = bpy.data.cameras.new("Cam")
 cam_data.type = 'ORTHO'
@@ -72,7 +78,7 @@ cam_data.clip_end = size * 40          # default 100 would clip a large model aw
 cam = bpy.data.objects.new("Cam", cam_data)
 scene.collection.objects.link(cam)
 scene.camera = cam
-d = Vector((0.45, -1.0, 0.22)).normalized()      # gentle three-quarter view
+d = Vector((0.28, -1.0, 0.40)).normalized()      # gentle three-quarter view
 cam.location = center + d * size * 10
 cam.rotation_euler = (center - cam.location).to_track_quat('-Z', 'Y').to_euler()
 
