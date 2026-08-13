@@ -1792,12 +1792,16 @@ if (contactSection) {
     );
   });
 
-  // ===== Projects: spin in, orbit, focus each project, settle into the grid =====
-  // Modelled on omnicomreputationgroup.fr, which drives its card choreography
-  // off a single 0->1 progress value: rotateX/rotateY ease from 45deg to 0 as
-  // the cards assemble, and a ring turns so each card faces the camera in turn.
-  // Theirs runs in WebGL; this is the same idea in CSS 3D, scrubbed by the
-  // ScrollTrigger already wired to Lenis above. Works with any number of cards.
+  // ===== Projects: cards travelling through depth past a fixed camera =====
+  // A deterministic 3D model rather than a carousel. Every card's state is a
+  // pure function of one scroll progress value, so the same scroll position
+  // always yields the same frame and reverse scrolling simply runs it backwards.
+  //
+  //   pos = P * (n - 1)      the camera's position along the stack
+  //   d   = i - pos          a card's signed distance from the camera
+  //         d > 0  behind, waiting, receding into the stack
+  //         d = 0  active, at z 0, square to the camera
+  //         d < 0  passed, moving forward past the camera and fading out
   (function projectShowcase() {
     const grid = document.querySelector('[data-spin-grid]');
     const section = grid && grid.closest('.work');
@@ -1807,208 +1811,187 @@ if (contactSection) {
     const n = cells.length;
     if (!n) return;
 
-    // Armed only now that GSAP is confirmed present, so a failed script load
-    // leaves the cards plainly visible instead of blank.
-    // (armed inside the matchMedia below, so narrow screens keep a plain grid)
+    const DEBUG = /(\?|&)debugCards=1\b/.test(window.location.search);
 
-    const TILT = 45;          // starting rotateX / rotateY, as in the reference
-    const FOCUS_Z = 250;      // how far the focused card comes toward the viewer
-    const FOCUS_SCALE = 0.32;
-    const MID = (n - 1) / 2;
-    const STAGGER = 0.18;
-    const SPAN = 1 + (n - 1) * STAGGER;   // total length of the staggered arrival
-    const WINDOW = 360 / n;               // how near the front earns focus
+    // Tuned per breakpoint: depth and rotation are reduced on smaller screens,
+    // where a strong perspective reads as distortion rather than depth.
+    const TIERS = [
+      {
+        q: '(min-width: 1025px)', persp: 1200, cardW: 0.40, cardMax: 500,
+        zStep: 190, zExit: 520, rotMid: 13, rotExit: 24, xSway: 42, ySway: 24,
+        xStack: 78, yStack: 46, fan: 1.6,
+        scaleStep: 0.055, visible: 3.2, scrollPerCard: 0.78,
+      },
+      {
+        q: '(min-width: 641px) and (max-width: 1024px)', persp: 1000, cardW: 0.54, cardMax: 420,
+        zStep: 150, zExit: 420, rotMid: 10, rotExit: 18, xSway: 30, ySway: 18,
+        xStack: 60, yStack: 36, fan: 1.4,
+        scaleStep: 0.05, visible: 2.8, scrollPerCard: 0.68,
+      },
+      {
+        q: '(max-width: 640px)', persp: 900, cardW: 0.76, cardMax: 340,
+        zStep: 110, zExit: 300, rotMid: 6, rotExit: 12, xSway: 16, ySway: 12,
+        xStack: 30, yStack: 22, fan: 1.0,
+        scaleStep: 0.045, visible: 2.4, scrollPerCard: 0.58,
+      },
+    ];
 
-    // phase boundaries along the scrubbed progress
-    const P_ARRIVE = 0.15;    // tumble in from deep Z and assemble onto the ring
-    const P_ORBIT = 0.34;     // the ring turns a full revolution to introduce the set
-    // 0.34 -> 1.0 : the ring keeps turning, each card taking the front in turn
+    const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+    const clamp01 = (v) => clamp(v, 0, 1);
+    // a smooth 0 -> 1 -> 0 bump across one card-length of travel, which is what
+    // gives the card its arc through space instead of a straight slide
+    const bump = (t) => Math.sin(Math.PI * clamp01(t));
+    const smooth = (t) => t * t * (3 - 2 * t);
 
-    const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-    const easeOut = (t) => 1 - Math.pow(1 - t, 3);                       // power3.out
-    const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-    const seg = (P, a, b) => clamp01((P - a) / (b - a));
+    let cfg = TIERS[0];
+    let debugBox = null;
 
-    let geo = [];
-    let radius = 420;
+    /** The whole model: card index + scroll progress -> a physical state. */
+    const getCardState = (i, P) => {
+      const pos = P * (n - 1);
+      const d = i - pos;
 
-    // Caption that names whichever project is currently at the front, so the
-    // cards themselves can stay pure image while they are moving.
-    const caption = document.createElement('div');
-    caption.className = 'work__caption';
-    caption.setAttribute('aria-hidden', 'true');
-    caption.innerHTML = '<b></b><span></span>';
-    const captionName = caption.querySelector('b');
-    const captionStack = caption.querySelector('span');
-    section.appendChild(caption);
-    let captionFor = -1;
-
-    // Choose the column count that keeps cards closest to a proper card shape
-    // (4:5) inside the pinned viewport, rather than letting a fixed 4 columns
-    // squeeze them into vertical straps on narrower screens.
-    const GAP = 20;
-    const TARGET_ASPECT = 0.8;
-    const fitGrid = () => {
-      const availW = grid.clientWidth || grid.offsetWidth;
-      const availH = Math.max(320, window.innerHeight * 0.66);
-      if (!availW) return;
-      let best = { cols: Math.min(4, n), score: Infinity, h: 300 };
-      for (let cols = 1; cols <= Math.min(n, 4); cols += 1) {
-        const rows = Math.ceil(n / cols);
-        const cardW = (availW - GAP * (cols - 1)) / cols;
-        const cardH = (availH - GAP * (rows - 1)) / rows;
-        if (cardW <= 0 || cardH <= 0) continue;
-        // prefer the layout whose card shape is nearest 4:5, and penalise a
-        // ragged last row so eight cards pick 4x2 rather than 6+2
-        const leftover = (cols - (n % cols)) % cols;
-        const score = Math.abs(cardW / cardH - TARGET_ASPECT) + 0.35 * (leftover / cols);
-        if (score < best.score) best = { cols, score, h: cardH };
+      if (d >= 0) {
+        // waiting behind the camera, drifting forward as its turn comes
+        const b = bump(Math.min(d, 1));
+        const dir = i % 2 ? 1 : -1;
+        // A persistent offset that grows with depth, so the deck is actually
+        // visible behind the active card rather than hidden directly under it,
+        // plus the bump that arcs a card through space as its turn arrives.
+        return {
+          x: cfg.xStack * d + cfg.xSway * b * dir,
+          y: cfg.yStack * d + cfg.ySway * b * 0.5,
+          z: -cfg.zStep * d,
+          rotateX: -3.2 * b,
+          rotateY: -cfg.rotMid * b * dir,
+          rotateZ: -cfg.fan * d - 1.6 * b * dir,
+          scale: Math.max(0.72, 1 - cfg.scaleStep * d),
+          opacity: 1 - smooth(clamp01((d - cfg.visible) / 1.1)),
+          zIndex: Math.round(600 - d * 12),
+        };
       }
-      grid.style.setProperty('--cols', String(best.cols));
-      grid.style.setProperty('--card-h', Math.round(best.h) + 'px');
+
+      // Passed the camera: continues forward, turns away, fades out. k is
+      // clamped so cards long gone settle at a fixed state — their transform
+      // stops changing, so the redundant-write guard skips them entirely.
+      const k = Math.min(-d, 1.6);
+      return {
+        x: cfg.xSway * 1.1 * k * (i % 2 ? 1 : -1),
+        y: -cfg.ySway * 1.4 * k,
+        z: cfg.zExit * k,
+        rotateX: 5 * k,
+        rotateY: cfg.rotExit * k * (i % 2 ? 1 : -1),
+        rotateZ: 2.4 * k * (i % 2 ? 1 : -1),
+        scale: 1 + 0.12 * k,
+        opacity: 1 - smooth(clamp01(k / 1.15)),
+        zIndex: Math.round(600 + k * 40),
+      };
     };
 
-    // Measure each cell's offset from the grid centre with transforms cleared,
-    // so the ring can be expressed as a displacement from its real grid slot.
-    // That keeps the settled state as plain layout: responsive and clickable.
-    const measure = () => {
-      const prev = cells.map((c) => c.style.transform);
-      cells.forEach((c) => { c.style.transform = 'none'; });
-      fitGrid();
-      const gr = grid.getBoundingClientRect();
-      const cx = gr.left + gr.width / 2;
-      const cy = gr.top + gr.height / 2;
-      geo = cells.map((c) => {
-        const r = c.getBoundingClientRect();
-        return { dx: r.left + r.width / 2 - cx, dy: r.top + r.height / 2 - cy };
-      });
-      // Sized off the viewport, not the grid: a wide grid would otherwise throw
-      // the front cards past the screen edges instead of overlapping in depth.
-      radius = Math.max(230, Math.min(window.innerWidth * 0.30, 430));
-      cells.forEach((c, i) => { c.style.transform = prev[i] || ''; });
+    const applyLayout = () => {
+      const vw = window.innerWidth;
+      const vh = Math.max(480, window.innerHeight);
+      // 4:5, matching the artwork — but never taller than the room left beside
+      // the heading inside the pinned viewport
+      let w = Math.min(cfg.cardMax, vw * cfg.cardW);
+      let h = w * 1.25;
+      const maxH = vh * 0.66;
+      if (h > maxH) { h = maxH; w = h / 1.25; }
+      grid.style.setProperty('--persp', cfg.persp + 'px');
+      grid.style.setProperty('--card-w', Math.round(w) + 'px');
+      grid.style.setProperty('--card-h', Math.round(h) + 'px');
+      grid.style.setProperty('--stage-h', Math.round(h) + 'px');
     };
 
     const render = (P) => {
-      const arrive = seg(P, 0, P_ARRIVE);
-      const orbit = seg(P, P_ARRIVE, P_ORBIT);
-      const focus = seg(P, P_ORBIT, 1);
-
-      // The ring never stops and never unwinds into a grid: one revolution to
-      // introduce the set, then it keeps turning while each card in turn is
-      // pulled to the front. Same direction throughout, as in the reference.
-      const ringTurn = -(easeInOut(orbit) * 360 + focus * 360 * ((n - 1) / n));
-      const focusing = focus > 0 ? 1 : 0;
-      const lead = { index: -1, fa: 0 };
-
       for (let i = 0; i < n; i += 1) {
         const cell = cells[i];
-        const g = geo[i] || { dx: 0, dy: 0 };
-        const dir = i % 2 ? 1 : -1;
-        const off = i - MID;
-
-        // --- arrival: staggered tumble in from deep Z ---
-        const aIn = easeOut(clamp01(arrive * SPAN - i * STAGGER));
-        const a = 1 - aIn;
-
-        // normalise to (-180, 180] so "nearest the front" is meaningful
-        let ang = (((i / n) * 360 + ringTurn) % 360 + 360) % 360;
-        if (ang > 180) ang -= 360;
-
-        // --- focus: whichever card is nearest the front is the focused one ---
-        let fa = Math.max(0, 1 - Math.abs(ang) / WINDOW);
-        fa = fa * fa * (3 - 2 * fa) * focusing;
-        if (fa > lead.fa) { lead.fa = fa; lead.index = i; }
-
-        const ringAng = ang * (1 - fa);
-        const rad = radius * (1 - fa);
-        const ox = -g.dx + off * 40 * a;
-        const oy = -g.dy + (140 + Math.abs(off) * 30) * a;
-        const oz = FOCUS_Z * fa - (520 + Math.abs(off) * 120) * a;
-        const scale = 1 + 0.14 * (1 - fa) + FOCUS_SCALE * fa;
-
-        // depth fade: cards round the back recede, and anything not in focus
-        // steps back so the front card reads
-        const front = (Math.cos((ringAng * Math.PI) / 180) + 1) / 2;
-        const opacity = aIn * (1 - 0.55 * (1 - front)) * (1 - 0.45 * (1 - fa) * focusing);
-
+        const s = getCardState(i, P);
+        // one composite transform per card; the card and everything on it move
+        // together as a single physical object
         const tf =
-          'translate3d(' + ox.toFixed(1) + 'px,' + oy.toFixed(1) + 'px,' + oz.toFixed(1) + 'px) ' +
-          'rotateY(' + ringAng.toFixed(2) + 'deg) translateZ(' + rad.toFixed(1) + 'px) ' +
-          'rotateX(' + (TILT * dir * a).toFixed(2) + 'deg) ' +
-          'rotateY(' + (TILT * -dir * a).toFixed(2) + 'deg) ' +
-          'rotateZ(' + (off * 14 * a).toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
-
-        // skip redundant style writes — they are the expensive part per frame
+          'translate3d(calc(-50% + ' + s.x.toFixed(1) + 'px), calc(-50% + ' +
+          s.y.toFixed(1) + 'px), ' + s.z.toFixed(1) + 'px) ' +
+          'rotateX(' + s.rotateX.toFixed(2) + 'deg) ' +
+          'rotateY(' + s.rotateY.toFixed(2) + 'deg) ' +
+          'rotateZ(' + s.rotateZ.toFixed(2) + 'deg) ' +
+          'scale(' + s.scale.toFixed(3) + ')';
+        // skip redundant writes: they are the expensive part of a scrub frame
         if (cell.__tf !== tf) { cell.style.transform = tf; cell.__tf = tf; }
-        const op = opacity.toFixed(3);
+        const op = s.opacity.toFixed(3);
         if (cell.__op !== op) { cell.style.opacity = op; cell.__op = op; }
-        const zi = String(100 + Math.round(front * 50 + fa * 100));
+        const zi = String(s.zIndex);
         if (cell.__zi !== zi) { cell.style.zIndex = zi; cell.__zi = zi; }
-        // only the card at the front takes clicks
-        const pe = fa > 0.55 ? 'auto' : 'none';
+        // only the card at the camera takes clicks
+        const pe = Math.abs(i - P * (n - 1)) < 0.5 ? 'auto' : 'none';
         if (cell.__pe !== pe) { cell.style.pointerEvents = pe; cell.__pe = pe; }
       }
 
-      // caption naming whichever card is at the front
-      if (lead.index >= 0 && lead.fa > 0.04) {
-        if (lead.index !== captionFor) {
-          captionFor = lead.index;
-          captionName.textContent = cells[lead.index].dataset.title || '';
-          captionStack.textContent = cells[lead.index].dataset.stack || '';
-        }
-        caption.style.opacity = lead.fa.toFixed(3);
-      } else if (captionFor !== -1 || caption.style.opacity !== '0') {
-        caption.style.opacity = '0';
-        captionFor = -1;
+      if (debugBox) {
+        const pos = P * (n - 1);
+        debugBox.textContent =
+          'progress ' + P.toFixed(3) + '\nactive  ' + (Math.round(pos) + 1) + ' / ' + n +
+          '\n' + cells.map((c, i) => {
+            const s = getCardState(i, P);
+            return String(i + 1).padStart(2, '0') +
+              '  z ' + String(Math.round(s.z)).padStart(5) +
+              '  s ' + s.scale.toFixed(2) +
+              '  rY ' + s.rotateY.toFixed(1).padStart(6) +
+              '  a ' + s.opacity.toFixed(2);
+          }).join('\n');
       }
-    };;
+    };
 
-    // Only run the pinned showcase where the grid is genuinely multi-column.
-    // Below that the grid stacks, so N cards cannot fit a pinned viewport and a
-    // heavy 3D sequence is the wrong call on a phone anyway — those visitors
-    // get the plain, scrollable grid. matchMedia cleans up on resize for us.
-    gsap.matchMedia().add('(min-width: 901px)', () => {
-      grid.classList.add('is-armed');
-      section.classList.add('is-showcase');
-      measure();
-      render(0);
+    const mm = gsap.matchMedia();
+    TIERS.forEach((tier) => {
+      mm.add(tier.q, () => {
+        cfg = tier;
+        grid.classList.add('is-stack');
+        section.classList.add('is-showcase');
+        applyLayout();
+        render(0);
 
-      const trigger = ScrollTrigger.create({
-        trigger: section,
-        start: 'top top',
-        // One viewport to arrive, then time per card for its focus beat —
-        // capped so a long project list cannot turn this into endless pinned
-        // scrolling. The floor keeps the range sane if the viewport measures
-        // degenerately (a zero-height viewport would collapse it to nothing).
-        end: () => '+=' + Math.round(
-          Math.max(600, window.innerHeight) * (1.0 + Math.min(0.55 * n, 3.0))
-        ),
-        pin: true,
-        pinSpacing: true,
-        scrub: 0.9,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        onRefreshInit: measure,
-        onUpdate: (self) => render(self.progress),
-      });
+        if (DEBUG) {
+          debugBox = document.createElement('pre');
+          debugBox.className = 'work__debug';
+          section.appendChild(debugBox);
+        }
 
-      return () => {
-        trigger.kill();
-        grid.classList.remove('is-armed');
-        section.classList.remove('is-showcase');
-        grid.style.removeProperty('--cols');
-        grid.style.removeProperty('--card-h');
-        caption.style.opacity = '0';
-        cells.forEach((c) => {
-          c.style.transform = '';
-          c.style.opacity = '';
-          c.style.zIndex = '';
+        const trigger = ScrollTrigger.create({
+          trigger: section,
+          start: 'top top',
+          // Room to breathe: each card gets most of a viewport of scroll, so a
+          // transition is never crammed into a couple of hundred pixels.
+          end: () => '+=' + Math.round(
+            Math.max(600, window.innerHeight) * (0.5 + tier.scrollPerCard * n)
+          ),
+          pin: true,
+          pinSpacing: true,
+          scrub: 0.8,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onRefreshInit: applyLayout,
+          onUpdate: (self) => render(self.progress),
         });
-      };
+
+        return () => {
+          trigger.kill();
+          grid.classList.remove('is-stack');
+          section.classList.remove('is-showcase');
+          ['--persp', '--card-w', '--card-h', '--stage-h'].forEach((v) => grid.style.removeProperty(v));
+          if (debugBox) { debugBox.remove(); debugBox = null; }
+          cells.forEach((c) => {
+            c.style.transform = '';
+            c.style.opacity = '';
+            c.style.zIndex = '';
+            c.style.pointerEvents = '';
+            c.__tf = c.__op = c.__zi = c.__pe = undefined;
+          });
+        };
+      });
     });
 
-    // exposed so the choreography can be inspected and tuned
-    window.__showcase = { render, measure, cells, phases: { P_ARRIVE, P_ORBIT } };
+    window.__showcase = { render, getCardState, applyLayout, cells, cfg: () => cfg };
   })();
 
   // ===== Bee: wanders the contact section on a random hover path =====

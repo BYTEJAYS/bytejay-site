@@ -481,69 +481,62 @@ html:not(.js) .portrait-destination img{visibility:visible}
 .work__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
 .work__grid{margin-top:60px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;perspective:1500px}
 
-/* ===== Projects showcase: spin in, orbit, focus, settle =====
-   The cell owns the scroll-driven 3D transform; the card keeps its own
-   transform for the pointer tilt, so the two never fight over one property. */
-/* the card is an <a>; it used to be the grid item (and so blockified), but the
-   cell wrapper took that role — without this it collapses back to inline */
+/* ===== Projects showcase: cards moving through depth past a fixed camera =====
+   While armed, the grid stops being a grid and becomes a 3D stage: every card
+   is absolutely stacked at the centre and positioned purely by transform, so
+   the browser can depth-sort them and nothing triggers layout per frame. */
 .work__cell{transform-style:preserve-3d}
-.work__cell > .card{display:block}
-[data-spin-grid]{
-  perspective:1250px;perspective-origin:50% 45%;
-  transform-style:preserve-3d;                 /* depth-sort cards on the ring */
-}
-[data-spin-grid] .work__cell{will-change:transform,opacity;backface-visibility:hidden}
-/* the legacy drop-in entrance is replaced by the showcase, so neutralise it */
-.js [data-spin-grid] .card:not(.flip-in){opacity:1;transform:none}
-[data-spin-grid] .work__cell,
-[data-spin-grid] .card{transition-delay:0s!important}
-/* Hidden only once the script has actually armed the animation, so a missing
-   GSAP (or reduced motion) leaves the cards plainly visible instead of blank. */
-.js [data-spin-grid].is-armed .work__cell{opacity:0}
-/* pointer-events are set per card by the script: only whichever card is at
-   the front of the ring takes clicks */
-@media (prefers-reduced-motion:reduce){
-  .js [data-spin-grid] .work__cell{opacity:1!important;transform:none!important}
-}
+/* the card is an <a>; the cell wrapper is what gets laid out, so without this
+   the anchor falls back to display:inline and its box collapses */
+.work__cell > .card{display:block;width:100%;height:100%}
 
-/* the pinned section holds the stage centred for the whole sequence */
+[data-spin-grid].is-stack{
+  display:block;position:relative;
+  height:var(--stage-h,420px);
+  margin-top:clamp(20px,4vh,44px);
+  perspective:var(--persp,1200px);
+  perspective-origin:50% 50%;
+  transform-style:preserve-3d;
+}
+[data-spin-grid].is-stack .work__cell{
+  position:absolute;top:50%;left:50%;margin:0;
+  width:var(--card-w,420px);height:var(--card-h,525px);
+  will-change:transform,opacity;
+  backface-visibility:hidden;
+  transform-style:preserve-3d;
+}
+[data-spin-grid].is-stack .card{
+  aspect-ratio:auto;
+  /* one shadow, no blur filters: several of these move every frame */
+  box-shadow:0 30px 80px rgba(17,17,17,.16);
+}
+.project-card__image{width:100%;height:100%;object-fit:cover;display:block}
+.project-card__visual{background:#eeeae3}
+
+/* the pinned stage holds steady while the cards travel through it */
 .work.is-showcase{
   position:relative;
   min-height:100vh;display:flex;flex-direction:column;justify-content:center;
 }
-/* Column count and card height come from the script, so the cards keep a
-   proper card shape at any width instead of stretching into vertical straps. */
-.work.is-showcase .work__grid{
-  margin-top:clamp(24px,4vh,52px);
-  grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));
-}
-.work.is-showcase .card{aspect-ratio:auto;height:var(--card-h,300px)}
-.project-card__image{width:100%;height:100%;object-fit:cover;display:block}
-.project-card__visual{background:#eeeae3}
 
-/* The cards stay pure image throughout, as in the reference — the name of
-   whichever one is at the front is carried by the caption below. The card's
-   own title still exists in the markup for the no-JS and narrow fallbacks. */
-.work.is-showcase .project-card__info,
-.work.is-showcase .project-card__top{opacity:0}
-/* one shadow, no blur filters: eight of these move every frame */
-.work.is-showcase .project-card{box-shadow:0 18px 44px rgba(17,17,17,.16)}
+/* Hidden only once the script has armed the stage, so a missing GSAP (or
+   reduced motion) leaves the plain, readable grid in place instead of blank. */
+.js [data-spin-grid].is-stack .work__cell{opacity:0}
+.js [data-spin-grid] .card:not(.flip-in){opacity:1;transform:none}
+[data-spin-grid] .work__cell,
+[data-spin-grid] .card{transition-delay:0s!important}
+@media (prefers-reduced-motion:reduce){
+  .js [data-spin-grid] .work__cell{opacity:1!important;transform:none!important}
+}
 
-/* focus caption: the name of whichever project is currently at the front */
-.work__caption{
-  position:absolute;left:0;right:0;bottom:clamp(16px,4vh,46px);z-index:2;
-  display:flex;flex-direction:column;align-items:center;gap:9px;
-  text-align:center;pointer-events:none;opacity:0;
-}
-.work__caption b{
-  font-size:clamp(24px,3.2vw,42px);font-weight:800;letter-spacing:-.035em;
-  line-height:1;color:var(--ink);
-}
-.work__caption span{
+/* development-only readout: append ?debugCards=1 to the URL */
+.work__debug{
+  position:absolute;left:clamp(12px,3vw,32px);bottom:clamp(12px,3vh,28px);z-index:50;
+  margin:0;padding:10px 12px;border-radius:8px;pointer-events:none;
+  background:rgba(17,17,17,.86);color:#e9e6e0;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gray);
+  font-size:11px;line-height:1.45;white-space:pre;
 }
-@media (max-width:900px){.work__caption{display:none}}
 
 /* ===== Flip card (projects) ===== */
 .card{
