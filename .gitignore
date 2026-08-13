@@ -4,3 +4,6 @@ node_modules/
 .env
 .next/
 .vercel/
+tools/bee/_frames/
+assets/images/bee-sprite.png
+*.blend1

@@ -1783,6 +1783,105 @@ if (contactSection) {
     );
   });
 
+  // ===== Bee: wanders the contact section on a random hover path =====
+  const bee = document.querySelector('[data-bee]');
+  const beeHost = bee && bee.closest('.contact');
+  if (bee && beeHost && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const MARGIN = 26;
+    let bounds = { w: 0, h: 0 };
+    // current position, velocity and the point she is drifting toward
+    let x = 0, y = 0, vx = 0, vy = 0, tx = 0, ty = 0;
+    let lastT = 0, nextRetarget = 0, flying = false, started = false;
+
+    const rand = (min, max) => min + Math.random() * (max - min);
+
+    const measure = () => {
+      const r = beeHost.getBoundingClientRect();
+      bounds.w = Math.max(0, r.width - bee.offsetWidth - MARGIN * 2);
+      bounds.h = Math.max(0, r.height - bee.offsetHeight - MARGIN * 2);
+    };
+
+    const retarget = (now) => {
+      // bias the next target away from the current one so she actually travels
+      let nx, ny, tries = 0;
+      do {
+        nx = rand(0, bounds.w);
+        ny = rand(0, bounds.h);
+        tries += 1;
+      } while (tries < 6 && Math.hypot(nx - tx, ny - ty) < Math.min(bounds.w, bounds.h) * 0.35);
+      tx = nx; ty = ny;
+      nextRetarget = now + rand(2800, 5600);
+    };
+
+    const step = (now) => {
+      if (!flying) return;
+      const dt = Math.min(0.05, (now - lastT) / 1000 || 0.016);
+      lastT = now;
+
+      if (now > nextRetarget) retarget(now);
+
+      // Spring toward the target so the path curves instead of snapping, plus a
+      // little jitter for insect twitch. With the x += v * dt * 60 * SPEED
+      // scaling below, this behaves as a spring of natural frequency
+      // sqrt(21.6 * k) rad/s and damping ratio damp / (2 * that) — so k sets how
+      // quickly she crosses the section and damp sets how much she overshoots.
+      // Tuned to ~2.1 rad/s and ratio ~0.62: an unhurried drift that settles
+      // rather than darting.
+      const k = 0.2, damp = 2.6, SPEED = 0.6;
+      vx += ((tx - x) * k + rand(-6, 6)) * dt;
+      vy += ((ty - y) * k + rand(-6, 6)) * dt;
+      vx -= vx * damp * dt;
+      vy -= vy * damp * dt;
+      x += vx * dt * 60 * SPEED;
+      y += vy * dt * 60 * SPEED;
+
+      x = Math.max(0, Math.min(bounds.w, x));
+      y = Math.max(0, Math.min(bounds.h, y));
+
+      // face the direction of travel; bank slightly into the turn
+      if (Math.abs(vx) > 1.2) bee.style.setProperty('--bee-flip', vx < 0 ? -1 : 1);
+      const tilt = Math.max(-14, Math.min(14, vy * 0.7));
+      const bob = Math.sin(now / 520) * 2;
+
+      bee.style.transform =
+        `translate3d(${(MARGIN + x).toFixed(2)}px, ${(MARGIN + y + bob).toFixed(2)}px, 0) rotate(${tilt.toFixed(2)}deg)`;
+
+      requestAnimationFrame(step);
+    };
+
+    const start = () => {
+      if (started) return;
+      started = true;
+      measure();
+      x = rand(0, bounds.w); y = rand(0, bounds.h);
+      tx = x; ty = y;
+      bee.classList.add('is-flying');
+      flying = true;
+      lastT = performance.now();
+      retarget(lastT);
+      requestAnimationFrame(step);
+    };
+
+    // only fly while the section is on screen — no work when scrolled away
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          if (!started) { start(); return; }
+          if (!flying) { flying = true; lastT = performance.now(); requestAnimationFrame(step); }
+        } else {
+          flying = false;
+        }
+      });
+    }, { threshold: 0.08 });
+    io.observe(beeHost);
+
+    window.addEventListener('resize', () => {
+      measure();
+      x = Math.min(x, bounds.w); y = Math.min(y, bounds.h);
+      tx = Math.min(tx, bounds.w); ty = Math.min(ty, bounds.h);
+    });
+  }
+
   const statement = document.querySelector('.statement p');
   if (statement) {
     gsap.fromTo(statement,
