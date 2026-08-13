@@ -2129,3 +2129,66 @@ if (contactSection) {
   }
 
 })();
+
+// ===== Aaki: the dancing cat, stepped through her sprite grid =====
+// One dance cycle rendered to a 6x5 sheet (tools/aaki/render_aaki.py). Only
+// runs while the About section is on screen, so she costs nothing elsewhere.
+(function aakiDance() {
+  const aaki = document.querySelector('[data-aaki]');
+  const sprite = aaki && aaki.querySelector('.aaki__sprite');
+  const host = aaki && aaki.closest('section');
+  if (!aaki || !sprite || !host) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const COLS = 6;
+  const ROWS = 5;
+  const FRAMES = COLS * ROWS;
+  const FPS = 24;                       // her authored cycle is ~1s at 30fps
+  const STEP_MS = 1000 / FPS;
+
+  let frame = 0;
+  let last = 0;
+  let running = false;
+  let raf = 0;
+
+  const draw = () => {
+    const col = frame % COLS;
+    const row = Math.floor(frame / COLS);
+    // percentage positioning: frame i sits at i/(n-1) across each axis
+    sprite.style.backgroundPosition =
+      `${(col / (COLS - 1)) * 100}% ${(row / (ROWS - 1)) * 100}%`;
+  };
+
+  const tick = (now) => {
+    if (!running) return;
+    if (now - last >= STEP_MS) {
+      last = now - ((now - last) % STEP_MS);
+      frame = (frame + 1) % FRAMES;
+      draw();
+    }
+    raf = requestAnimationFrame(tick);
+  };
+
+  const start = () => {
+    if (running) return;
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(tick);
+  };
+  const stop = () => {
+    running = false;
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+  };
+
+  draw();
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => (entry.isIntersecting ? start() : stop()));
+  }, { threshold: 0.05 });
+  io.observe(host);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop();
+    else if (host.getBoundingClientRect().bottom > 0) start();
+  });
+})();

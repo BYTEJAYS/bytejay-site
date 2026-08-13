@@ -329,6 +329,31 @@ body.floater-github-visible .floater--github{transition-delay:.14s}
   align-items:end;padding:0 var(--hero-gutter) 20px;background:var(--cream);
 }
 .intro__col{position:relative;z-index:2}
+/* ===== Aaki =====
+   The dancing cat, rendered from her .blend to a 6x5 sprite grid
+   (tools/aaki/render_aaki.py) and stepped by script.js — one dance cycle of
+   30 frames. She sits under the statement, centred, as if reacting to it. */
+.aaki{
+  --aaki-cols:6;--aaki-rows:5;
+  width:clamp(120px,15vw,210px);
+  aspect-ratio:273/235;                 /* the sprite's tile ratio */
+  margin:clamp(18px,4vh,46px) auto 0;
+  pointer-events:none;user-select:none;
+}
+.aaki__sprite{
+  width:100%;height:100%;
+  background-image:url('assets/images/aaki-sprite.webp');
+  background-repeat:no-repeat;
+  /* 6 columns x 5 rows, so the sheet is 600% x 500% of one tile */
+  background-size:calc(100% * var(--aaki-cols)) calc(100% * var(--aaki-rows));
+  background-position:0% 0%;
+  filter:drop-shadow(0 12px 14px rgba(17,17,17,.14));
+}
+/* she holds a pose rather than dancing when motion is not wanted */
+@media (prefers-reduced-motion:reduce){
+  .aaki__sprite{background-position:40% 50%!important}
+}
+@media (max-width:600px){.aaki{width:clamp(96px,26vw,140px)}}
 .intro__col--lead{height:456px;padding-top:24px;display:flex;flex-direction:column;justify-content:space-between}
 .intro__col--lead h2{font-size:clamp(56px,5.2vw,76px);font-weight:600;line-height:1;letter-spacing:-.05em}
 .intro__col--lead p,.intro__col--body p:first-child{font-size:clamp(18px,1.55vw,22px);font-weight:600;line-height:1.32}
