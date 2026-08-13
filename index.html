@@ -81,7 +81,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Karla:wght@400;500;600;700;800&family=Londrina+Solid:wght@300;400;900&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-mono.jpeg" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-red.jpeg" type="image/jpeg" />
-  <link rel="stylesheet" href="styles.css?v=76" />
+  <link rel="stylesheet" href="styles.css?v=77" />
 </head>
 <body>
   <!-- grain overlay -->
@@ -210,7 +210,12 @@
 
     <!-- WHAT I DO -->
     <section class="services" id="services">
-      <h2 class="section-title" data-reveal-title>What I Do</h2>
+      <div class="services__head">
+        <h2 class="section-title" data-reveal-title>What I Do</h2>
+        <!-- Straw-hat duck, rendered from the .glb by tools/duck/render_duck.py -->
+        <img class="services__duck" src="assets/images/strawhat-duck.webp" alt=""
+             aria-hidden="true" width="602" height="986" loading="lazy" decoding="async" />
+      </div>
       <ul class="services__list">
         <li class="service" data-reveal>
           <span class="service__no">01</span>

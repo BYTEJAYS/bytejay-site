@@ -489,6 +489,16 @@ html:not(.js) .portrait-destination img{visibility:visible}
 
 /* ===== Services ===== */
 .services{max-width:var(--maxw);margin:0 auto;padding-top:clamp(60px,9vh,120px);padding-bottom:clamp(60px,9vh,120px)}
+/* ===== Straw-hat duck =====
+   Rendered from strawhat_duck.glb (tools/duck/render_duck.py) and stood next
+   to the heading, feet on the same baseline as the type. Decorative. */
+.services__head{display:flex;align-items:flex-end;gap:clamp(14px,2.6vw,38px)}
+.services__duck{
+  width:clamp(64px,7.5vw,116px);height:auto;flex:none;display:block;
+  pointer-events:none;user-select:none;
+  filter:drop-shadow(0 10px 12px rgba(17,17,17,.13));
+}
+@media (max-width:600px){.services__duck{width:clamp(52px,13vw,72px)}}
 .services__list{list-style:none;margin-top:60px;border-top:1px solid rgba(17,17,17,.12)}
 .service{
   display:grid;grid-template-columns:80px 1.2fr 2fr;gap:24px;align-items:baseline;
