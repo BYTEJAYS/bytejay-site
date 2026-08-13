@@ -284,7 +284,9 @@ body.floater-github-visible .floater--github{transition-delay:.14s}
   color:var(--ink);
   /* the lily sits inside the tag so it inherits the entrance animation and
      every existing responsive rule for this corner */
-  display:inline-flex;align-items:center;gap:clamp(1px,.2vw,4px);white-space:nowrap;
+  /* baseline, not centre: an image aligns by its bottom edge, which lands the
+     stem on the number's baseline instead of hanging it below */
+  display:inline-flex;align-items:baseline;gap:clamp(1px,.2vw,4px);white-space:nowrap;
 }
 /* Rendered from pink_lily.glb by tools/lily/render_lily.py. Decorative. */
 .hero__lily{
