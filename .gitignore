@@ -9,3 +9,11 @@ assets/images/bee-sprite.png
 *.blend1
 tools/aaki/_frames/
 assets/images/aaki-sprite.png
+
+# Local build output / snapshots — never meant to be committed.
+# A blanket `git add -A` once swept 2062 of these in by accident.
+.backups/
+.pnpm-store/
+drive-source/dist/
+drive-source/node_modules/
+folio-baseline/
