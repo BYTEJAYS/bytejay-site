@@ -1812,26 +1812,34 @@ if (contactSection) {
     if (!n) return;
 
     const DEBUG = /(\?|&)debugCards=1\b/.test(window.location.search);
+    // ?helix=0 is the flat fan, ?helix=1 the full spiral — for visual tuning
+    const HELIX_OVERRIDE = (() => {
+      const m = /(?:\?|&)helix=([0-9.]+)/.exec(window.location.search);
+      return m ? clamp(parseFloat(m[1]), 0, 1) : null;
+    })();
 
     // Tuned per breakpoint: depth and rotation are reduced on smaller screens,
     // where a strong perspective reads as distortion rather than depth.
     const TIERS = [
       {
         q: '(min-width: 1025px)', persp: 1200, cardW: 0.40, cardMax: 500,
-        zStep: 190, zExit: 520, rotMid: 13, rotExit: 24, xSway: 42, ySway: 24,
+        zStep: 190, zExit: 330, rotMid: 13, rotExit: 24, xSway: 42, ySway: 24,
         xStack: 78, yStack: 46, fan: 1.6,
+        helixR: 270, helixTurn: 30, helix: 0.75,
         scaleStep: 0.055, visible: 3.2, scrollPerCard: 0.78,
       },
       {
         q: '(min-width: 641px) and (max-width: 1024px)', persp: 1000, cardW: 0.54, cardMax: 420,
-        zStep: 150, zExit: 420, rotMid: 10, rotExit: 18, xSway: 30, ySway: 18,
+        zStep: 150, zExit: 270, rotMid: 10, rotExit: 18, xSway: 30, ySway: 18,
         xStack: 60, yStack: 36, fan: 1.4,
+        helixR: 205, helixTurn: 26, helix: 0.70,
         scaleStep: 0.05, visible: 2.8, scrollPerCard: 0.68,
       },
       {
         q: '(max-width: 640px)', persp: 900, cardW: 0.76, cardMax: 340,
-        zStep: 110, zExit: 300, rotMid: 6, rotExit: 12, xSway: 16, ySway: 12,
+        zStep: 110, zExit: 200, rotMid: 6, rotExit: 12, xSway: 16, ySway: 12,
         xStack: 30, yStack: 22, fan: 1.0,
+        helixR: 130, helixTurn: 19, helix: 0.55,
         scaleStep: 0.045, visible: 2.4, scrollPerCard: 0.58,
       },
     ];
@@ -1855,16 +1863,24 @@ if (contactSection) {
         // waiting behind the camera, drifting forward as its turn comes
         const b = bump(Math.min(d, 1));
         const dir = i % 2 ? 1 : -1;
-        // A persistent offset that grows with depth, so the deck is actually
-        // visible behind the active card rather than hidden directly under it,
-        // plus the bump that arcs a card through space as its turn arrives.
+        // Waiting cards are placed on a helix around the stack axis — the
+        // reference's arrangement — which unwinds to dead centre and square to
+        // the camera at d = 0. h blends between that spiral and a flat fan, so
+        // the two arrangements can be mixed rather than chosen between.
+        const h = HELIX_OVERRIDE === null ? cfg.helix : HELIX_OVERRIDE;
+        const theta = (cfg.helixTurn * d * Math.PI) / 180;
+        const helixX = cfg.helixR * Math.sin(theta);
+        // travelling round the axis also carries the card away from the camera
+        const helixZ = -cfg.helixR * (1 - Math.cos(theta));
         return {
-          x: cfg.xStack * d + cfg.xSway * b * dir,
+          x: (cfg.xStack * d) * (1 - h) + helixX * h + cfg.xSway * b * dir,
           y: cfg.yStack * d + cfg.ySway * b * 0.5,
-          z: -cfg.zStep * d,
+          z: -cfg.zStep * d + helixZ * h,
           rotateX: -3.2 * b,
-          rotateY: -cfg.rotMid * b * dir,
-          rotateZ: -cfg.fan * d - 1.6 * b * dir,
+          // on the helix a card turns to face along its own tangent, so it is
+          // edge-on by the time it is deep in the stack
+          rotateY: (-cfg.helixTurn * d) * h - cfg.rotMid * b * dir * (1 - h),
+          rotateZ: -cfg.fan * d * (1 - 0.5 * h) - 1.6 * b * dir,
           scale: Math.max(0.72, 1 - cfg.scaleStep * d),
           opacity: 1 - smooth(clamp01((d - cfg.visible) / 1.1)),
           zIndex: Math.round(600 - d * 12),
@@ -1874,16 +1890,16 @@ if (contactSection) {
       // Passed the camera: continues forward, turns away, fades out. k is
       // clamped so cards long gone settle at a fixed state — their transform
       // stops changing, so the redundant-write guard skips them entirely.
-      const k = Math.min(-d, 1.6);
+      const k = Math.min(-d, 1.1);
       return {
         x: cfg.xSway * 1.1 * k * (i % 2 ? 1 : -1),
-        y: -cfg.ySway * 1.4 * k,
+        y: -cfg.ySway * 3.2 * k,
         z: cfg.zExit * k,
         rotateX: 5 * k,
         rotateY: cfg.rotExit * k * (i % 2 ? 1 : -1),
         rotateZ: 2.4 * k * (i % 2 ? 1 : -1),
-        scale: 1 + 0.12 * k,
-        opacity: 1 - smooth(clamp01(k / 1.15)),
+        scale: 1 + 0.07 * k,
+        opacity: 1 - smooth(clamp01(k / 0.7)),
         zIndex: Math.round(600 + k * 40),
       };
     };
@@ -1937,6 +1953,7 @@ if (contactSection) {
               '  z ' + String(Math.round(s.z)).padStart(5) +
               '  s ' + s.scale.toFixed(2) +
               '  rY ' + s.rotateY.toFixed(1).padStart(6) +
+              '  x ' + String(Math.round(s.x)).padStart(5) +
               '  a ' + s.opacity.toFixed(2);
           }).join('\n');
       }
