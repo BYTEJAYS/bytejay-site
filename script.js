@@ -152,27 +152,6 @@ if (flipCards.length) {
   }
 }
 
-// ===== Testimonial paper pages: unfold down and settle at individual angles =====
-const testimonialPages = [...document.querySelectorAll('.testimonials__grid .quote')];
-if (testimonialPages.length) {
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduce) {
-    testimonialPages.forEach((page) => page.classList.add('paper-page-in', 'flip-in'));
-  } else {
-    const paperIO = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const index = testimonialPages.indexOf(entry.target);
-        window.setTimeout(() => {
-          entry.target.classList.add('paper-page-in', 'flip-in');
-        }, Math.max(0, index) * 115);
-        paperIO.unobserve(entry.target);
-      });
-    }, { threshold: 0.18, rootMargin: '0px 0px -10% 0px' });
-    testimonialPages.forEach((page) => paperIO.observe(page));
-  }
-}
-
 // ===== Particle project cards: restrained pointer depth + opposing visual drift =====
 if (
   !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
@@ -1759,8 +1738,6 @@ if (contactSection) {
 
   const contactTitle = document.querySelector('.contact__title');
   if (contactTitle) contactTitle.classList.add('in');
-  const testimonialsTitle = document.querySelector('.testimonials .section-title');
-  if (testimonialsTitle) testimonialsTitle.classList.add('in');
   const projectsTitle = document.querySelector('.work .section-title');
   if (projectsTitle) {
     projectsTitle.textContent = 'PROJECTS';
@@ -1788,7 +1765,6 @@ if (contactSection) {
     if (
       title.closest('.work') ||
       title.closest('.contact') ||
-      title.closest('.testimonials') ||
       title.closest('.services')
     ) return;
     gsap.fromTo(title,
