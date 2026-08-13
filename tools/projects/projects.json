@@ -1,0 +1,71 @@
+{
+  "_comment": "Showcase order for the Projects section. Regenerate the cards with tools/projects/build_cards.py after editing. Blurbs are taken from each repo's GitHub description or README - keep them factual. `visual` must be one of: graph, governance, growth, portfolio, brain.",
+  "_source": "github.com/BYTEJAYS - fetched 2026-08-13",
+  "projects": [
+    {
+      "repo": "TRANSACTION-GRAPH-ENGINE",
+      "title": "Transaction Graph Engine",
+      "blurb": "Real-time graph-based fraud detection",
+      "stack": "Python · TypeScript",
+      "visual": "graph",
+      "aria": "Animated transaction graph with particles travelling between connected accounts"
+    },
+    {
+      "repo": "PERSONAL-REALITY-LAYER",
+      "title": "Personal Reality Layer",
+      "blurb": "A second brain that reconstructs your reality",
+      "stack": "Python · Next.js",
+      "visual": "brain",
+      "aria": "Animated particle brain forming and reforming connections"
+    },
+    {
+      "repo": "ascension",
+      "title": "Ascension",
+      "blurb": "Life OS that turns habits and quests into XP",
+      "stack": "Next.js 14 · TypeScript",
+      "visual": "growth",
+      "aria": "Animated particles converging into a rising growth path"
+    },
+    {
+      "repo": "PROCTOR_APP",
+      "title": "Proctor",
+      "blurb": "AI-proctored exams with biometric verification",
+      "stack": "Python · WebRTC",
+      "visual": "governance",
+      "aria": "Animated requests flowing through three verification checkpoints"
+    },
+    {
+      "repo": "bling-blue-team",
+      "title": "BLING Blue Team",
+      "blurb": "Forensic fraud engine with XGBoost and SHAP",
+      "stack": "Python · FastAPI",
+      "visual": "governance",
+      "aria": "Animated cases moving through a three-tier detection pipeline"
+    },
+    {
+      "repo": "legacy",
+      "title": "Project Legacy",
+      "blurb": "A biography engine for a human life",
+      "stack": "Python · TypeScript",
+      "visual": "brain",
+      "aria": "Animated particles weaving a network of memories"
+    },
+    {
+      "repo": "constellation",
+      "title": "The Constellation",
+      "blurb": "A 3D galaxy hub uniting the whole stack",
+      "stack": "TypeScript",
+      "visual": "graph",
+      "aria": "Animated constellation of linked nodes drifting in space"
+    },
+    {
+      "repo": "HOSPITAL",
+      "title": "Hospital",
+      "blurb": "Hospital front end, HTML and Python",
+      "stack": "HTML · Python",
+      "visual": "portfolio",
+      "aria": "Animated layout blocks assembling into a page",
+      "_note": "the repo's Vercel homepage (hospital-mocha-eta.vercel.app) 404s, so this links to the repo instead"
+    }
+  ]
+}

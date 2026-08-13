@@ -133,7 +133,16 @@ document.querySelectorAll('[data-reveal], [data-reveal-title]').forEach((el, i) 
 });
 
 // ===== Project-card entrance: flip open + drop into place once =====
-const flipCards = [...document.querySelectorAll('.work__grid .card')];
+// Cards inside a spin grid are driven by the scroll-scrubbed tumble instead
+// (see projectCardTumble), so they opt out of this one and just go live.
+const spinGrid = document.querySelector('[data-spin-grid]');
+const flipCards = [...document.querySelectorAll('.work__grid .card')]
+  .filter((card) => !card.closest('[data-spin-grid]'));
+if (spinGrid) {
+  spinGrid.querySelectorAll('.card').forEach((card) => {
+    card.classList.add('flip-in', 'card--interactive');
+  });
+}
 if (flipCards.length) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) {
@@ -1782,6 +1791,198 @@ if (contactSection) {
       }
     );
   });
+
+  // ===== Projects: spin in, orbit, focus each project, settle into the grid =====
+  // Modelled on omnicomreputationgroup.fr, which drives its card choreography
+  // off a single 0->1 progress value: rotateX/rotateY ease from 45deg to 0 as
+  // the cards assemble, and a ring turns so each card faces the camera in turn.
+  // Theirs runs in WebGL; this is the same idea in CSS 3D, scrubbed by the
+  // ScrollTrigger already wired to Lenis above. Works with any number of cards.
+  (function projectShowcase() {
+    const grid = document.querySelector('[data-spin-grid]');
+    const section = grid && grid.closest('.work');
+    if (!grid || !section) return;
+
+    const cells = [...grid.querySelectorAll('.work__cell')];
+    const n = cells.length;
+    if (!n) return;
+
+    // Armed only now that GSAP is confirmed present, so a failed script load
+    // leaves the cards plainly visible instead of blank.
+    // (armed inside the matchMedia below, so narrow screens keep a plain grid)
+
+    const TILT = 45;          // starting rotateX / rotateY, as in the reference
+    const FOCUS_Z = 250;      // how far the focused card comes toward the viewer
+    const FOCUS_SCALE = 0.32;
+    const MID = (n - 1) / 2;
+    const STAGGER = 0.18;
+
+    // phase boundaries along the scrubbed progress
+    const P_ARRIVE = 0.18;    // tumble in from deep Z and assemble onto the ring
+    const P_ORBIT = 0.46;     // the ring turns a full revolution
+    const P_FOCUS = 0.90;     // each card takes the front in turn
+    // 0.90 -> 1.0 : unwind and settle into the real, clickable grid
+
+    const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+    const easeOut = (t) => 1 - Math.pow(1 - t, 3);                       // power3.out
+    const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const seg = (P, a, b) => clamp01((P - a) / (b - a));
+
+    let geo = [];
+    let radius = 420;
+
+    // Measure each cell's offset from the grid centre with transforms cleared,
+    // so the ring can be expressed as a displacement from its real grid slot.
+    // That keeps the settled state as plain layout: responsive and clickable.
+    const measure = () => {
+      const prev = cells.map((c) => c.style.transform);
+      cells.forEach((c) => { c.style.transform = 'none'; });
+      const gr = grid.getBoundingClientRect();
+      const cx = gr.left + gr.width / 2;
+      const cy = gr.top + gr.height / 2;
+      geo = cells.map((c) => {
+        const r = c.getBoundingClientRect();
+        return { dx: r.left + r.width / 2 - cx, dy: r.top + r.height / 2 - cy };
+      });
+      // Sized off the viewport, not the grid: a wide grid would otherwise throw
+      // the front cards past the screen edges instead of overlapping in depth.
+      radius = Math.max(230, Math.min(window.innerWidth * 0.30, 430));
+      // tell the CSS how many rows the settled grid needs, so the cards can be
+      // sized to fit the pinned viewport instead of overflowing it
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+      grid.style.setProperty('--rows', String(Math.max(1, Math.ceil(n / Math.max(1, cols)))));
+      cells.forEach((c, i) => { c.style.transform = prev[i] || ''; });
+    };
+
+    const render = (P) => {
+      const arrive = seg(P, 0, P_ARRIVE);
+      const orbit = seg(P, P_ARRIVE, P_ORBIT);
+      const focus = seg(P, P_ORBIT, P_FOCUS);
+      const settle = easeInOut(seg(P, P_FOCUS, 1));
+
+      // The ring keeps turning through the focus phase — one revolution to
+      // introduce the set, a second so each card passes the front in turn.
+      // Same direction throughout, so there is no visible change of heading.
+      const ringTurn = -(easeInOut(orbit) * 360 + focus * 360);
+      const ringWeight = 1 - settle;             // 1 = on the ring, 0 = in the grid
+      const focusing = (focus > 0 ? 1 : 0) * ringWeight;
+      const WINDOW = 360 / n;                    // how near the front earns focus
+
+      cells.forEach((cell, i) => {
+        const g = geo[i] || { dx: 0, dy: 0 };
+        const dir = i % 2 ? 1 : -1;
+        const off = i - MID;
+
+        // --- arrival: staggered tumble in from deep Z ---
+        const span = 1 + (n - 1) * STAGGER;
+        const aIn = easeOut(clamp01(arrive * span - i * STAGGER));
+        const a = 1 - aIn;                       // 1 at start, 0 once arrived
+
+        // Normalise to (-180, 180] first: scaling a raw 360 by a weight would
+        // land the card at the back of the ring instead of at the front.
+        let angFull = (((i / n) * 360 + ringTurn) % 360 + 360) % 360;
+        if (angFull > 180) angFull -= 360;
+
+        // --- focus: whichever card is nearest the front is the focused one,
+        // so the highlight always matches what the viewer is actually looking
+        // at, and hands over smoothly as the ring turns ---
+        let fa = Math.max(0, 1 - Math.abs(angFull) / WINDOW);
+        fa = fa * fa * (3 - 2 * fa) * focusing;         // smoothstep
+
+        // --- ring placement, unwinding to the grid slot as `settle` runs ---
+        // Note the two different weights: the pull to centre keeps its full
+        // strength while focused, but the ring angle and radius collapse, so a
+        // focused card lands dead centre facing the viewer rather than in its
+        // own grid slot.
+        const wCentre = ringWeight;
+        const wRing = ringWeight * (1 - fa);
+        const ang = angFull * wRing;
+        const rad = radius * wRing;
+        const ox = -g.dx * wCentre + off * 40 * a;
+        const oy = -g.dy * wCentre + (140 + Math.abs(off) * 30) * a;
+        const oz = FOCUS_Z * fa - (520 + Math.abs(off) * 120) * a;
+
+        const rx = TILT * dir * a;
+        const ry = TILT * -dir * a;
+        const rz = off * 14 * a;
+        // cards read larger while they are out on the ring, and larger still
+        // when one is in focus; both terms vanish by the time they settle
+        const scale = 1 + 0.14 * ringWeight * (1 - fa) + FOCUS_SCALE * fa;
+
+        // cards on the back of the ring recede; unfocused cards step back so
+        // whichever one is at the front reads clearly
+        const front = (Math.cos((ang * Math.PI) / 180) + 1) / 2;
+        const depthDim = 1 - 0.55 * (1 - front) * ringWeight;
+        const focusDim = 1 - 0.45 * (1 - fa) * focusing;
+        const opacity = aIn * depthDim * focusDim;
+
+        cell.style.opacity = opacity.toFixed(3);
+        cell.style.zIndex = String(100 + Math.round(front * 50 + fa * 100));
+        // rotateY(ang) translateZ(rad) puts the card on the ring facing
+        // outward, exactly like the reference's rotationY = -(angle + PI/2)
+        cell.style.transform =
+          `translate3d(${ox.toFixed(1)}px, ${oy.toFixed(1)}px, ${oz.toFixed(1)}px) ` +
+          `rotateY(${ang.toFixed(2)}deg) translateZ(${rad.toFixed(1)}px) ` +
+          `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) ` +
+          `rotateZ(${rz.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+      });
+
+      // The dark stage rises as the ring assembles and lifts again as the cards
+      // settle, so the section hands back to the cream page seamlessly on the
+      // way out into Let's talk.
+      const stageIn = easeInOut(clamp01(P / 0.14));
+      const stageOut = 1 - easeInOut(clamp01((P - 0.9) / 0.1));
+      section.style.setProperty('--stage', (stageIn * stageOut).toFixed(3));
+
+      // the cards only take clicks once they have settled into the grid
+      grid.classList.toggle('is-live', P > 0.985);
+    };
+
+    // Only run the pinned showcase where the grid is genuinely multi-column.
+    // Below that the grid stacks, so N cards cannot fit a pinned viewport and a
+    // heavy 3D sequence is the wrong call on a phone anyway — those visitors
+    // get the plain, scrollable grid. matchMedia cleans up on resize for us.
+    gsap.matchMedia().add('(min-width: 901px)', () => {
+      grid.classList.add('is-armed');
+      section.classList.add('is-showcase');
+      measure();
+      render(0);
+
+      const trigger = ScrollTrigger.create({
+        trigger: section,
+        start: 'top top',
+        // One viewport to arrive, then time per card for its focus beat —
+        // capped so a long project list cannot turn this into endless pinned
+        // scrolling. The floor keeps the range sane if the viewport measures
+        // degenerately (a zero-height viewport would collapse it to nothing).
+        end: () => '+=' + Math.round(
+          Math.max(600, window.innerHeight) * (1.0 + Math.min(0.55 * n, 3.0))
+        ),
+        pin: true,
+        pinSpacing: true,
+        scrub: 0.9,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onRefreshInit: measure,
+        onUpdate: (self) => render(self.progress),
+      });
+
+      return () => {
+        trigger.kill();
+        grid.classList.remove('is-armed', 'is-live');
+        section.classList.remove('is-showcase');
+        section.style.removeProperty('--stage');
+        cells.forEach((c) => {
+          c.style.transform = '';
+          c.style.opacity = '';
+          c.style.zIndex = '';
+        });
+      };
+    });
+
+    // exposed so the choreography can be inspected and tuned
+    window.__showcase = { render, measure, cells, phases: { P_ARRIVE, P_ORBIT, P_FOCUS } };
+  })();
 
   // ===== Bee: wanders the contact section on a random hover path =====
   const bee = document.querySelector('[data-bee]');

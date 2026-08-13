@@ -480,6 +480,74 @@ html:not(.js) .portrait-destination img{visibility:visible}
 .work{max-width:var(--maxw);margin:0 auto;padding-top:clamp(60px,9vh,120px);padding-bottom:clamp(60px,9vh,120px)}
 .work__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
 .work__grid{margin-top:60px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;perspective:1500px}
+
+/* ===== Projects showcase: spin in, orbit, focus, settle =====
+   The cell owns the scroll-driven 3D transform; the card keeps its own
+   transform for the pointer tilt, so the two never fight over one property. */
+.work__cell{transform-style:preserve-3d}
+[data-spin-grid]{
+  perspective:1250px;perspective-origin:50% 45%;
+  transform-style:preserve-3d;                 /* depth-sort cards on the ring */
+}
+[data-spin-grid] .work__cell{will-change:transform,opacity;backface-visibility:hidden}
+/* while the choreography is running the cards are moving targets, so they
+   only accept clicks once they have settled into the grid */
+[data-spin-grid].is-armed:not(.is-live) .work__cell{pointer-events:none}
+/* the pinned section holds the stage centred for the whole sequence */
+.work.is-showcase{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  --stage:0;                       /* 0 = cream page, 1 = dark stage */
+}
+/* Full-bleed dark stage, like the reference's cards floating on near-black.
+   Driven by the same scroll progress, so the page dims as the ring assembles
+   and lifts again as the cards settle back into the cream layout. */
+.work.is-showcase::before{
+  content:"";position:absolute;z-index:0;top:0;bottom:0;left:50%;
+  width:100vw;transform:translateX(-50%);
+  background:radial-gradient(120% 90% at 50% 42%,#1a1a1a 0%,#0c0c0c 62%,#080808 100%);
+  opacity:var(--stage);pointer-events:none;
+}
+.work.is-showcase .work__head,
+.work.is-showcase .work__grid{position:relative;z-index:1}
+/* type flips to light while the stage is dark */
+.work.is-showcase .section-title,
+.work.is-showcase .link-arrow{
+  color:color-mix(in srgb,var(--on-dark) calc(var(--stage) * 100%),var(--ink));
+}
+.work.is-showcase .link-arrow__box{
+  border-color:color-mix(in srgb,rgba(243,239,233,.5) calc(var(--stage) * 100%),rgba(17,17,17,.25));
+}
+/* cards read as bright objects on the dark stage: no hairline border, a much
+   deeper shadow for separation, and a softer glass caption */
+.work.is-showcase .project-card{
+  border-color:color-mix(in srgb,transparent calc(var(--stage) * 100%),rgba(17,17,17,.16));
+  box-shadow:0 calc(16px + 22px * var(--stage)) calc(40px + 46px * var(--stage))
+             rgba(0,0,0,calc(.1 + .4 * var(--stage)));
+}
+.work.is-showcase .project-card__info{
+  background:color-mix(in srgb,rgba(14,14,14,.66) calc(var(--stage) * 100%),#161616);
+  backdrop-filter:blur(10px);
+}
+.work.is-showcase .work__grid{margin-top:clamp(28px,4vh,60px)}
+/* Size the cards to the pinned viewport rather than a fixed 3:4, so a
+   multi-row grid still fits on screen when everything settles. --rows is set
+   by the script from the grid's real column count. */
+.work.is-showcase .card{
+  aspect-ratio:auto;
+  height:calc((70vh - (var(--rows,1) - 1) * 20px) / var(--rows,1));
+  min-height:180px;
+}
+/* the legacy drop-in entrance is replaced by the tumble, so neutralise it here */
+.js [data-spin-grid] .card:not(.flip-in){opacity:1;transform:none}
+.js [data-spin-grid] .card:not(.flip-in) .card__inner{transform:rotateX(180deg)}
+[data-spin-grid] .work__cell,
+[data-spin-grid] .card{transition-delay:0s!important}
+/* Hidden only once the script has actually armed the animation, so a missing
+   GSAP (or reduced motion) leaves the cards plainly visible instead of blank. */
+.js [data-spin-grid].is-armed .work__cell{opacity:0}
+@media (prefers-reduced-motion:reduce){
+  .js [data-spin-grid] .work__cell{opacity:1!important;transform:none!important}
+}
 /* ===== Flip card (projects) ===== */
 .card{
   aspect-ratio:3/4;border-radius:var(--radius-card);
