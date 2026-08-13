@@ -484,70 +484,67 @@ html:not(.js) .portrait-destination img{visibility:visible}
 /* ===== Projects showcase: spin in, orbit, focus, settle =====
    The cell owns the scroll-driven 3D transform; the card keeps its own
    transform for the pointer tilt, so the two never fight over one property. */
+/* the card is an <a>; it used to be the grid item (and so blockified), but the
+   cell wrapper took that role — without this it collapses back to inline */
 .work__cell{transform-style:preserve-3d}
+.work__cell > .card{display:block}
 [data-spin-grid]{
   perspective:1250px;perspective-origin:50% 45%;
   transform-style:preserve-3d;                 /* depth-sort cards on the ring */
 }
 [data-spin-grid] .work__cell{will-change:transform,opacity;backface-visibility:hidden}
-/* while the choreography is running the cards are moving targets, so they
-   only accept clicks once they have settled into the grid */
-[data-spin-grid].is-armed:not(.is-live) .work__cell{pointer-events:none}
-/* the pinned section holds the stage centred for the whole sequence */
-.work.is-showcase{
-  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
-  --stage:0;                       /* 0 = cream page, 1 = dark stage */
-}
-/* Full-bleed dark stage, like the reference's cards floating on near-black.
-   Driven by the same scroll progress, so the page dims as the ring assembles
-   and lifts again as the cards settle back into the cream layout. */
-.work.is-showcase::before{
-  content:"";position:absolute;z-index:0;top:0;bottom:0;left:50%;
-  width:100vw;transform:translateX(-50%);
-  background:radial-gradient(120% 90% at 50% 42%,#1a1a1a 0%,#0c0c0c 62%,#080808 100%);
-  opacity:var(--stage);pointer-events:none;
-}
-.work.is-showcase .work__head,
-.work.is-showcase .work__grid{position:relative;z-index:1}
-/* type flips to light while the stage is dark */
-.work.is-showcase .section-title,
-.work.is-showcase .link-arrow{
-  color:color-mix(in srgb,var(--on-dark) calc(var(--stage) * 100%),var(--ink));
-}
-.work.is-showcase .link-arrow__box{
-  border-color:color-mix(in srgb,rgba(243,239,233,.5) calc(var(--stage) * 100%),rgba(17,17,17,.25));
-}
-/* cards read as bright objects on the dark stage: no hairline border, a much
-   deeper shadow for separation, and a softer glass caption */
-.work.is-showcase .project-card{
-  border-color:color-mix(in srgb,transparent calc(var(--stage) * 100%),rgba(17,17,17,.16));
-  box-shadow:0 calc(16px + 22px * var(--stage)) calc(40px + 46px * var(--stage))
-             rgba(0,0,0,calc(.1 + .4 * var(--stage)));
-}
-.work.is-showcase .project-card__info{
-  background:color-mix(in srgb,rgba(14,14,14,.66) calc(var(--stage) * 100%),#161616);
-  backdrop-filter:blur(10px);
-}
-.work.is-showcase .work__grid{margin-top:clamp(28px,4vh,60px)}
-/* Size the cards to the pinned viewport rather than a fixed 3:4, so a
-   multi-row grid still fits on screen when everything settles. --rows is set
-   by the script from the grid's real column count. */
-.work.is-showcase .card{
-  aspect-ratio:auto;
-  height:calc((70vh - (var(--rows,1) - 1) * 20px) / var(--rows,1));
-  min-height:180px;
-}
-/* the legacy drop-in entrance is replaced by the tumble, so neutralise it here */
+/* the legacy drop-in entrance is replaced by the showcase, so neutralise it */
 .js [data-spin-grid] .card:not(.flip-in){opacity:1;transform:none}
-.js [data-spin-grid] .card:not(.flip-in) .card__inner{transform:rotateX(180deg)}
 [data-spin-grid] .work__cell,
 [data-spin-grid] .card{transition-delay:0s!important}
 /* Hidden only once the script has actually armed the animation, so a missing
    GSAP (or reduced motion) leaves the cards plainly visible instead of blank. */
 .js [data-spin-grid].is-armed .work__cell{opacity:0}
+/* while the choreography runs the cards are moving targets, so they only
+   accept clicks once they have settled into the grid */
+[data-spin-grid].is-armed:not(.is-live) .work__cell{pointer-events:none}
 @media (prefers-reduced-motion:reduce){
   .js [data-spin-grid] .work__cell{opacity:1!important;transform:none!important}
 }
+
+/* the pinned section holds the stage centred for the whole sequence */
+.work.is-showcase{
+  position:relative;
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  --settled:0;                     /* 0 = mid-animation, 1 = landed in the grid */
+}
+/* Column count and card height come from the script, so the cards keep a
+   proper card shape at any width instead of stretching into vertical straps. */
+.work.is-showcase .work__grid{
+  margin-top:clamp(24px,4vh,52px);
+  grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));
+}
+.work.is-showcase .card{aspect-ratio:auto;height:var(--card-h,300px)}
+.project-card__image{width:100%;height:100%;object-fit:cover;display:block}
+.project-card__visual{background:#eeeae3}
+
+/* During the sequence the cards are pure image, as in the reference. Their
+   name and tag fade in only once they settle into the grid — while a card is
+   at the front, its name is shown by the caption below instead. */
+.work.is-showcase .project-card__info,
+.work.is-showcase .project-card__top{opacity:var(--settled);transition:none}
+
+/* focus caption: the name of whichever project is currently at the front */
+.work__caption{
+  position:absolute;left:0;right:0;bottom:clamp(16px,4vh,46px);z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+  text-align:center;pointer-events:none;opacity:0;
+}
+.work__caption b{
+  font-size:clamp(24px,3.2vw,42px);font-weight:800;letter-spacing:-.035em;
+  line-height:1;color:var(--ink);
+}
+.work__caption span{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gray);
+}
+@media (max-width:900px){.work__caption{display:none}}
+
 /* ===== Flip card (projects) ===== */
 .card{
   aspect-ratio:3/4;border-radius:var(--radius-card);

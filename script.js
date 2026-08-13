@@ -1831,12 +1831,49 @@ if (contactSection) {
     let geo = [];
     let radius = 420;
 
+    // Caption that names whichever project is currently at the front, so the
+    // cards themselves can stay pure image while they are moving.
+    const caption = document.createElement('div');
+    caption.className = 'work__caption';
+    caption.setAttribute('aria-hidden', 'true');
+    caption.innerHTML = '<b></b><span></span>';
+    const captionName = caption.querySelector('b');
+    const captionStack = caption.querySelector('span');
+    section.appendChild(caption);
+    let captionFor = -1;
+
+    // Choose the column count that keeps cards closest to a proper card shape
+    // (4:5) inside the pinned viewport, rather than letting a fixed 4 columns
+    // squeeze them into vertical straps on narrower screens.
+    const GAP = 20;
+    const TARGET_ASPECT = 0.8;
+    const fitGrid = () => {
+      const availW = grid.clientWidth || grid.offsetWidth;
+      const availH = Math.max(320, window.innerHeight * 0.66);
+      if (!availW) return;
+      let best = { cols: Math.min(4, n), score: Infinity, h: 300 };
+      for (let cols = 1; cols <= Math.min(n, 4); cols += 1) {
+        const rows = Math.ceil(n / cols);
+        const cardW = (availW - GAP * (cols - 1)) / cols;
+        const cardH = (availH - GAP * (rows - 1)) / rows;
+        if (cardW <= 0 || cardH <= 0) continue;
+        // prefer the layout whose card shape is nearest 4:5, and penalise a
+        // ragged last row so eight cards pick 4x2 rather than 6+2
+        const leftover = (cols - (n % cols)) % cols;
+        const score = Math.abs(cardW / cardH - TARGET_ASPECT) + 0.35 * (leftover / cols);
+        if (score < best.score) best = { cols, score, h: cardH };
+      }
+      grid.style.setProperty('--cols', String(best.cols));
+      grid.style.setProperty('--card-h', Math.round(best.h) + 'px');
+    };
+
     // Measure each cell's offset from the grid centre with transforms cleared,
     // so the ring can be expressed as a displacement from its real grid slot.
     // That keeps the settled state as plain layout: responsive and clickable.
     const measure = () => {
       const prev = cells.map((c) => c.style.transform);
       cells.forEach((c) => { c.style.transform = 'none'; });
+      fitGrid();
       const gr = grid.getBoundingClientRect();
       const cx = gr.left + gr.width / 2;
       const cy = gr.top + gr.height / 2;
@@ -1847,10 +1884,6 @@ if (contactSection) {
       // Sized off the viewport, not the grid: a wide grid would otherwise throw
       // the front cards past the screen edges instead of overlapping in depth.
       radius = Math.max(230, Math.min(window.innerWidth * 0.30, 430));
-      // tell the CSS how many rows the settled grid needs, so the cards can be
-      // sized to fit the pinned viewport instead of overflowing it
-      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
-      grid.style.setProperty('--rows', String(Math.max(1, Math.ceil(n / Math.max(1, cols)))));
       cells.forEach((c, i) => { c.style.transform = prev[i] || ''; });
     };
 
@@ -1867,6 +1900,8 @@ if (contactSection) {
       const ringWeight = 1 - settle;             // 1 = on the ring, 0 = in the grid
       const focusing = (focus > 0 ? 1 : 0) * ringWeight;
       const WINDOW = 360 / n;                    // how near the front earns focus
+
+      const lead = { index: -1, fa: 0 };   // the card currently nearest the front
 
       cells.forEach((cell, i) => {
         const g = geo[i] || { dx: 0, dy: 0 };
@@ -1888,6 +1923,7 @@ if (contactSection) {
         // at, and hands over smoothly as the ring turns ---
         let fa = Math.max(0, 1 - Math.abs(angFull) / WINDOW);
         fa = fa * fa * (3 - 2 * fa) * focusing;         // smoothstep
+        if (fa > lead.fa) { lead.fa = fa; lead.index = i; }
 
         // --- ring placement, unwinding to the grid slot as `settle` runs ---
         // Note the two different weights: the pull to centre keeps its full
@@ -1927,12 +1963,24 @@ if (contactSection) {
           `rotateZ(${rz.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
       });
 
-      // The dark stage rises as the ring assembles and lifts again as the cards
-      // settle, so the section hands back to the cream page seamlessly on the
-      // way out into Let's talk.
-      const stageIn = easeInOut(clamp01(P / 0.14));
-      const stageOut = 1 - easeInOut(clamp01((P - 0.9) / 0.1));
-      section.style.setProperty('--stage', (stageIn * stageOut).toFixed(3));
+      // The cards carry no text while they move; their name and tag fade in
+      // only as they land in the grid.
+      section.style.setProperty('--settled', settle.toFixed(3));
+
+      // Caption naming whichever card is at the front, shown during the focus
+      // beat and faded out again as everything settles.
+      if (lead.index >= 0 && lead.fa > 0.04) {
+        if (lead.index !== captionFor) {
+          captionFor = lead.index;
+          const cell = cells[lead.index];
+          captionName.textContent = cell.dataset.title || '';
+          captionStack.textContent = cell.dataset.stack || '';
+        }
+        caption.style.opacity = (lead.fa * (1 - settle)).toFixed(3);
+      } else {
+        caption.style.opacity = '0';
+        captionFor = -1;
+      }
 
       // the cards only take clicks once they have settled into the grid
       grid.classList.toggle('is-live', P > 0.985);
@@ -1971,7 +2019,10 @@ if (contactSection) {
         trigger.kill();
         grid.classList.remove('is-armed', 'is-live');
         section.classList.remove('is-showcase');
-        section.style.removeProperty('--stage');
+        section.style.removeProperty('--settled');
+        grid.style.removeProperty('--cols');
+        grid.style.removeProperty('--card-h');
+        caption.style.opacity = '0';
         cells.forEach((c) => {
           c.style.transform = '';
           c.style.opacity = '';
