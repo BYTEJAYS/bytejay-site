@@ -106,15 +106,6 @@ document.documentElement.classList.add('js');
     document.head.appendChild(cycleStyles);
   }
 
-  const serviceTitles = [...document.querySelectorAll('.services .service h3')];
-  const agentsTitle = serviceTitles.find((title) => title.textContent.trim() === 'AI Agents Development');
-  if (agentsTitle) {
-    agentsTitle.textContent = 'DEVOPS';
-    const description = agentsTitle.nextElementSibling;
-    if (description) {
-      description.textContent = 'Dockerized services, CI/CD pipelines, Linux infrastructure, cloud deployments, observability, and reliable release workflows.';
-    }
-  }
 })();
 
 // ===== Scroll reveal (blur-in titles + fade-up elements) =====
