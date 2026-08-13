@@ -28,22 +28,18 @@ DEFAULT_IMAGE = "assets/images/projects/placeholder-{n:02d}.svg"
 CARD = """        <div class="work__cell" data-title="{title}" data-stack="{stack}">
           <a class="card project-card" href="{url}" target="_blank" rel="noopener" data-project-card>
             <div class="project-card__visual">
-              <img class="project-card__image" src="{image}" alt="{aria}" loading="lazy" decoding="async" width="880" height="1100" />
+              <img class="project-card__image" src="{image}" alt="" loading="lazy" decoding="async" width="880" height="1100" />
             </div>
             <div class="project-card__top">
-              <span class="project-card__tag">{stack}</span>
               <span class="project-card__number" aria-hidden="true">{number:02d}</span>
             </div>
             <div class="project-card__info">
-              <div>
-                <h3>{title}</h3>
-                <p>{blurb}</p>
-              </div>
+              <h3>{title}</h3>
               <span class="project-card__arrow" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
               </span>
             </div>
-            <span class="sr-only">{sr}</span>
+            <span class="sr-only">{title} — {blurb}. {stack}. {sr}</span>
           </a>
         </div>
 """

@@ -500,9 +500,8 @@ html:not(.js) .portrait-destination img{visibility:visible}
 /* Hidden only once the script has actually armed the animation, so a missing
    GSAP (or reduced motion) leaves the cards plainly visible instead of blank. */
 .js [data-spin-grid].is-armed .work__cell{opacity:0}
-/* while the choreography runs the cards are moving targets, so they only
-   accept clicks once they have settled into the grid */
-[data-spin-grid].is-armed:not(.is-live) .work__cell{pointer-events:none}
+/* pointer-events are set per card by the script: only whichever card is at
+   the front of the ring takes clicks */
 @media (prefers-reduced-motion:reduce){
   .js [data-spin-grid] .work__cell{opacity:1!important;transform:none!important}
 }
@@ -511,7 +510,6 @@ html:not(.js) .portrait-destination img{visibility:visible}
 .work.is-showcase{
   position:relative;
   min-height:100vh;display:flex;flex-direction:column;justify-content:center;
-  --settled:0;                     /* 0 = mid-animation, 1 = landed in the grid */
 }
 /* Column count and card height come from the script, so the cards keep a
    proper card shape at any width instead of stretching into vertical straps. */
@@ -523,11 +521,13 @@ html:not(.js) .portrait-destination img{visibility:visible}
 .project-card__image{width:100%;height:100%;object-fit:cover;display:block}
 .project-card__visual{background:#eeeae3}
 
-/* During the sequence the cards are pure image, as in the reference. Their
-   name and tag fade in only once they settle into the grid — while a card is
-   at the front, its name is shown by the caption below instead. */
+/* The cards stay pure image throughout, as in the reference — the name of
+   whichever one is at the front is carried by the caption below. The card's
+   own title still exists in the markup for the no-JS and narrow fallbacks. */
 .work.is-showcase .project-card__info,
-.work.is-showcase .project-card__top{opacity:var(--settled);transition:none}
+.work.is-showcase .project-card__top{opacity:0}
+/* one shadow, no blur filters: eight of these move every frame */
+.work.is-showcase .project-card{box-shadow:0 18px 44px rgba(17,17,17,.16)}
 
 /* focus caption: the name of whichever project is currently at the front */
 .work__caption{

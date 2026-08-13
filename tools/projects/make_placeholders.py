@@ -2,6 +2,9 @@
 """
 Generate neutral placeholder card images for the Projects showcase.
 
+No filters or turbulence: eight of these are 3D-transformed every frame, and
+an feTurbulence rasterises far too slowly to carry that.
+
 These are stand-ins only — swap the `image` field in projects.json for real
 artwork when it is ready, then re-run build_cards.py. Deliberately plain so
 nobody mistakes one for finished work.
@@ -30,18 +33,15 @@ SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBo
       <stop offset="0" stop-color="{a}"/>
       <stop offset="1" stop-color="{b}"/>
     </linearGradient>
-    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/>
-      <feColorMatrix type="saturate" values="0"/></filter>
   </defs>
   <rect width="{w}" height="{h}" fill="url(#g)"/>
-  <rect width="{w}" height="{h}" filter="url(#n)" opacity="0.12"/>
-  <g fill="none" stroke="#11111122" stroke-width="2">
+  <g fill="none" stroke="#11111118" stroke-width="2">
     <circle cx="{cx}" cy="{cy}" r="{r1}"/><circle cx="{cx}" cy="{cy}" r="{r2}"/>
   </g>
   <text x="{cx}" y="{ty}" text-anchor="middle" font-family="Archivo, system-ui, sans-serif"
-        font-size="{fs}" font-weight="800" fill="#11111126" letter-spacing="-2">{num}</text>
+        font-size="{fs}" font-weight="800" fill="#11111124" letter-spacing="-2">{num}</text>
   <text x="{cx}" y="{ly}" text-anchor="middle" font-family="Archivo, system-ui, sans-serif"
-        font-size="26" font-weight="700" fill="#1111113a" letter-spacing="6">PLACEHOLDER</text>
+        font-size="26" font-weight="700" fill="#11111138" letter-spacing="6">PLACEHOLDER</text>
 </svg>
 """
 

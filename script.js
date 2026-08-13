@@ -1816,12 +1816,13 @@ if (contactSection) {
     const FOCUS_SCALE = 0.32;
     const MID = (n - 1) / 2;
     const STAGGER = 0.18;
+    const SPAN = 1 + (n - 1) * STAGGER;   // total length of the staggered arrival
+    const WINDOW = 360 / n;               // how near the front earns focus
 
     // phase boundaries along the scrubbed progress
-    const P_ARRIVE = 0.18;    // tumble in from deep Z and assemble onto the ring
-    const P_ORBIT = 0.46;     // the ring turns a full revolution
-    const P_FOCUS = 0.90;     // each card takes the front in turn
-    // 0.90 -> 1.0 : unwind and settle into the real, clickable grid
+    const P_ARRIVE = 0.15;    // tumble in from deep Z and assemble onto the ring
+    const P_ORBIT = 0.34;     // the ring turns a full revolution to introduce the set
+    // 0.34 -> 1.0 : the ring keeps turning, each card taking the front in turn
 
     const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
     const easeOut = (t) => 1 - Math.pow(1 - t, 3);                       // power3.out
@@ -1890,101 +1891,77 @@ if (contactSection) {
     const render = (P) => {
       const arrive = seg(P, 0, P_ARRIVE);
       const orbit = seg(P, P_ARRIVE, P_ORBIT);
-      const focus = seg(P, P_ORBIT, P_FOCUS);
-      const settle = easeInOut(seg(P, P_FOCUS, 1));
+      const focus = seg(P, P_ORBIT, 1);
 
-      // The ring keeps turning through the focus phase — one revolution to
-      // introduce the set, a second so each card passes the front in turn.
-      // Same direction throughout, so there is no visible change of heading.
-      const ringTurn = -(easeInOut(orbit) * 360 + focus * 360);
-      const ringWeight = 1 - settle;             // 1 = on the ring, 0 = in the grid
-      const focusing = (focus > 0 ? 1 : 0) * ringWeight;
-      const WINDOW = 360 / n;                    // how near the front earns focus
+      // The ring never stops and never unwinds into a grid: one revolution to
+      // introduce the set, then it keeps turning while each card in turn is
+      // pulled to the front. Same direction throughout, as in the reference.
+      const ringTurn = -(easeInOut(orbit) * 360 + focus * 360 * ((n - 1) / n));
+      const focusing = focus > 0 ? 1 : 0;
+      const lead = { index: -1, fa: 0 };
 
-      const lead = { index: -1, fa: 0 };   // the card currently nearest the front
-
-      cells.forEach((cell, i) => {
+      for (let i = 0; i < n; i += 1) {
+        const cell = cells[i];
         const g = geo[i] || { dx: 0, dy: 0 };
         const dir = i % 2 ? 1 : -1;
         const off = i - MID;
 
         // --- arrival: staggered tumble in from deep Z ---
-        const span = 1 + (n - 1) * STAGGER;
-        const aIn = easeOut(clamp01(arrive * span - i * STAGGER));
-        const a = 1 - aIn;                       // 1 at start, 0 once arrived
+        const aIn = easeOut(clamp01(arrive * SPAN - i * STAGGER));
+        const a = 1 - aIn;
 
-        // Normalise to (-180, 180] first: scaling a raw 360 by a weight would
-        // land the card at the back of the ring instead of at the front.
-        let angFull = (((i / n) * 360 + ringTurn) % 360 + 360) % 360;
-        if (angFull > 180) angFull -= 360;
+        // normalise to (-180, 180] so "nearest the front" is meaningful
+        let ang = (((i / n) * 360 + ringTurn) % 360 + 360) % 360;
+        if (ang > 180) ang -= 360;
 
-        // --- focus: whichever card is nearest the front is the focused one,
-        // so the highlight always matches what the viewer is actually looking
-        // at, and hands over smoothly as the ring turns ---
-        let fa = Math.max(0, 1 - Math.abs(angFull) / WINDOW);
-        fa = fa * fa * (3 - 2 * fa) * focusing;         // smoothstep
+        // --- focus: whichever card is nearest the front is the focused one ---
+        let fa = Math.max(0, 1 - Math.abs(ang) / WINDOW);
+        fa = fa * fa * (3 - 2 * fa) * focusing;
         if (fa > lead.fa) { lead.fa = fa; lead.index = i; }
 
-        // --- ring placement, unwinding to the grid slot as `settle` runs ---
-        // Note the two different weights: the pull to centre keeps its full
-        // strength while focused, but the ring angle and radius collapse, so a
-        // focused card lands dead centre facing the viewer rather than in its
-        // own grid slot.
-        const wCentre = ringWeight;
-        const wRing = ringWeight * (1 - fa);
-        const ang = angFull * wRing;
-        const rad = radius * wRing;
-        const ox = -g.dx * wCentre + off * 40 * a;
-        const oy = -g.dy * wCentre + (140 + Math.abs(off) * 30) * a;
+        const ringAng = ang * (1 - fa);
+        const rad = radius * (1 - fa);
+        const ox = -g.dx + off * 40 * a;
+        const oy = -g.dy + (140 + Math.abs(off) * 30) * a;
         const oz = FOCUS_Z * fa - (520 + Math.abs(off) * 120) * a;
+        const scale = 1 + 0.14 * (1 - fa) + FOCUS_SCALE * fa;
 
-        const rx = TILT * dir * a;
-        const ry = TILT * -dir * a;
-        const rz = off * 14 * a;
-        // cards read larger while they are out on the ring, and larger still
-        // when one is in focus; both terms vanish by the time they settle
-        const scale = 1 + 0.14 * ringWeight * (1 - fa) + FOCUS_SCALE * fa;
+        // depth fade: cards round the back recede, and anything not in focus
+        // steps back so the front card reads
+        const front = (Math.cos((ringAng * Math.PI) / 180) + 1) / 2;
+        const opacity = aIn * (1 - 0.55 * (1 - front)) * (1 - 0.45 * (1 - fa) * focusing);
 
-        // cards on the back of the ring recede; unfocused cards step back so
-        // whichever one is at the front reads clearly
-        const front = (Math.cos((ang * Math.PI) / 180) + 1) / 2;
-        const depthDim = 1 - 0.55 * (1 - front) * ringWeight;
-        const focusDim = 1 - 0.45 * (1 - fa) * focusing;
-        const opacity = aIn * depthDim * focusDim;
+        const tf =
+          'translate3d(' + ox.toFixed(1) + 'px,' + oy.toFixed(1) + 'px,' + oz.toFixed(1) + 'px) ' +
+          'rotateY(' + ringAng.toFixed(2) + 'deg) translateZ(' + rad.toFixed(1) + 'px) ' +
+          'rotateX(' + (TILT * dir * a).toFixed(2) + 'deg) ' +
+          'rotateY(' + (TILT * -dir * a).toFixed(2) + 'deg) ' +
+          'rotateZ(' + (off * 14 * a).toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
 
-        cell.style.opacity = opacity.toFixed(3);
-        cell.style.zIndex = String(100 + Math.round(front * 50 + fa * 100));
-        // rotateY(ang) translateZ(rad) puts the card on the ring facing
-        // outward, exactly like the reference's rotationY = -(angle + PI/2)
-        cell.style.transform =
-          `translate3d(${ox.toFixed(1)}px, ${oy.toFixed(1)}px, ${oz.toFixed(1)}px) ` +
-          `rotateY(${ang.toFixed(2)}deg) translateZ(${rad.toFixed(1)}px) ` +
-          `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) ` +
-          `rotateZ(${rz.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-      });
+        // skip redundant style writes — they are the expensive part per frame
+        if (cell.__tf !== tf) { cell.style.transform = tf; cell.__tf = tf; }
+        const op = opacity.toFixed(3);
+        if (cell.__op !== op) { cell.style.opacity = op; cell.__op = op; }
+        const zi = String(100 + Math.round(front * 50 + fa * 100));
+        if (cell.__zi !== zi) { cell.style.zIndex = zi; cell.__zi = zi; }
+        // only the card at the front takes clicks
+        const pe = fa > 0.55 ? 'auto' : 'none';
+        if (cell.__pe !== pe) { cell.style.pointerEvents = pe; cell.__pe = pe; }
+      }
 
-      // The cards carry no text while they move; their name and tag fade in
-      // only as they land in the grid.
-      section.style.setProperty('--settled', settle.toFixed(3));
-
-      // Caption naming whichever card is at the front, shown during the focus
-      // beat and faded out again as everything settles.
+      // caption naming whichever card is at the front
       if (lead.index >= 0 && lead.fa > 0.04) {
         if (lead.index !== captionFor) {
           captionFor = lead.index;
-          const cell = cells[lead.index];
-          captionName.textContent = cell.dataset.title || '';
-          captionStack.textContent = cell.dataset.stack || '';
+          captionName.textContent = cells[lead.index].dataset.title || '';
+          captionStack.textContent = cells[lead.index].dataset.stack || '';
         }
-        caption.style.opacity = (lead.fa * (1 - settle)).toFixed(3);
-      } else {
+        caption.style.opacity = lead.fa.toFixed(3);
+      } else if (captionFor !== -1 || caption.style.opacity !== '0') {
         caption.style.opacity = '0';
         captionFor = -1;
       }
-
-      // the cards only take clicks once they have settled into the grid
-      grid.classList.toggle('is-live', P > 0.985);
-    };
+    };;
 
     // Only run the pinned showcase where the grid is genuinely multi-column.
     // Below that the grid stacks, so N cards cannot fit a pinned viewport and a
@@ -2017,9 +1994,8 @@ if (contactSection) {
 
       return () => {
         trigger.kill();
-        grid.classList.remove('is-armed', 'is-live');
+        grid.classList.remove('is-armed');
         section.classList.remove('is-showcase');
-        section.style.removeProperty('--settled');
         grid.style.removeProperty('--cols');
         grid.style.removeProperty('--card-h');
         caption.style.opacity = '0';
@@ -2032,7 +2008,7 @@ if (contactSection) {
     });
 
     // exposed so the choreography can be inspected and tuned
-    window.__showcase = { render, measure, cells, phases: { P_ARRIVE, P_ORBIT, P_FOCUS } };
+    window.__showcase = { render, measure, cells, phases: { P_ARRIVE, P_ORBIT } };
   })();
 
   // ===== Bee: wanders the contact section on a random hover path =====
