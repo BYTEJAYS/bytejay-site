@@ -623,20 +623,22 @@ html:not(.js) .portrait-destination img{visibility:visible}
 }
 .project-card__tag{padding:0 12px}
 .project-card__number{min-width:30px;justify-content:center;padding:0 8px}
+/* Sized for the project name alone — it used to carry a blurb underneath and
+   still had that block's min-height, which left a slab of black over the card. */
 .project-card__info{
-  position:absolute;left:10px;right:10px;bottom:10px;z-index:3;
-  min-height:116px;padding:19px 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
-  background:#111;color:#f7f5f0;border:1px solid rgba(255,255,255,.11);border-radius:18px;
-  box-shadow:0 16px 34px rgba(0,0,0,.2);transform:translate3d(0,0,24px);
+  position:absolute;left:12px;right:12px;bottom:12px;z-index:3;
+  padding:11px 12px 11px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:#111;color:#f7f5f0;border:1px solid rgba(255,255,255,.11);border-radius:14px;
+  box-shadow:0 12px 26px rgba(0,0,0,.18);transform:translate3d(0,0,24px);
   transition:transform .34s var(--ease),box-shadow .34s var(--ease);
 }
-.project-card__info h3{max-width:190px;font-size:clamp(18px,1.7vw,22px);font-weight:600;line-height:1.04;letter-spacing:-.025em}
+.project-card__info h3{max-width:none;font-size:clamp(14px,1.15vw,17px);font-weight:600;line-height:1.15;letter-spacing:-.02em}
 .project-card__info p{margin-top:7px;color:#a9a9a6;font-size:12px;line-height:1.35}
 .project-card__arrow{
-  width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex:none;
-  color:#111;background:#f7f5f0;border-radius:11px;transition:transform .3s var(--ease),background .2s ease;
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex:none;
+  color:#111;background:#f7f5f0;border-radius:9px;transition:transform .3s var(--ease),background .2s ease;
 }
-.project-card__arrow svg{width:19px;height:19px}
+.project-card__arrow svg{width:16px;height:16px}
 @media (hover:hover) and (pointer:fine){
   .project-card.card--interactive:hover{
     transform:translate3d(0,-8px,0) rotateX(var(--card-rx)) rotateY(var(--card-ry));
