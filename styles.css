@@ -522,10 +522,26 @@ html:not(.js) .portrait-destination img{visibility:visible}
   position:relative;overflow:visible;
   max-width:1000px;margin:0 auto;text-align:center;
   padding-top:clamp(60px,10vh,140px);padding-bottom:clamp(60px,10vh,140px);
+  /* Bough box, shared by the vignette and by the light the lantern casts, so
+     the glow can never drift away from the lamp it is supposed to come from. */
+  --bough-top:clamp(-40px,-4vh,-10px);
+  --bough-right:clamp(-150px,calc(590px - 50vw),-8px);
+  --bough-w:clamp(170px,21vw,270px);
+  /* Lantern body centre, measured inside that box: left 42px + half its 28px
+     width, and top 128px + the 24px cord + half its 38px height. */
+  --lantern-x:56px;
+  --lantern-y:171px;
+  /* Right edge of the light, pinned to the viewport edge (or the column edge
+     once the column fills the viewport). Anchoring the glow's box here rather
+     than centring it on the lamp is what keeps it from widening the page: a
+     circle centred that close to the edge always spills past it. */
+  --cast-right:min(0px,calc(590px - 50vw));
+  /* How far left of that edge the lamp actually sits. */
+  --lamp-inset:calc(var(--bough-right) + var(--bough-w) - var(--lantern-x) - var(--cast-right));
 }
 .sakura-vignette{
   position:absolute;
-  top:clamp(-40px,-4vh,-10px);
+  top:var(--bough-top);
   /* Anchored to .statement, which is a centred max-width column — so a positive
      offset parks the bough on top of the text instead of in the page corner.
      Pulling it negative moves it out into the empty margin beside the column,
@@ -536,14 +552,40 @@ html:not(.js) .portrait-destination img{visibility:visible}
      overshooting and getting its tip cropped. Capped at 150px so it stops
      drifting outward on very wide screens, and floored at -8px so it never
      creeps back over the text once the column fills the viewport. */
-  right:clamp(-150px,calc(590px - 50vw),-8px);
-  width:clamp(170px,21vw,270px);
+  right:var(--bough-right);
+  width:var(--bough-w);
   pointer-events:none;
   z-index:1;
   opacity:.92;
   transform-origin:top right;
   animation:sakura-breeze 6s ease-in-out infinite alternate;
 }
+/* Light thrown by the lantern onto the statement.
+   Anchored to the lamp via the shared vars and centred on it with a transform,
+   then blended into the words underneath. overlay is what sells it: against the
+   pale background it lifts toward warm, and against the grey type it warms and
+   brightens, so the words nearest the lamp read as lit rather than as having a
+   glow pasted over them. Sized generously because a background gradient is
+   clipped to its own box, so the falloff needs room to finish inside it. */
+.lantern-cast{
+  position:absolute;
+  top:calc(var(--bough-top) + var(--lantern-y));
+  right:var(--cast-right);
+  width:clamp(360px,46vw,640px);
+  aspect-ratio:1;
+  transform:translateY(-50%);
+  background:radial-gradient(circle at calc(100% - var(--lamp-inset)) 50%,
+    rgba(255,216,158,.78) 0%,
+    rgba(255,196,118,.50) 15%,
+    rgba(255,178,92,.26) 32%,
+    rgba(255,162,76,.11) 50%,
+    rgba(255,150,66,.04) 66%,
+    rgba(255,144,62,0) 80%);
+  mix-blend-mode:overlay;
+  pointer-events:none;
+  animation:lantern-cast 2.8s ease-in-out infinite alternate;
+}
+
 .sakura-bough{
   width:100%;height:auto;
   display:block;
@@ -680,12 +722,19 @@ html:not(.js) .portrait-destination img{visibility:visible}
   0%{transform:rotate(-3deg)}
   100%{transform:rotate(3.5deg)}
 }
+/* Same 2.8s period as lantern-glow, so the pool breathes with the lamp. */
+@keyframes lantern-cast{
+  0%{opacity:.72}
+  100%{opacity:1}
+}
 @keyframes lantern-glow{
   0%{box-shadow:0 0 16px 3px rgba(245,150,60,.38),0 0 28px 6px rgba(255,200,100,.18)}
   100%{box-shadow:0 0 24px 6px rgba(245,150,60,.55),0 0 45px 12px rgba(255,200,100,.35)}
 }
 @media(max-width:600px){
-  .sakura-vignette{opacity:.75;right:-14px;width:130px}
+  .statement{--bough-right:-14px;--bough-w:130px}
+  .sakura-vignette{opacity:.75}
+  .lantern-cast{width:clamp(260px,86vw,420px)}
 }
 
 .statement p{

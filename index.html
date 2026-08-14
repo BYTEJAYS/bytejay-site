@@ -81,7 +81,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Karla:wght@400;500;600;700;800&family=Londrina+Solid:wght@300;400;900&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-mono.jpeg" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-red.jpeg" type="image/jpeg" />
-  <link rel="stylesheet" href="styles.css?v=93" />
+  <link rel="stylesheet" href="styles.css?v=96" />
 </head>
 <body>
   <!-- Atmospheric cherry blossom petals drift (from Journey / Folio baseline) -->
@@ -245,6 +245,11 @@
       <p data-reveal-words>
         <b>I am so clever</b> that sometimes I don&rsquo;t understand a single word of what I am saying.
       </p>
+      <!-- The light the lantern casts onto the statement. It has to sit outside
+           .sakura-vignette and after the text: the vignette has opacity, z-index
+           and an animated transform, each of which isolates blending, so a glow
+           placed inside it could never blend with these words. -->
+      <div class="lantern-cast" aria-hidden="true"></div>
       <!-- Aaki, the dancing cat. Sprite sheet rendered from her .blend by
            tools/aaki/render_aaki.py; stepped by script.js. Decorative. -->
       <div class="aaki" data-aaki aria-hidden="true">
