@@ -97,6 +97,8 @@
       this.rings    = [];     // acoustic resonance ripples
       this.width    = 0;
       this.height   = 0;
+      this.cloudRX  = 1;
+      this.cloudRY  = 1;
       this.dpr      = 1;
       this.active   = false;
       this.pointer  = null;
@@ -137,25 +139,35 @@
     }
 
     _resize() {
-      const rect = this.canvas.getBoundingClientRect();
-      const w = Math.max(1, Math.round(rect.width));
-      const h = Math.max(1, Math.round(rect.height));
+      // offsetWidth/Height rather than getBoundingClientRect: the nav is scaled
+      // by the site entry animation, and a rect measured mid-animation sizes the
+      // backing store to a transient shrunken value that never gets corrected.
+      // Size is owned by CSS now, so nothing is written back to canvas.style.
+      const w = Math.max(1, this.canvas.offsetWidth);
+      const h = Math.max(1, this.canvas.offsetHeight);
       if (w === this.width && h === this.height && this.core.length) return;
       this.width = w; this.height = h;
       this.dpr = Math.min(window.devicePixelRatio || 1, 2);
       this.canvas.width  = Math.round(w * this.dpr);
       this.canvas.height = Math.round(h * this.dpr);
-      this.canvas.style.width  = w + 'px';
-      this.canvas.style.height = h + 'px';
       this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       this._build();
     }
 
     _build() {
       const cx = this.width / 2, cy = this.height / 2;
-      const rx = this.width / 2, ry = this.height / 2;
+      // The cloud fills only the nav's own footprint and sits in the middle of a
+      // far larger canvas. Everything outside it is deliberate headroom that
+      // particles can travel into, instead of being clipped the moment they
+      // leave the huddle.
+      const host = this.canvas.closest('[data-playground-nav]');
+      const cloudW = host && host.offsetWidth  ? host.offsetWidth  : this.width  * 0.36;
+      const cloudH = host && host.offsetHeight ? host.offsetHeight : this.height * 0.25;
+      const rx = cloudW / 2, ry = cloudH / 2;
+      this.cloudRX = rx;
+      this.cloudRY = ry;
       const now = performance.now();
-      const area = this.width * this.height;
+      const area = cloudW * cloudH;
       const mobile  = area < 900;
       const tablet  = area < 1500;
 
@@ -339,7 +351,7 @@
             x: cx + (Math.random() - 0.5) * 20,
             y: cy + (Math.random() - 0.5) * 16,
             radius: 4,
-            maxRadius: Math.min(this.width, this.height) * 0.65 * (0.6 + raw * 0.8),
+            maxRadius: Math.min(this.cloudRX * 2, this.cloudRY * 2) * 0.65 * (0.6 + raw * 0.8),
             opacity: 0.6 + raw * 0.4,
             speed: 0.8 + raw * 1.5,
             birth: now
@@ -393,7 +405,7 @@
           const dx = p.x - cx;
           const dy = p.y - cy;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const vortexForce = (level * 0.012 + beat * 0.02) * (1 - Math.min(dist / (this.width * 0.5), 1));
+          const vortexForce = (level * 0.012 + beat * 0.02) * (1 - Math.min(dist / this.cloudRX, 1));
           p.vx += -dy * vortexForce;
           p.vy +=  dx * vortexForce;
         }

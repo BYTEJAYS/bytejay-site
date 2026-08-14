@@ -120,13 +120,27 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 .playground-nav{
   position:fixed;top:20px;left:50%;transform:translateX(-50%);
   z-index:50;cursor:pointer;
+  /* Footprint of the cloud itself — this is the hover/click target and the
+     anchor the PLAY MUSIC cue positions against. The canvas below is much
+     larger than this and simply overflows it. */
+  width:160px;height:48px;
   transition:transform .4s var(--ease),opacity .35s ease;
 }
 .playground-nav:focus-visible{outline:2px solid var(--ink);outline-offset:6px;border-radius:8px}
 /* slides up out of view when scrolling down, same as the old nav */
 .playground-nav--hidden{transform:translateX(-50%) translateY(-170%);opacity:0;pointer-events:none}
 .sound-particles{
-  display:block;width:160px;height:48px;color:var(--ink);
+  /* The drawing surface is deliberately far bigger than the cloud drawn in it.
+     A canvas clips at its own edges, so when the surface was the same size as
+     the cloud every outward motion — audio scatter, pointer push, ring
+     shockwave, splash beads — was sliced off the instant it left the huddle.
+     The cloud spawns in the middle and all this extra area is room to move. */
+  display:block;
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:440px;height:190px;
+  pointer-events:none;   /* a big transparent surface must not swallow page clicks */
+  color:var(--ink);
 }
 .nav-sound-cue{
   position:absolute;
@@ -1118,7 +1132,8 @@ html:not(.js) .portrait-destination img{visibility:visible}
   .project-card{aspect-ratio:4/5}
   .project-card__info{min-height:108px}
   .project-card__info h3{max-width:none;font-size:22px}
-  .sound-particles{width:90px;height:32px}
+  .playground-nav{width:90px;height:32px}
+  .sound-particles{width:280px;height:140px}
   .floaters{display:none}
   .contact{gap:44px}
   .contact__lede{margin-top:26px}
