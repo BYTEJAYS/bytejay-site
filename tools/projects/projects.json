@@ -18,14 +18,7 @@
       "aria": "Animated particle brain forming and reforming connections",
       "image": "assets/images/projects/personal-reality-layer.webp"
     },
-    {
-      "repo": "ascension",
-      "title": "Ascension",
-      "blurb": "Life OS that turns habits and quests into XP",
-      "stack": "Next.js 14 \u00b7 TypeScript",
-      "aria": "Animated particles converging into a rising growth path",
-      "image": "assets/images/projects/ascension.webp"
-    },
+
     {
       "repo": "PROCTOR_APP",
       "title": "Proctor",
