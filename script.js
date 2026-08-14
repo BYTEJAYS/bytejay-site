@@ -79,23 +79,23 @@ document.documentElement.classList.add('js');
 // ===== Hero roles + services content =====
 (function expandEngineeringRoles() {
   const rotator = document.querySelector('.hero__title-rotator');
-  if (rotator && !rotator.querySelector('[data-role="devops"]')) {
+  if (rotator && !rotator.querySelector('[data-role="system"]')) {
     const item = document.createElement('span');
-    item.className = 'hero__title-item hero__title-item--devops';
-    item.dataset.role = 'devops';
+    item.className = 'hero__title-item hero__title-item--system';
+    item.dataset.role = 'system';
     item.setAttribute('aria-hidden', 'true');
-    item.innerHTML = '<span>DEVOPS</span><span>ENGINEER</span>';
+    item.innerHTML = '<span>SYSTEM</span><span>DESIGNER</span>';
     rotator.appendChild(item);
 
     const accessibleTitle = document.querySelector('.hero__title .sr-only');
-    if (accessibleTitle) accessibleTitle.textContent = 'Backend Engineer, AI Engineer and DevOps Engineer';
+    if (accessibleTitle) accessibleTitle.textContent = 'Backend Engineer, AI Engineer and System Designer';
 
     const cycleStyles = document.createElement('style');
     cycleStyles.textContent = `
       .hero__title-item{animation-name:hero-role-cycle-three;animation-duration:8.4s}
       .hero__title-item--backend{animation-delay:-.35s}
       .hero__title-item--ai{animation-delay:2.45s}
-      .hero__title-item--devops{animation-delay:5.25s}
+      .hero__title-item--system{animation-delay:5.25s}
       @keyframes hero-role-cycle-three{
         0%{opacity:0;transform:translate3d(0,.12em,0)}
         5%,28%{opacity:1;transform:translate3d(0,0,0)}
