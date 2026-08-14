@@ -109,96 +109,145 @@ html.site-entered .grain{
 section{position:relative;z-index:2;padding:0 var(--pad)}
 
 /* ===== Playground nav =====
-   Replaces the old pill nav entirely — no label, no background, no button,
-   just the live particle field itself (see assets/js/sound-particles.js).
-   The field doubles as the sound toggle: clicking/tapping it plays or
-   pauses the ambient track, and the track's live amplitude feeds back into
-   the particle motion (wiring in script.js). Same fixed top-center slot and
-   hide-on-scroll behaviour the old nav used, so the rest of the scroll
-   choreography (script.js's window.__setNavHidden) didn't need to change,
-   only which element it targets. */
+   Clean sound-button icon inspired by leoparpeix.com's soundButton.
+   Clicking/tapping toggles the ambient track; the 4 bars read live
+   frequency data when playing, idle wobble when paused.
+   Same fixed top-center slot and hide-on-scroll behaviour. */
 .playground-nav{
-  position:fixed;top:20px;left:50%;transform:translateX(-50%);
+  position:fixed;top:18px;left:50%;transform:translateX(-50%);
   z-index:50;cursor:pointer;
-  /* Footprint of the cloud itself — this is the hover/click target and the
-     anchor the PLAY MUSIC cue positions against. The canvas below is much
-     larger than this and simply overflows it. */
-  width:160px;height:48px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
   transition:transform .4s var(--ease),opacity .35s ease;
-}
-.playground-nav:focus-visible{outline:2px solid var(--ink);outline-offset:6px;border-radius:8px}
-/* slides up out of view when scrolling down, same as the old nav */
-.playground-nav--hidden{transform:translateX(-50%) translateY(-170%);opacity:0;pointer-events:none}
-.sound-particles{
-  /* The drawing surface is deliberately far bigger than the cloud drawn in it.
-     A canvas clips at its own edges, so when the surface was the same size as
-     the cloud every outward motion — audio scatter, pointer push, ring
-     shockwave, splash beads — was sliced off the instant it left the huddle.
-     The cloud spawns in the middle and all this extra area is room to move. */
-  display:block;
-  position:absolute;left:50%;top:50%;
-  transform:translate(-50%,-50%);
-  width:440px;height:190px;
-  pointer-events:none;   /* a big transparent surface must not swallow page clicks */
-  color:var(--ink);
-}
-.nav-sound-cue{
-  position:absolute;
-  left:calc(100% - 4px);
-  top:50%;
-  transform:translateY(-50%) rotate(-2deg);
-  display:flex;
-  align-items:center;
-  gap:6px;
-  pointer-events:none;
-  color:var(--gray);
-  font-family:'Karla',-apple-system,BlinkMacSystemFont,sans-serif;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  line-height:1;
-  white-space:nowrap;
-  opacity:.8;
-  visibility:visible;
-  transition:opacity .35s ease,transform .35s ease,color .25s ease,visibility .35s ease;
   user-select:none;
 }
-.nav-sound-cue__doodle{
-  display:block;
-  flex-shrink:0;
+.playground-nav:focus-visible{outline:2px solid var(--ink);outline-offset:4px;border-radius:14px}
+/* slides up out of view when scrolling down */
+.playground-nav--hidden{transform:translateX(-50%) translateY(-170%);opacity:0;pointer-events:none}
+
+.sound-btn__label{
+  font-family:'Karla',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  line-height:1;
   color:var(--gray);
-  transition:color .25s ease,transform .25s ease;
+  pointer-events:none;
+  transition:color .25s ease,transform .25s ease,opacity .25s ease;
+  white-space:nowrap;
 }
-.playground-nav:hover .nav-sound-cue{
+.playground-nav:hover .sound-btn__label{
+  color:var(--ink);
+  transform:translateY(1px);
+}
+.playground-nav.is-playing .sound-btn__label{
+  color:var(--ink-soft);
+  letter-spacing:.11em;
+}
+
+/* Sound-button icon: 54×54 rounded container holding 4 animated bars.
+   Dual-layer aura glow, ambient idle luminance, spring-bounce hover,
+   color-reactive breathing pulse when playing, satisfying press squish. */
+.sound-btn{
+  position:relative;
+  width:54px;height:54px;
+  border-radius:14px;
+  background:var(--cream-2);
+  display:flex;align-items:center;justify-content:center;
+  gap:4px;
+  flex-shrink:0;
+  box-shadow:
+    0 2px 12px rgba(0,0,0,.06),
+    0 0 0 1px rgba(0,0,0,.04);
+  transition:background .35s ease,transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .4s ease;
+}
+/* Outer ambient aura — faint warm presence even at rest */
+.sound-btn::before{
+  content:'';
+  position:absolute;inset:-8px;
+  border-radius:22px;
+  background:radial-gradient(circle,rgba(239,49,35,.04) 0%,transparent 65%);
   opacity:1;
-  color:var(--ink);
-  transform:translateY(-50%) rotate(-3deg) scale(1.03);
+  transition:opacity .4s ease,transform .4s ease;
+  pointer-events:none;
+  animation:sound-btn-idle-aura 4s ease-in-out infinite alternate;
 }
-.playground-nav:hover .nav-sound-cue__doodle{
-  color:var(--ink);
+@keyframes sound-btn-idle-aura{
+  0%{transform:scale(0.92);opacity:.5}
+  100%{transform:scale(1.08);opacity:1}
 }
-/* When playing, cue disappears; when music stops, it reappears */
-.playground-nav.is-playing .nav-sound-cue,
-.playground-nav[aria-pressed="true"] .nav-sound-cue{
+/* Inner hover bloom — warm halo intensifies on hover */
+.sound-btn::after{
+  content:'';
+  position:absolute;inset:-5px;
+  border-radius:19px;
+  background:radial-gradient(circle,rgba(239,49,35,.12) 0%,rgba(255,183,197,.06) 50%,transparent 75%);
   opacity:0;
-  visibility:hidden;
-  transform:translateY(-50%) translateX(8px) scale(.92);
+  transform:scale(.85);
+  transition:opacity .35s ease,transform .35s cubic-bezier(.34,1.56,.64,1);
   pointer-events:none;
 }
-@media(max-width:680px){
-  .nav-sound-cue{
-    left:50%;
-    top:calc(100% + 4px);
-    transform:translateX(-50%) rotate(0deg);
+.playground-nav:hover .sound-btn{
+  background:#ebe6df;
+  transform:scale(1.12);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,.1),
+    0 0 0 1px rgba(0,0,0,.06),
+    0 0 18px rgba(239,49,35,.06);
+}
+.playground-nav:hover .sound-btn::before{
+  opacity:1;
+  transform:scale(1.2);
+  animation:none;
+}
+.playground-nav:hover .sound-btn::after{
+  opacity:1;
+  transform:scale(1);
+}
+/* Press squish on click */
+.playground-nav:active .sound-btn{
+  transform:scale(.94);
+  transition-duration:.08s;
+}
+/* Playing state: warm background + breathing multi-ring aura */
+.playground-nav.is-playing .sound-btn{
+  background:#ebe6df;
+  animation:sound-btn-breathe 3s ease-in-out infinite;
+}
+.playground-nav.is-playing .sound-btn::before{
+  animation:sound-btn-aura-pulse 2.4s ease-in-out infinite alternate;
+}
+@keyframes sound-btn-breathe{
+  0%,100%{
+    box-shadow:
+      0 2px 12px rgba(0,0,0,.06),
+      0 0 0 1px rgba(0,0,0,.04),
+      0 0 0 0 rgba(239,49,35,.0);
   }
-  .playground-nav:hover .nav-sound-cue{
-    transform:translateX(-50%) rotate(0deg) scale(1.02);
+  50%{
+    box-shadow:
+      0 4px 20px rgba(0,0,0,.08),
+      0 0 0 1px rgba(0,0,0,.05),
+      0 0 0 8px rgba(239,49,35,.1);
   }
-  .playground-nav.is-playing .nav-sound-cue,
-  .playground-nav[aria-pressed="true"] .nav-sound-cue{
-    transform:translateX(-50%) translateY(4px) scale(.92);
-  }
+}
+@keyframes sound-btn-aura-pulse{
+  0%{transform:scale(.95);opacity:.6}
+  100%{transform:scale(1.25);opacity:1}
+}
+.sound-btn__bar{
+  display:block;
+  width:2.5px;height:20px;
+  border-radius:3px;
+  background:var(--ink);
+  transform:scaleY(.12);
+  transform-origin:center;
+  transition:background .4s ease;
+  will-change:transform;
+}
+/* When playing, bars get a warm tint */
+.playground-nav.is-playing .sound-btn__bar{
+  background:#2a2220;
 }
 
 
@@ -239,22 +288,13 @@ body.floater-github-visible .floater--github{transition-delay:.14s}
   position:relative;height:var(--journey-vh);min-height:620px;padding:0 var(--hero-gutter);
   background:var(--cream);overflow:hidden;
 }
-.hero-synapse{
-  position:absolute;inset:0;z-index:1;width:100%;height:100%;display:block;
-  opacity:0;pointer-events:none;will-change:opacity;
-  transition:opacity .28s ease;
-}
-.hero-synapse.is-active{opacity:.9}
 .hero__title{
   position:absolute;top:32.6%;left:var(--hero-gutter);right:var(--hero-gutter);z-index:2;
   height:1.76em;
   font-size:clamp(82px,12.35vw,178px);font-weight:800;line-height:.88;letter-spacing:-.047em;
-  color:var(--gray);text-align:center;white-space:nowrap;cursor:crosshair;touch-action:pan-y;
-  transition:color .28s ease;
+  color:var(--gray);text-align:center;white-space:nowrap;
+  user-select:none;
 }
-.hero-panel.synapse-active .hero__title{color:#5d5d5a}
-.hero__title:focus-visible{outline:1px solid rgba(17,17,17,.36);outline-offset:12px;border-radius:12px}
-.hero-panel.synapse-pointer-active .hero__title:focus-visible{outline:none}
 .hero__title-rotator{position:relative;display:block;width:100%;height:100%}
 .hero__title-item{
   position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
@@ -1191,8 +1231,8 @@ html:not(.js) .portrait-destination img{visibility:visible}
   .project-card{aspect-ratio:4/5}
   .project-card__info{min-height:108px}
   .project-card__info h3{max-width:none;font-size:22px}
-  .playground-nav{width:90px;height:32px}
-  .sound-particles{width:280px;height:140px}
+  .sound-btn{width:46px;height:46px;border-radius:12px}
+  .sound-btn__bar{height:17px;width:2.5px}
   .floaters{display:none}
   .contact{gap:44px}
   .contact__lede{margin-top:26px}
@@ -1288,7 +1328,6 @@ body{font-family:var(--studio-body)}
   .intro{height:auto;min-height:100svh}
   .hero__title-item{opacity:0!important;transform:none!important}
   .hero__title-item--backend{opacity:1!important}
-  .hero-synapse{will-change:auto}
   .project-card__canvas{will-change:auto}
 }
 

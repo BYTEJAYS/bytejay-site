@@ -194,286 +194,6 @@ if (
   });
 }
 
-// ===== Hero synapse: role-aware keyword field revealed by hover, focus, or touch =====
-(function heroSynapseField() {
-  const panel = document.querySelector('.hero-panel');
-  const trigger = document.querySelector('[data-synapse-trigger]');
-  const canvas = document.querySelector('[data-hero-synapse]');
-  const roleItems = [...document.querySelectorAll('.hero__title-item[data-role]')];
-  if (!panel || !trigger || !canvas || !roleItems.length) return;
-
-  const ctx = canvas.getContext('2d', { alpha: true });
-  if (!ctx) return;
-
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const roleWords = {
-    backend: ['apis', 'systems', 'python', 'fastapi', 'postgresql', 'redis', 'async', 'queues', 'security', 'scale', 'graphs', 'services', 'data', 'workers', 'testing', 'reliability', 'architecture', 'performance'],
-    ai: ['agents', 'models', 'pytorch', 'inference', 'memory', 'tools', 'reasoning', 'orchestration', 'embeddings', 'local ai', 'evaluation', 'vision', 'graphs', 'automation', 'context', 'learning', 'retrieval', 'intelligence']
-  };
-  const homes = [
-    [.07, .18], [.18, .1], [.31, .18], [.46, .09], [.62, .14], [.78, .1], [.91, .2],
-    [.93, .36], [.92, .55], [.88, .76], [.74, .84], [.6, .76], [.45, .84], [.3, .76],
-    [.15, .84], [.07, .66], [.07, .48], [.14, .32]
-  ];
-  const nodes = homes.map(([homeX, homeY], index) => {
-    const angle = index * 2.399 + .45;
-    const speed = .16 + index % 4 * .045;
-    return {
-      homeX,
-      homeY,
-      x: 0,
-      y: 0,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      baseVx: Math.cos(angle) * speed,
-      baseVy: Math.sin(angle) * speed,
-      word: ''
-    };
-  });
-
-  let width = 1;
-  let height = 1;
-  let titleBox = { left: 0, right: 1, top: 0, bottom: 1 };
-  let currentRole = 'backend';
-  let active = false;
-  let frame = 0;
-  let lastTime = 0;
-  let lastRoleCheck = 0;
-  let touchTimer = 0;
-  const pointer = { x: 0, y: 0, active: false };
-
-  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-  const setWords = (role) => {
-    currentRole = roleWords[role] ? role : 'backend';
-    const words = roleWords[currentRole];
-    nodes.forEach((node, index) => { node.word = words[index % words.length]; });
-  };
-  const detectRole = () => {
-    let winner = roleItems[0];
-    let highestOpacity = -1;
-    roleItems.forEach((item) => {
-      const opacity = Number.parseFloat(getComputedStyle(item).opacity) || 0;
-      if (opacity > highestOpacity) {
-        highestOpacity = opacity;
-        winner = item;
-      }
-    });
-    const role = winner.dataset.role || 'backend';
-    if (role !== currentRole) setWords(role);
-  };
-  const measureTitle = () => {
-    const panelRect = panel.getBoundingClientRect();
-    const titleRect = trigger.getBoundingClientRect();
-    titleBox = {
-      left: titleRect.left - panelRect.left,
-      right: titleRect.right - panelRect.left,
-      top: titleRect.top - panelRect.top,
-      bottom: titleRect.bottom - panelRect.top
-    };
-  };
-  const resize = () => {
-    const bounds = panel.getBoundingClientRect();
-    if (bounds.width < 1 || bounds.height < 1) return;
-    const previousWidth = width;
-    const previousHeight = height;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    width = Math.round(bounds.width);
-    height = Math.round(bounds.height);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.lineCap = 'round';
-    measureTitle();
-    nodes.forEach((node) => {
-      if (previousWidth <= 1 || previousHeight <= 1) {
-        node.x = node.homeX * width;
-        node.y = node.homeY * height;
-      } else {
-        node.x = node.x / previousWidth * width;
-        node.y = node.y / previousHeight * height;
-      }
-    });
-    draw(0, 1);
-  };
-
-  const nearestTitlePoint = (node) => {
-    const inset = width < 600 ? 8 : 20;
-    return {
-      x: clamp(node.x, titleBox.left + inset, titleBox.right - inset),
-      y: clamp(node.y, titleBox.top + inset, titleBox.bottom - inset)
-    };
-  };
-  const keepOutsideTitle = (node) => {
-    const padding = width < 600 ? 10 : 20;
-    const left = titleBox.left - padding;
-    const right = titleBox.right + padding;
-    const top = titleBox.top - padding;
-    const bottom = titleBox.bottom + padding;
-    if (node.x <= left || node.x >= right || node.y <= top || node.y >= bottom) return;
-
-    const distances = [node.x - left, right - node.x, node.y - top, bottom - node.y];
-    const nearest = distances.indexOf(Math.min(...distances));
-    if (nearest === 0) { node.x = left; node.vx = -Math.abs(node.vx) - .25; }
-    if (nearest === 1) { node.x = right; node.vx = Math.abs(node.vx) + .25; }
-    if (nearest === 2) { node.y = top; node.vy = -Math.abs(node.vy) - .25; }
-    if (nearest === 3) { node.y = bottom; node.vy = Math.abs(node.vy) + .25; }
-  };
-  const updateNode = (node, delta, time, textWidth) => {
-    if (pointer.active) {
-      const offsetX = node.x - pointer.x;
-      const offsetY = node.y - pointer.y;
-      const distance = Math.max(1, Math.hypot(offsetX, offsetY));
-      const radius = width < 600 ? 105 : 175;
-      if (distance < radius) {
-        const force = (1 - distance / radius) * (width < 600 ? .52 : .78) * delta;
-        node.vx += offsetX / distance * force;
-        node.vy += offsetY / distance * force;
-      }
-    }
-
-    node.vx += (node.baseVx - node.vx) * .008 * delta;
-    node.vy += (node.baseVy - node.vy) * .008 * delta;
-    node.vx += Math.sin(time * .00045 + node.homeX * 11) * .0024 * delta;
-    node.vy += Math.cos(time * .00038 + node.homeY * 13) * .0024 * delta;
-    const speed = Math.hypot(node.vx, node.vy);
-    const maximum = width < 600 ? 2.2 : 3.2;
-    if (speed > maximum) {
-      node.vx = node.vx / speed * maximum;
-      node.vy = node.vy / speed * maximum;
-    }
-    node.x += node.vx * delta;
-    node.y += node.vy * delta;
-
-    const horizontalPad = textWidth * .5 + 10;
-    const verticalPad = width < 600 ? 18 : 24;
-    if (node.x < horizontalPad) { node.x = horizontalPad; node.vx = Math.abs(node.vx); }
-    if (node.x > width - horizontalPad) { node.x = width - horizontalPad; node.vx = -Math.abs(node.vx); }
-    if (node.y < verticalPad) { node.y = verticalPad; node.vy = Math.abs(node.vy); }
-    if (node.y > height - verticalPad) { node.y = height - verticalPad; node.vy = -Math.abs(node.vy); }
-    keepOutsideTitle(node);
-  };
-
-  function draw(time, delta) {
-    ctx.clearRect(0, 0, width, height);
-    const fontSize = width < 600 ? 12 : width < 900 ? 15 : 18;
-    ctx.font = `italic 500 ${fontSize}px Newsreader, Georgia, serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    nodes.forEach((node) => {
-      const textWidth = ctx.measureText(node.word).width;
-      if (time > 0 && !reduceMotion) updateNode(node, delta, time, textWidth);
-      const target = nearestTitlePoint(node);
-      const gradient = ctx.createLinearGradient(node.x, node.y, target.x, target.y);
-      gradient.addColorStop(0, 'rgba(17,17,17,.28)');
-      gradient.addColorStop(1, 'rgba(17,17,17,.08)');
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth = width < 600 ? .65 : .85;
-      ctx.beginPath();
-      ctx.moveTo(node.x, node.y);
-      ctx.lineTo(target.x, target.y);
-      ctx.stroke();
-    });
-
-    nodes.forEach((node, index) => {
-      const pulse = .74 + Math.sin(time * .0016 + index * .7) * .14;
-      ctx.globalAlpha = pulse;
-      ctx.fillStyle = '#555552';
-      ctx.fillText(node.word, node.x, node.y);
-      ctx.globalAlpha = .42;
-      ctx.fillStyle = '#171717';
-      ctx.fillRect(node.x - 1.2, node.y + (width < 600 ? 9 : 12), 2.4, 2.4);
-      ctx.globalAlpha = 1;
-    });
-  }
-
-  const animate = (time) => {
-    frame = 0;
-    if (!active || document.hidden) return;
-    if (time - lastRoleCheck > 320) {
-      detectRole();
-      lastRoleCheck = time;
-    }
-    const delta = lastTime ? Math.min(2, (time - lastTime) / 16.667) : 1;
-    lastTime = time;
-    draw(time, delta);
-    frame = requestAnimationFrame(animate);
-  };
-  const startLoop = () => {
-    if (reduceMotion) {
-      draw(0, 1);
-      return;
-    }
-    if (!frame && active && !document.hidden) frame = requestAnimationFrame(animate);
-  };
-  const updatePointer = (event) => {
-    const bounds = panel.getBoundingClientRect();
-    pointer.x = event.clientX - bounds.left;
-    pointer.y = event.clientY - bounds.top;
-  };
-  const show = (event) => {
-    window.clearTimeout(touchTimer);
-    if (event) panel.classList.add('synapse-pointer-active');
-    detectRole();
-    measureTitle();
-    active = true;
-    pointer.active = Boolean(event && Number.isFinite(event.clientX));
-    if (pointer.active) updatePointer(event);
-    canvas.classList.add('is-active');
-    panel.classList.add('synapse-active');
-    lastTime = 0;
-    startLoop();
-  };
-  const hide = () => {
-    active = false;
-    pointer.active = false;
-    canvas.classList.remove('is-active');
-    panel.classList.remove('synapse-active');
-    panel.classList.remove('synapse-pointer-active');
-    if (frame) cancelAnimationFrame(frame);
-    frame = 0;
-  };
-  const hideAfterTouch = (delay = 1200) => {
-    window.clearTimeout(touchTimer);
-    touchTimer = window.setTimeout(hide, delay);
-  };
-
-  trigger.addEventListener('pointerenter', (event) => {
-    if (event.pointerType === 'mouse' || event.pointerType === 'pen') show(event);
-  });
-  trigger.addEventListener('pointermove', (event) => {
-    if (!active) return;
-    pointer.active = true;
-    updatePointer(event);
-  });
-  trigger.addEventListener('pointerleave', (event) => {
-    if (event.pointerType === 'mouse' || event.pointerType === 'pen') hide();
-  });
-  trigger.addEventListener('pointerdown', (event) => {
-    show(event);
-    if (event.pointerType === 'touch') hideAfterTouch(2600);
-  });
-  trigger.addEventListener('pointerup', (event) => {
-    if (event.pointerType === 'touch') hideAfterTouch(1400);
-  });
-  trigger.addEventListener('focus', () => show());
-  trigger.addEventListener('blur', hide);
-
-  const resizeObserver = new ResizeObserver(resize);
-  resizeObserver.observe(panel);
-  setWords(currentRole);
-  resize();
-  document.fonts?.load('italic 500 18px Newsreader').then(() => draw(0, 1));
-  document.addEventListener('visibilitychange', startLoop);
-  window.addEventListener('pagehide', (event) => {
-    if (event.persisted) return;
-    window.clearTimeout(touchTimer);
-    if (frame) cancelAnimationFrame(frame);
-    resizeObserver.disconnect();
-    document.removeEventListener('visibilitychange', startLoop);
-  });
-})();
-
 // ===== Project particles: one shared, visibility-aware canvas loop =====
 (function projectParticleVisuals() {
   const canvases = [...document.querySelectorAll('[data-particle-visual]')];
@@ -941,39 +661,100 @@ if (stmt) {
   }
 }
 
-// ===== Playground nav: particle field that doubles as the sound toggle =====
+// ===== Playground nav: equalizer-bar sound toggle =====
 (function playgroundNav() {
   const navEl = document.querySelector('[data-playground-nav]');
-  const canvas = document.querySelector('[data-sound-particles]');
+  const bars = [...document.querySelectorAll('[data-sound-bars] .sound-btn__bar')];
   if (!navEl) return;
 
-  // Hides the particle nav when scrolling past the hero section.
+  // Hides the nav when scrolling past the hero section.
   window.__setNavHidden = (hidden) => {
     navEl.classList.toggle('playground-nav--hidden', hidden);
   };
 
-  if (!canvas || typeof window.SoundParticles === 'undefined') return;
+  if (!bars.length) return;
 
-  // ---- audio: gesture-gated, feeds the particle field a live amplitude ----
+  // ---- audio: gesture-gated, feeds each bar its own slice of frequency data ----
   const audioEl = document.querySelector('[data-ambient-audio]');
   let analyser = null;
   let freqData = null;
   let audioSource = null;
   let audioCtx = null;
+  let hovering = false;
 
-  const getAudioLevel = () => {
-    if (!analyser || !audioEl || audioEl.paused) return 0;
-    analyser.getByteFrequencyData(freqData);
-    let sum = 0;
-    for (let i = 0; i < freqData.length; i++) sum += freqData[i];
-    return Math.min(1, (sum / freqData.length) / 255 * 1.6); // headroom: rarely hits 1
+  // Spread the bars across roughly the bottom two-thirds of the spectrum —
+  // the top third of a 32-bin FFT is mostly silence for music — so each bar
+  // reads as its own instrument register rather than a repeat of the last.
+  const binForBar = (i, total, binCount) => {
+    const span = Math.floor(binCount * 0.62);
+    return 1 + Math.round((i / (total - 1)) * (span - 1));
   };
 
-  const particles = new window.SoundParticles(canvas, { getAudioLevel, seed: 42 });
-  navEl.addEventListener('pointerenter', () => particles.setActive(true));
-  navEl.addEventListener('pointerleave', () => particles.setActive(false));
+  let raf = 0;
+  const restingHeight = 0.12;
+  const barVal = bars.map(() => restingHeight);
+  const barVel = bars.map(() => 0); // velocity for spring physics
+  // Per-bar phase offsets for organic, staggered idle motion
+  const phaseOff = [0, 2.1, 0.7, 3.2];
+  // Per-bar peak heights for hover dance stagger
+  const hoverPeaks = [0.65, 0.85, 0.72, 0.92];
+  let hoverTime = 0; // tracks how long hover has been active
 
-  const cueLabel = navEl.querySelector('[data-sound-cue-label]');
+  function tick(now) {
+    raf = requestAnimationFrame(tick);
+    const playing = audioEl && !audioEl.paused;
+
+    if (playing && analyser) {
+      analyser.getByteFrequencyData(freqData);
+    }
+
+    // Track hover duration for progressive dance buildup
+    if (hovering) hoverTime = Math.min(hoverTime + 16, 800);
+    else hoverTime = Math.max(hoverTime - 32, 0);
+    const hoverIntensity = hoverTime / 800; // 0..1 ramp
+
+    for (let i = 0; i < bars.length; i++) {
+      let target = restingHeight;
+
+      if (playing && analyser) {
+        const bin = binForBar(i, bars.length, freqData.length);
+        // Wider range with slight overshoot for punchy feel
+        target = Math.max(restingHeight, Math.min(1.05, (freqData[bin] / 255) * 1.8));
+      } else {
+        // Triple-sine idle wobble with breathing amplitude envelope
+        const breathe = 0.85 + Math.sin(now * 0.0005) * 0.15;
+        const s1 = Math.sin(now * 0.002   + phaseOff[i]) * 0.5 + 0.5;
+        const s2 = Math.sin(now * 0.0011  + phaseOff[i] * 2.3) * 0.5 + 0.5;
+        const s3 = Math.sin(now * 0.00055 + phaseOff[i] * 0.7) * 0.5 + 0.5;
+        target = restingHeight + (s1 * 0.5 + s2 * 0.3 + s3 * 0.2) * 0.25 * breathe;
+      }
+
+      // Hover dance: bars progressively build to staggered peaks
+      if (hoverIntensity > 0.01) {
+        const hoverWave = Math.sin(now * 0.004 + phaseOff[i] * 1.5) * 0.5 + 0.5;
+        const hoverTarget = hoverPeaks[i] * hoverWave * hoverIntensity;
+        target = Math.max(target, restingHeight + hoverTarget);
+      }
+
+      // Spring physics: snappy attack, elastic overshoot, smooth decay
+      const diff = target - barVal[i];
+      const springK = diff > 0 ? 0.18 : 0.08;
+      const damping = 0.72;
+      barVel[i] = barVel[i] * damping + diff * springK;
+      barVal[i] = Math.max(0, Math.min(1.05, barVal[i] + barVel[i]));
+
+      // Dynamic border-radius: bars get rounder on peaks
+      const roundness = 3 + barVal[i] * 2;
+      bars[i].style.transform = `scaleY(${barVal[i].toFixed(3)})`;
+      bars[i].style.borderRadius = `${roundness.toFixed(1)}px`;
+    }
+  }
+  raf = requestAnimationFrame(tick);
+
+  navEl.addEventListener('pointerenter', () => { hovering = true; });
+  navEl.addEventListener('pointerleave', () => { hovering = false; });
+
+  const labelEl = navEl.querySelector('[data-sound-label]');
 
   if (audioEl) {
     const toggleSound = async () => {
@@ -983,6 +764,7 @@ if (stmt) {
         navEl.setAttribute('aria-pressed', 'false');
         navEl.setAttribute('aria-label', 'Play ambient sound');
         navEl.classList.remove('is-playing');
+        if (labelEl) labelEl.textContent = 'play music';
         return;
       }
       try {
@@ -1002,6 +784,7 @@ if (stmt) {
         navEl.setAttribute('aria-pressed', 'true');
         navEl.setAttribute('aria-label', 'Pause ambient sound');
         navEl.classList.add('is-playing');
+        if (labelEl) labelEl.textContent = 'pause';
       } catch {
         // Autoplay/decoding can fail silently on some browsers — leave the
         // toggle in its off state rather than claim sound is playing.
