@@ -452,6 +452,91 @@ body.floater-github-visible .floater--github{transition-delay:.14s}
 .lamp.is-lit .lamp__hint{color:rgba(255,216,174,.9);opacity:.9}
 html:not(.js) .lamp{display:none}      /* no JS: no cord, copy stays plainly readable */
 @media (prefers-reduced-motion:reduce){ .lamp__bead-dot{transition:none} }
+
+/* ===== Jukebox Floating Music Notes ===== */
+.floating-music-note{
+  position:fixed;
+  pointer-events:none;
+  user-select:none;
+  z-index:99;
+  font-family:"Newsreader",serif;
+  font-size:clamp(16px,2vw,22px);
+  color:#ff4d24;
+  text-shadow:0 0 10px rgba(255,77,36,.6),0 0 20px rgba(255,183,197,.8);
+  opacity:0;
+  transform:translate3d(0,0,0) rotate(0deg);
+  animation:float-music-note 2.4s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes float-music-note{
+  0%{
+    opacity:0;
+    transform:translate3d(0,0,0) scale(0.6) rotate(0deg);
+  }
+  20%{
+    opacity:1;
+    transform:translate3d(calc(var(--drift-x) * 0.3), -28px, 0) scale(1.1) rotate(var(--rot));
+  }
+  80%{
+    opacity:0.85;
+  }
+  100%{
+    opacity:0;
+    transform:translate3d(var(--drift-x), -90px, 0) scale(0.8) rotate(calc(var(--rot) * 1.8));
+  }
+}
+
+/* ===== Whisper Motes (About Lamp) ===== */
+.whisper-cluster{
+  position:absolute;
+  left:50%;top:110px;
+  transform:translate(-50%,-50%);
+  width:120px;height:120px;
+  pointer-events:none;
+  z-index:3;
+}
+.whisper-mote{
+  position:absolute;
+  left:50%;top:50%;
+  width:8px;height:8px;
+  margin:-4px 0 0 -4px;
+  border-radius:50%;
+  background:radial-gradient(circle,#fff5d6 20%,#ffaa44 70%,transparent 100%);
+  box-shadow:0 0 12px 3px rgba(255,170,68,.6),0 0 24px 6px rgba(255,210,120,.3);
+  animation:whisper-orbit var(--duration) ease-in-out infinite alternate var(--delay);
+}
+.whisper-cluster.is-scattered .whisper-mote{
+  transform:scale(2.4) translate(calc(var(--radius) * 1.8), calc(var(--radius) * -1.2));
+  opacity:0;
+  transition:transform 0.8s ease-out, opacity 0.8s ease-out;
+}
+@keyframes whisper-orbit{
+  0%{transform:rotate(0deg) translateX(var(--radius)) rotate(0deg) scale(0.8);opacity:0.4}
+  50%{opacity:0.95;transform:rotate(180deg) translateX(calc(var(--radius) * 1.2)) rotate(-180deg) scale(1.2)}
+  100%{transform:rotate(360deg) translateX(var(--radius)) rotate(-360deg) scale(0.8);opacity:0.4}
+}
+
+/* ===== Twilight Garden Vignette (Contact Section) ===== */
+.twilight-vignette{
+  position:absolute;
+  bottom:24px;
+  left:clamp(16px,4vw,64px);
+  width:clamp(130px,18vw,180px);
+  pointer-events:none;
+  z-index:2;
+  opacity:.85;
+}
+.garden-bench{
+  width:100%;height:auto;
+  display:block;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.35));
+}
+.stone-lantern-glow{
+  animation:stone-lantern-breathe 3.2s ease-in-out infinite alternate;
+}
+@keyframes stone-lantern-breathe{
+  0%{fill:#ffe099;opacity:0.6;filter:drop-shadow(0 0 3px rgba(255,200,100,.4))}
+  100%{fill:#fff0c2;opacity:0.98;filter:drop-shadow(0 0 9px rgba(255,200,100,.9))}
+}
 .portrait-destination{
   width:100%;aspect-ratio:400/456;border-radius:20px;overflow:hidden;background:#851818;
 }
