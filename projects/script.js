@@ -21,7 +21,7 @@ const projects = {
     title: 'Transaction Graph Engine',
     eyebrow: 'NOW PLAYING · REPOSITORY 03',
     description: 'A graph-native fraud detection engine that follows money across connected accounts, exposes suspicious communities, and helps investigators understand why a transaction was flagged.',
-    image: '../assets/images/project-transaction-graph-doodle-v1.webp',
+    image: '../assets/images/tgie.webp',
     url: 'https://github.com/BYTEJAYS/TRANSACTION-GRAPH-ENGINE',
     color: '#1ed760',
     tools: 'Python · NetworkX',
