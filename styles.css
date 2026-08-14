@@ -291,7 +291,7 @@ body.floater-github-visible .floater--github{transition-delay:.14s}
   width:clamp(34px,3.8vw,62px);height:auto;flex:none;display:block;
   /* the outer petal fades out well before the crop edge, so a small negative
      margin is what actually closes the visual gap to the number */
-  margin-left:clamp(-6px,-.45vw,-3px);
+  margin-left:clamp(-2px,-.12vw,-.6px);
   pointer-events:none;user-select:none;
 }
 
