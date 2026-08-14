@@ -485,35 +485,7 @@ html:not(.js) .lamp{display:none}      /* no JS: no cord, copy stays plainly rea
   }
 }
 
-/* ===== Whisper Motes (About Lamp) ===== */
-.whisper-cluster{
-  position:absolute;
-  left:50%;top:110px;
-  transform:translate(-50%,-50%);
-  width:120px;height:120px;
-  pointer-events:none;
-  z-index:3;
-}
-.whisper-mote{
-  position:absolute;
-  left:50%;top:50%;
-  width:8px;height:8px;
-  margin:-4px 0 0 -4px;
-  border-radius:50%;
-  background:radial-gradient(circle,#fff5d6 20%,#ffaa44 70%,transparent 100%);
-  box-shadow:0 0 12px 3px rgba(255,170,68,.6),0 0 24px 6px rgba(255,210,120,.3);
-  animation:whisper-orbit var(--duration) ease-in-out infinite alternate var(--delay);
-}
-.whisper-cluster.is-scattered .whisper-mote{
-  transform:scale(2.4) translate(calc(var(--radius) * 1.8), calc(var(--radius) * -1.2));
-  opacity:0;
-  transition:transform 0.8s ease-out, opacity 0.8s ease-out;
-}
-@keyframes whisper-orbit{
-  0%{transform:rotate(0deg) translateX(var(--radius)) rotate(0deg) scale(0.8);opacity:0.4}
-  50%{opacity:0.95;transform:rotate(180deg) translateX(calc(var(--radius) * 1.2)) rotate(-180deg) scale(1.2)}
-  100%{transform:rotate(360deg) translateX(var(--radius)) rotate(-360deg) scale(0.8);opacity:0.4}
-}
+
 
 /* ===== Twilight Garden Vignette (Contact Section) ===== */
 .twilight-vignette{

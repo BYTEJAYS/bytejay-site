@@ -56,34 +56,4 @@
     audioEl.addEventListener('pause', stopNotes);
     audioEl.addEventListener('ended', stopNotes);
   }
-
-  // ===== 2. Interactive Whisper Motes around the About Lamp =====
-  const lampStage = document.querySelector('.lamp') || document.querySelector('.intro');
-  if (lampStage) {
-    const whisperContainer = document.createElement('div');
-    whisperContainer.className = 'whisper-cluster';
-    whisperContainer.setAttribute('aria-hidden', 'true');
-
-    for (let i = 0; i < 4; i++) {
-      const mote = document.createElement('div');
-      mote.className = 'whisper-mote';
-      mote.style.setProperty('--delay', `${i * 0.9}s`);
-      mote.style.setProperty('--radius', `${30 + i * 18}px`);
-      mote.style.setProperty('--duration', `${4 + i * 1.2}s`);
-      whisperContainer.appendChild(mote);
-    }
-
-    const lampElement = document.querySelector('.lamp');
-    if (lampElement) {
-      lampElement.appendChild(whisperContainer);
-
-      // Scatter motes when lamp cord is clicked
-      lampElement.addEventListener('click', () => {
-        whisperContainer.classList.add('is-scattered');
-        setTimeout(() => {
-          whisperContainer.classList.remove('is-scattered');
-        }, 1200);
-      });
-    }
-  }
 })();
