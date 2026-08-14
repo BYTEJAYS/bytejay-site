@@ -28,7 +28,7 @@ DEFAULT_IMAGE = "assets/images/projects/placeholder-{n:02d}.svg"
 CARD = """        <div class="work__cell" data-title="{title}" data-stack="{stack}">
           <a class="card project-card" href="{url}" target="_blank" rel="noopener" data-project-card>
             <div class="project-card__visual">
-              <img class="project-card__image" src="{image}?v=3" alt="" loading="lazy" decoding="async" width="880" height="1100" />
+              <img class="project-card__image" src="{image}" alt="" loading="lazy" decoding="async" width="880" height="1100" />
             </div>
             <div class="project-card__top">
               <span class="project-card__number" aria-hidden="true">{number:02d}</span>

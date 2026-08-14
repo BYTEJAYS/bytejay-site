@@ -44,13 +44,13 @@ CHROME_CROP = 242             # px of macOS Chrome UI to strip from these three
 
 # repo -> (source filename on Desktop, top-crop px, treatment)
 SOURCES = {
-    "TRANSACTION-GRAPH-ENGINE": ("TGIE.png", CHROME_CROP, "cover"),
+    "TRANSACTION-GRAPH-ENGINE": ("TGIE.png", CHROME_CROP, "pad"),
     "PERSONAL-REALITY-LAYER":   ("PERSONAL REALITY LAYER.png", 0, "cover"),
-    "ascension":                ("ASCENSION.png", 0, "cover"),
-    "PROCTOR_APP":              ("PROCTOR APP.png", CHROME_CROP, "cover"),
+    "ascension":                ("ASCENSION.png", 0, "pad"),
+    "PROCTOR_APP":              ("PROCTOR APP.png", CHROME_CROP, "pad"),
     "bling-blue-team":          ("BLING BLUE TEAM.png", 0, "cover"),
-    "legacy":                   ("LEGACY.png", 0, "cover"),
-    "constellation":            ("CONSTELLATION.png", CHROME_CROP, "cover"),
+    "legacy":                   ("LEGACY.png", 0, "pad"),
+    "constellation":            ("CONSTELLATION.png", CHROME_CROP, "pad"),
 }
 
 
