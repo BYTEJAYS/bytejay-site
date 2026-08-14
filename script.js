@@ -1245,13 +1245,13 @@ if (contactSection) {
   // One Lenis instance, driven by GSAP's ticker and connected to ScrollTrigger.
   if (LenisCtor) {
     lenis = new LenisCtor({
-      // A restrained glide: smooth enough to feel intentional, responsive
-      // enough for quick navigation between portfolio sections.
-      lerp: 0.09,
+      // Luxurious slow-inertia glide: low lerp for cinematic, weighty deceleration
+      lerp: 0.045,
+      duration: 1.4,
       smoothWheel: true,
       syncTouch: false,
-      wheelMultiplier: 0.8,
-      touchMultiplier: 0.9
+      wheelMultiplier: 0.72,
+      touchMultiplier: 0.95
     });
     lenis.on('scroll', () => {
       ScrollTrigger.update();
@@ -1285,7 +1285,7 @@ if (contactSection) {
       const target = document.querySelector(id);
       if (!target) return;
       e.preventDefault();
-      lenis.scrollTo(target, { offset: -10, duration: 0.9 });
+      lenis.scrollTo(target, { offset: -10, duration: 1.4 });
     };
     document.addEventListener('click', anchorClick);
   }
