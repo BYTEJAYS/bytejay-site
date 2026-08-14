@@ -941,23 +941,81 @@ if (stmt) {
   }
 }
 
-// ===== Playground nav: just the live particle field =====
+// ===== Playground nav: particle field that doubles as the sound toggle =====
 (function playgroundNav() {
   const navEl = document.querySelector('[data-playground-nav]');
   const canvas = document.querySelector('[data-sound-particles]');
   if (!navEl) return;
 
-  // nav visibility is driven by the hero ScrollTrigger below (setNavHidden) —
-  // same mechanism the old nav used, just retargeted at this element.
+  // Hides the particle nav when scrolling past the hero section.
   window.__setNavHidden = (hidden) => {
     navEl.classList.toggle('playground-nav--hidden', hidden);
   };
 
   if (!canvas || typeof window.SoundParticles === 'undefined') return;
 
-  const particles = new window.SoundParticles(canvas, { seed: 42 });
+  // ---- audio: gesture-gated, feeds the particle field a live amplitude ----
+  const audioEl = document.querySelector('[data-ambient-audio]');
+  let analyser = null;
+  let freqData = null;
+  let audioSource = null;
+  let audioCtx = null;
+
+  const getAudioLevel = () => {
+    if (!analyser || !audioEl || audioEl.paused) return 0;
+    analyser.getByteFrequencyData(freqData);
+    let sum = 0;
+    for (let i = 0; i < freqData.length; i++) sum += freqData[i];
+    return Math.min(1, (sum / freqData.length) / 255 * 1.6); // headroom: rarely hits 1
+  };
+
+  const particles = new window.SoundParticles(canvas, { getAudioLevel, seed: 42 });
   navEl.addEventListener('pointerenter', () => particles.setActive(true));
   navEl.addEventListener('pointerleave', () => particles.setActive(false));
+
+  const cueLabel = navEl.querySelector('[data-sound-cue-label]');
+
+  if (audioEl) {
+    const toggleSound = async () => {
+      const playing = navEl.getAttribute('aria-pressed') === 'true';
+      if (playing) {
+        audioEl.pause();
+        navEl.setAttribute('aria-pressed', 'false');
+        navEl.setAttribute('aria-label', 'Play ambient sound');
+        navEl.classList.remove('is-playing');
+        return;
+      }
+      try {
+        if (!audioCtx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new Ctx();
+          audioSource = audioCtx.createMediaElementSource(audioEl);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 64;
+          freqData = new Uint8Array(analyser.frequencyBinCount);
+          audioSource.connect(analyser);
+          analyser.connect(audioCtx.destination);
+          audioEl._pfAnalyser = analyser;
+        }
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        await audioEl.play();
+        navEl.setAttribute('aria-pressed', 'true');
+        navEl.setAttribute('aria-label', 'Pause ambient sound');
+        navEl.classList.add('is-playing');
+      } catch {
+        // Autoplay/decoding can fail silently on some browsers — leave the
+        // toggle in its off state rather than claim sound is playing.
+      }
+    };
+
+    navEl.addEventListener('click', toggleSound);
+    navEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleSound();
+      }
+    });
+  }
 })();
 
 // ===== Card pointer tilt (fine pointers only; rAF-throttled) =====
@@ -1155,38 +1213,25 @@ if (contactSection) {
   ScrollTrigger.config({ ignoreMobileResize: true });
   gsap.ticker.lagSmoothing(0);
 
-  // Dismiss after ©2026, remain hidden during the entire upward journey,
-  // and restore only when the document reaches its top boundary.
+  // Dismiss nav immediately when user starts scrolling down,
+  // restore only when returned to the top.
   let navDismissed = false;
-  const dismissNav = () => {
-    if (navDismissed) return;
-    navDismissed = true;
-    if (window.__setNavHidden) window.__setNavHidden(true);
-  };
-  const restoreNavAtTop = () => {
-    // Lenis can settle a few subpixels above zero after a fast reverse scroll.
-    if (!navDismissed || window.scrollY > 16) return;
-    navDismissed = false;
-    if (window.__setNavHidden) window.__setNavHidden(false);
-  };
-  window.addEventListener('scroll', restoreNavAtTop, { passive: true });
-
-  const navDismissTrigger = heroNavBoundary ? ScrollTrigger.create({
-    id: 'nav-after-hero-boundary',
-    trigger: heroNavBoundary,
-    start: 'bottom top',
-    onEnter: dismissNav,
-    onRefresh: (self) => {
-      if (window.scrollY >= self.start) dismissNav();
+  const updateNavVisibility = () => {
+    const y = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+    const shouldHide = y > 20;
+    if (shouldHide !== navDismissed) {
+      navDismissed = shouldHide;
+      if (window.__setNavHidden) window.__setNavHidden(navDismissed);
     }
-  }) : null;
+  };
+  window.addEventListener('scroll', updateNavVisibility, { passive: true });
+  updateNavVisibility();
 
   // Reduced motion is handled in CSS: no sticky bridge and a normal portrait in About.
   if (reduce) {
     window.addEventListener('pagehide', (event) => {
       if (event.persisted) return;
-      window.removeEventListener('scroll', restoreNavAtTop);
-      navDismissTrigger?.kill();
+      window.removeEventListener('scroll', updateNavVisibility);
     });
     return;
   }
@@ -1208,7 +1253,10 @@ if (contactSection) {
       wheelMultiplier: 0.8,
       touchMultiplier: 0.9
     });
-    lenis.on('scroll', ScrollTrigger.update);
+    lenis.on('scroll', () => {
+      ScrollTrigger.update();
+      updateNavVisibility();
+    });
     ticker = (time) => lenis.raf(time * 1000);
     gsap.ticker.add(ticker);
     window.__lenis = lenis;

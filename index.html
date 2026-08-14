@@ -81,18 +81,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Karla:wght@400;500;600;700;800&family=Londrina+Solid:wght@300;400;900&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-mono.jpeg" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-red.jpeg" type="image/jpeg" />
-  <link rel="stylesheet" href="styles.css?v=87" />
+  <link rel="stylesheet" href="styles.css?v=91" />
 </head>
 <body>
   <!-- grain overlay -->
   <div class="grain" aria-hidden="true"></div>
 
-  <!-- Nav replacement: just the live particle field, no pill/label/button.
-       Particle engine lives in assets/js/sound-particles.js; wiring is in
-       script.js. -->
-  <div class="playground-nav" data-playground-nav aria-hidden="true">
+  <!-- Nav replacement: just the live particle field, no pill/label/button —
+       clicking the particles themselves toggles the ambient track, and its
+       live amplitude feeds back into the particle motion. Particle engine
+       lives in assets/js/sound-particles.js; wiring is in script.js. -->
+  <div
+    class="playground-nav"
+    data-playground-nav
+    role="button"
+    tabindex="0"
+    aria-pressed="false"
+    aria-label="Play ambient sound"
+  >
     <canvas class="sound-particles" data-sound-particles></canvas>
+    <div class="nav-sound-cue" data-sound-cue aria-hidden="true">
+      <svg class="nav-sound-cue__doodle" width="28" height="20" viewBox="0 0 28 20" fill="none" stroke="currentColor">
+        <path d="M25 4C19 14 10 16 3 11" stroke-width="1.35" stroke-linecap="round"/>
+        <path d="M7 7.5L3 11L7.5 14" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="nav-sound-cue__label" data-sound-cue-label>PLAY MUSIC</span>
+    </div>
   </div>
+  <audio data-ambient-audio src="assets/audio/playground-ambient.mp3" loop preload="none"></audio>
 
   <!-- floating side actions -->
   <div class="floaters" aria-hidden="false">
@@ -437,7 +453,7 @@
   <script src="assets/vendor/gsap.min.js"></script>
   <script src="assets/vendor/ScrollTrigger.min.js"></script>
   <script src="assets/vendor/lenis.min.js"></script>
-  <script src="assets/js/sound-particles.js"></script>
-  <script src="script.js?v=68"></script>
+  <script src="assets/js/sound-particles.js?v=2"></script>
+  <script src="script.js?v=71"></script>
 </body>
 </html>

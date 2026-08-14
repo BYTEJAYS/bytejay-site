@@ -111,19 +111,82 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 /* ===== Playground nav =====
    Replaces the old pill nav entirely — no label, no background, no button,
    just the live particle field itself (see assets/js/sound-particles.js).
-   Same fixed top-center slot and hide-on-scroll behaviour the old nav used,
-   so the rest of the scroll choreography (script.js's window.__setNavHidden)
-   didn't need to change, only which element it targets. */
+   The field doubles as the sound toggle: clicking/tapping it plays or
+   pauses the ambient track, and the track's live amplitude feeds back into
+   the particle motion (wiring in script.js). Same fixed top-center slot and
+   hide-on-scroll behaviour the old nav used, so the rest of the scroll
+   choreography (script.js's window.__setNavHidden) didn't need to change,
+   only which element it targets. */
 .playground-nav{
   position:fixed;top:20px;left:50%;transform:translateX(-50%);
-  z-index:50;
+  z-index:50;cursor:pointer;
   transition:transform .4s var(--ease),opacity .35s ease;
 }
+.playground-nav:focus-visible{outline:2px solid var(--ink);outline-offset:6px;border-radius:8px}
 /* slides up out of view when scrolling down, same as the old nav */
 .playground-nav--hidden{transform:translateX(-50%) translateY(-170%);opacity:0;pointer-events:none}
 .sound-particles{
-  display:block;width:120px;height:40px;color:var(--ink); /* particles paint in currentColor — dark, so they read against the light page bg */
+  display:block;width:160px;height:48px;color:var(--ink);
 }
+.nav-sound-cue{
+  position:absolute;
+  left:calc(100% - 4px);
+  top:50%;
+  transform:translateY(-50%) rotate(-2deg);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  pointer-events:none;
+  color:var(--gray);
+  font-family:'Karla',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  line-height:1;
+  white-space:nowrap;
+  opacity:.8;
+  visibility:visible;
+  transition:opacity .35s ease,transform .35s ease,color .25s ease,visibility .35s ease;
+  user-select:none;
+}
+.nav-sound-cue__doodle{
+  display:block;
+  flex-shrink:0;
+  color:var(--gray);
+  transition:color .25s ease,transform .25s ease;
+}
+.playground-nav:hover .nav-sound-cue{
+  opacity:1;
+  color:var(--ink);
+  transform:translateY(-50%) rotate(-3deg) scale(1.03);
+}
+.playground-nav:hover .nav-sound-cue__doodle{
+  color:var(--ink);
+}
+/* When playing, cue disappears; when music stops, it reappears */
+.playground-nav.is-playing .nav-sound-cue,
+.playground-nav[aria-pressed="true"] .nav-sound-cue{
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(-50%) translateX(8px) scale(.92);
+  pointer-events:none;
+}
+@media(max-width:680px){
+  .nav-sound-cue{
+    left:50%;
+    top:calc(100% + 4px);
+    transform:translateX(-50%) rotate(0deg);
+  }
+  .playground-nav:hover .nav-sound-cue{
+    transform:translateX(-50%) rotate(0deg) scale(1.02);
+  }
+  .playground-nav.is-playing .nav-sound-cue,
+  .playground-nav[aria-pressed="true"] .nav-sound-cue{
+    transform:translateX(-50%) translateY(4px) scale(.92);
+  }
+}
+
 
 /* ===== Floating side actions ===== */
 .floaters{
