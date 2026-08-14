@@ -526,8 +526,18 @@ html:not(.js) .portrait-destination img{visibility:visible}
 .sakura-vignette{
   position:absolute;
   top:clamp(-40px,-4vh,-10px);
-  right:clamp(10px,4vw,50px);
-  width:clamp(180px,24vw,300px);
+  /* Anchored to .statement, which is a centred max-width column — so a positive
+     offset parks the bough on top of the text instead of in the page corner.
+     Pulling it negative moves it out into the empty margin beside the column,
+     as far as the viewport actually has room for (body clips overflow-x, so a
+     narrow screen just crops the tip rather than scrolling). */
+  /* Pull out by exactly the margin beside the 1180px column — (100vw-1180)/2 —
+     so the bough lands flush with the viewport corner at any width instead of
+     overshooting and getting its tip cropped. Capped at 150px so it stops
+     drifting outward on very wide screens, and floored at -8px so it never
+     creeps back over the text once the column fills the viewport. */
+  right:clamp(-150px,calc(590px - 50vw),-8px);
+  width:clamp(170px,21vw,270px);
   pointer-events:none;
   z-index:1;
   opacity:.92;
@@ -675,7 +685,7 @@ html:not(.js) .portrait-destination img{visibility:visible}
   100%{box-shadow:0 0 24px 6px rgba(245,150,60,.55),0 0 45px 12px rgba(255,200,100,.35)}
 }
 @media(max-width:600px){
-  .sakura-vignette{opacity:.75;right:0;width:150px}
+  .sakura-vignette{opacity:.75;right:-14px;width:130px}
 }
 
 .statement p{
