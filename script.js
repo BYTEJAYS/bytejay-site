@@ -1018,6 +1018,14 @@ if (stmt) {
   }
 })();
 
+// ===== Atmospheric Cherry Blossom Drift (from Journey baseline) =====
+(function initSakura() {
+  const canvas = document.getElementById('sakuraDrift');
+  if (canvas && typeof window.SakuraDrift !== 'undefined') {
+    new window.SakuraDrift(canvas);
+  }
+})();
+
 // ===== Card pointer tilt (fine pointers only; rAF-throttled) =====
 if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
   document.querySelectorAll('[data-tilt]').forEach((card) => {

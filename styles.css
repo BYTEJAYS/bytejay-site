@@ -460,11 +460,95 @@ html:not(.js) .lamp{display:none}      /* no JS: no cord, copy stays plainly rea
 html:not(.js) .hero-card-stage{display:none}
 html:not(.js) .portrait-destination img{visibility:visible}
 
+/* Atmospheric cherry blossom petals drift canvas */
+.sakura-drift{
+  position:fixed;inset:0;z-index:1;
+  pointer-events:none;
+  width:100vw;height:100vh;
+}
+
 /* ===== Statement ===== */
 .statement{
+  position:relative;overflow:visible;
   max-width:1000px;margin:0 auto;text-align:center;
   padding-top:clamp(60px,10vh,140px);padding-bottom:clamp(60px,10vh,140px);
 }
+.sakura-vignette{
+  position:absolute;
+  top:clamp(-40px,-4vh,-10px);
+  right:clamp(10px,4vw,50px);
+  width:clamp(180px,24vw,300px);
+  pointer-events:none;
+  z-index:1;
+  opacity:.92;
+  transform-origin:top right;
+  animation:sakura-breeze 6s ease-in-out infinite alternate;
+}
+.sakura-bough{
+  width:100%;height:auto;
+  display:block;
+  filter:drop-shadow(0 6px 12px rgba(54,40,32,.08));
+}
+.sakura-lantern{
+  position:absolute;
+  top:128px;left:42px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  transform-origin:top center;
+  animation:lantern-sway 4.5s ease-in-out infinite alternate;
+}
+.sakura-lantern__cord{
+  width:1px;height:24px;
+  background:#362820;
+}
+.sakura-lantern__body{
+  position:relative;
+  width:28px;height:38px;
+  background:radial-gradient(ellipse at center,#ffe8b8 15%,#f28a38 75%,#c83e20 100%);
+  border-radius:14px;
+  box-shadow:0 0 18px 4px rgba(245,150,60,.45),0 0 35px 8px rgba(255,200,100,.25);
+  animation:lantern-glow 2.8s ease-in-out infinite alternate;
+}
+.sakura-lantern__cap{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:18px;height:4px;background:#2d1e16;border-radius:2px;
+}
+.sakura-lantern__cap--top{top:-3px}
+.sakura-lantern__cap--bot{bottom:-3px}
+.sakura-lantern__glow{
+  position:absolute;inset:4px;
+  background:radial-gradient(circle,#fff6db 0%,rgba(255,230,160,.4) 60%,transparent 100%);
+  border-radius:50%;
+}
+.sakura-lantern__ribs{
+  position:absolute;inset:0;
+  border-radius:inherit;
+  border-left:1px solid rgba(50,20,10,.25);
+  border-right:1px solid rgba(50,20,10,.25);
+}
+.sakura-lantern__tassel{
+  position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  width:2px;height:18px;
+  background:linear-gradient(to bottom,#c83e20,#e85d75);
+}
+
+@keyframes sakura-breeze{
+  0%{transform:rotate(0deg) translate3d(0,0,0)}
+  100%{transform:rotate(1.2deg) translate3d(-3px,4px,0)}
+}
+@keyframes lantern-sway{
+  0%{transform:rotate(-3deg)}
+  100%{transform:rotate(3.5deg)}
+}
+@keyframes lantern-glow{
+  0%{box-shadow:0 0 16px 3px rgba(245,150,60,.38),0 0 28px 6px rgba(255,200,100,.18)}
+  100%{box-shadow:0 0 24px 6px rgba(245,150,60,.55),0 0 45px 12px rgba(255,200,100,.35)}
+}
+@media(max-width:600px){
+  .sakura-vignette{opacity:.75;right:0;width:150px}
+}
+
 .statement p{
   font-size:clamp(28px,4vw,52px);font-weight:500;line-height:1.25;letter-spacing:-.02em;color:var(--gray);
 }
