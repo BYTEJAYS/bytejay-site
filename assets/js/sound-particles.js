@@ -82,6 +82,16 @@
       this.noise2 = makeNoise2D((this.opts.seed || 7919) * 1597334677);
 
       this._getLevel   = typeof this.opts.getAudioLevel === 'function' ? this.opts.getAudioLevel : () => 0;
+      this._getBars    = typeof this.opts.getBars === 'function' ? this.opts.getBars : null;
+      this._isPlaying  = typeof this.opts.isPlaying === 'function' ? this.opts.isPlaying : () => false;
+
+      // Waveform formation. 0 = the free drifting cloud, 1 = fully gathered into
+      // bars. Everything in between is a real blend, so particles migrate rather
+      // than snap, and all the existing motion keeps running on top of it.
+      this.formation   = 0;
+      this.barCount    = 13;
+      this._bars       = new Float32Array(32);   // raw target heights
+      this._barsSmooth = new Float32Array(32);   // eased, what actually draws
       this._level      = 0;   // smoothed amplitude 0..1
       this._peak       = 0;   // smoothed peak 0..1
       this._beatPulse  = 0;   // fast-decay beat flash 0..1
@@ -299,6 +309,33 @@
         });
       }
 
+      // Bar geometry. Bars mirror around the vertical centre rather than growing
+      // off a baseline: this sits in a floating nav slot with no ground line, so
+      // a symmetric waveform stays visually balanced where a bottom-anchored
+      // equalizer would look like it had fallen to one edge.
+      this.barCount  = cloudW < 120 ? 9 : 13;
+      this._barW     = cloudW / this.barCount;
+      this._barLeft  = cx - cloudW / 2;
+      // Peaks may exceed the cloud's own height — there is canvas headroom now,
+      // so a loud passage genuinely overshoots instead of flattening off.
+      this._barMaxH  = cloudH * 1.15;
+
+      // Give every formable particle a slot: which bar, and where along it.
+      const assign = (arr) => {
+        for (let i = 0; i < arr.length; i++) {
+          const q = arr[i];
+          q.bar   = Math.floor(Math.random() * this.barCount);
+          // Near-even spread along the column with only a gentle centre bias.
+          // A stronger bias piles everything on the midline and the bars read as
+          // a single horizontal smear rather than as separate columns.
+          const t = Math.random();
+          q.barT  = (Math.random() < 0.5 ? -1 : 1) * Math.pow(t, 0.8);
+          q.barJit = rand(-0.17, 0.17);   // fraction of bar width, keeps edges organic
+        }
+      };
+      assign(this.dust);
+      assign(this.core);
+
       this.splashes = [];
       this.rings = [];
       this.startTime = now;
@@ -328,6 +365,40 @@
           alpha: 0.85,
           decay: rand(0.025, 0.045)
         });
+      }
+    }
+
+    /**
+     * Drive the cloud-to-waveform blend and the live bar heights. Formation
+     * engages on hover or while the track plays, and eases both ways so the two
+     * states are always a continuous migration rather than a swap.
+     */
+    _updateForm(now) {
+      const playing = this._isPlaying();
+      const want = (this.active || playing) ? 1 : 0;
+      this.formation += (want - this.formation) * (want > this.formation ? 0.075 : 0.045);
+
+      const n = this.barCount;
+      if (this._getBars && playing) this._getBars(this._bars, n);
+      else this._bars.fill(0);
+
+      for (let i = 0; i < n; i++) {
+        // Two detuned sines, so hovering with the sound off still breathes and
+        // never reads as an obvious loop.
+        const a = Math.sin(now * 0.0022 + i * 0.55) * 0.5 + 0.5;
+        const b = Math.sin(now * 0.0013 + i * 1.31) * 0.5 + 0.5;
+        const idle = 0.18 + 0.20 * a + 0.12 * b;
+
+        // The idle motion stays underneath the audio as a floor rather than
+        // being an either/or. A quiet passage mid-track would otherwise drive
+        // every column to zero and flatten the waveform into a razor line,
+        // which reads as broken rather than as quiet.
+        this._bars[i] = Math.max(this._bars[i], idle * (playing ? 0.55 : 1));
+
+        // Fast rise, slow fall — the classic meter ballistic. Punchy on
+        // transients without flickering on the way back down.
+        const t = this._bars[i], c = this._barsSmooth[i];
+        this._barsSmooth[i] = c + (t - c) * (t > c ? 0.42 : 0.12);
       }
     }
 
@@ -364,20 +435,24 @@
       this._beatPulse *= 0.88;
       this._prevRaw = raw;
 
+      this._updateForm(now);
       this._step(now);
       this._draw(now);
     }
 
-    _stepLayer(arr, now, flowMul, springK, dampBase) {
+    _stepLayer(arr, now, flowMul, springK, dampBase, formable) {
+      const form   = formable ? this.formation : 0;
       const level  = this._level;
       const beat   = this._beatPulse;
-      const hoverK = this.active ? 1.35 : 1;
+      const hoverK = this.active ? (1.35 - form * 0.35) : 1;
       const soundK = 1 + level * 3.4 + beat * 2.2;
-      const flow   = 0.005 * flowMul * hoverK * soundK;
+      const flow   = 0.005 * flowMul * hoverK * soundK * (1 - form * 0.55);
       const spring = springK;
       const center = 0.0003;
       const damp   = dampBase - (this.active ? 0.012 : 0) - level * 0.01;
-      const scatter = level * 0.045 + beat * 0.08;
+      // Outward scatter and swirl fight legibility, so they back off as the
+      // bars form — otherwise the shape smears out before it ever resolves.
+      const scatter = (level * 0.045 + beat * 0.08) * (1 - form * 0.85);
       const noiseS = 0.045;
       const cx = this.width / 2, cy = this.height / 2;
       const iR = Math.max(46, Math.min(110, this.width * 0.9));
@@ -395,8 +470,17 @@
         p.vx += Math.sin(n2 * TAU) * flow * 0.3;
         p.vy += Math.cos(n2 * TAU) * flow * 0.3;
 
-        p.vx += (p.baseX - p.x) * spring;
-        p.vy += (p.baseY - p.y) * spring;
+        let ax = p.baseX, ay = p.baseY, k = spring;
+        if (form > 0.001) {
+          const h  = this._barsSmooth[p.bar] * this._barMaxH * 0.5;
+          const tx = this._barLeft + (p.bar + 0.5 + p.barJit) * this._barW;
+          const ty = cy + p.barT * h;
+          ax = p.baseX + (tx - p.baseX) * form;
+          ay = p.baseY + (ty - p.baseY) * form;
+          k = spring * (1 + form * 2.6);   // stiffen so the shape holds
+        }
+        p.vx += (ax - p.x) * k;
+        p.vy += (ay - p.y) * k;
         p.vx += (cx - p.x) * center;
         p.vy += (cy - p.y) * center;
 
@@ -405,7 +489,8 @@
           const dx = p.x - cx;
           const dy = p.y - cy;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const vortexForce = (level * 0.012 + beat * 0.02) * (1 - Math.min(dist / this.cloudRX, 1));
+          const vortexForce = (level * 0.012 + beat * 0.02)
+            * (1 - Math.min(dist / this.cloudRX, 1)) * (1 - form * 0.9);
           p.vx += -dy * vortexForce;
           p.vy +=  dx * vortexForce;
         }
@@ -423,7 +508,10 @@
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < iR && dist > 0.001) {
             let f = 1 - dist / iR; f *= f;
-            const push = f * 0.20;
+            // Hover is itself the trigger, so the cursor is always parked on the
+            // bars it just summoned. At full strength it blows them straight
+            // apart, so repulsion yields as the shape takes hold.
+            const push = f * 0.20 * (1 - form * 0.82);
             p.vx += (dx / dist) * push;
             p.vy += (dy / dist) * push;
           }
@@ -439,8 +527,11 @@
     }
 
     _step(now) {
-      this._stepLayer(this.dust,     now, 0.7, 0.007, 0.975);
-      this._stepLayer(this.core,     now, 1.0, 0.010, 0.970);
+      // Only dust and core form the waveform. Embers, petals, leaves and
+      // droplets keep drifting freely, so the composition stays alive instead of
+      // collapsing wholesale into a bar chart.
+      this._stepLayer(this.dust,     now, 0.7, 0.007, 0.975, true);
+      this._stepLayer(this.core,     now, 1.0, 0.010, 0.970, true);
       this._stepLayer(this.embers,   now, 0.5, 0.012, 0.965);
       this._stepLayer(this.petals,   now, 0.9, 0.008, 0.970);
       this._stepLayer(this.leaves,   now, 0.85, 0.009, 0.970);
@@ -546,7 +637,10 @@
         corePos.push({ x: e.x + wobX, y: e.y + wobY, ex: e.ex, p });
       }
 
-      const connDist = 15 + level * 20 + beat * 10;
+      // Bars sit ~12px apart, so the idle 15px link range bridges neighbouring
+      // columns and fills the gutters, turning the waveform back into one blob.
+      // Shrinking it below the bar pitch keeps links vertical, within a column.
+      const connDist = (15 + level * 20 + beat * 10) * (1 - this.formation * 0.62);
       const connDistSq = connDist * connDist;
       ctx.lineWidth = 0.5 + level * 0.45;
 

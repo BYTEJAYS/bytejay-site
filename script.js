@@ -969,7 +969,52 @@ if (stmt) {
     return Math.min(1, (sum / freqData.length) / 255 * 1.6); // headroom: rarely hits 1
   };
 
-  const particles = new window.SoundParticles(canvas, { getAudioLevel, seed: 42 });
+  // ---- waveform bars ----
+  // A second analyser, on its own fftSize, purely for the bar heights. The
+  // amplitude analyser above stays at fftSize 64 because every existing visual
+  // is tuned against that exact average; bars need far finer resolution than 64
+  // gives (689Hz per bin lumps the whole musical range into the first two bars),
+  // so they get their own node rather than a shared, retuned one.
+  let barAnalyser = null;
+  let barData = null;
+  const barPeak  = new Float32Array(32).fill(0.06);
+  const barFloor = new Float32Array(32);
+
+  const isPlaying = () => !!(audioEl && !audioEl.paused);
+
+  const getBars = (out, n) => {
+    if (!barAnalyser || !audioEl || audioEl.paused) { out.fill(0); return; }
+    barAnalyser.getByteFrequencyData(barData);
+
+    // Log-spaced grouping. FFT bins are linear in Hz, so with linear grouping
+    // nearly all musical energy falls in the first couple of bars and the rest
+    // sit flat — octaves, not hertz, are what reads as an equalizer.
+    const loBin = 1;
+    const hiBin = Math.floor(barData.length * 0.45); // above this is mostly dead air
+    const ratio = hiBin / loBin;
+
+    for (let i = 0; i < n; i++) {
+      const a = Math.floor(loBin * Math.pow(ratio, i / n));
+      const b = Math.max(a + 1, Math.floor(loBin * Math.pow(ratio, (i + 1) / n)));
+      let sum = 0;
+      for (let k = a; k < b; k++) sum += barData[k];
+      const raw = (sum / (b - a)) / 255;
+
+      // Track both ends of each bar's own recent range. Normalizing against the
+      // peak alone pins every bar at full height on sustained material — the
+      // value sits just under its own maximum indefinitely and the waveform
+      // flat-tops. Bounds snap outward instantly so nothing ever clips, and
+      // relax inward slowly so the mapping re-centres between passages.
+      barPeak[i]  = raw > barPeak[i]  ? raw : barPeak[i]  + (raw - barPeak[i])  * 0.0025;
+      barFloor[i] = raw < barFloor[i] ? raw : barFloor[i] + (raw - barFloor[i]) * 0.0025;
+      const span = Math.max(barPeak[i] - barFloor[i], 0.02);
+      out[i] = Math.min(1, Math.max(0, (raw - barFloor[i]) / span));
+    }
+  };
+
+  const particles = new window.SoundParticles(canvas, {
+    getAudioLevel, getBars, isPlaying, seed: 42,
+  });
   navEl.addEventListener('pointerenter', () => particles.setActive(true));
   navEl.addEventListener('pointerleave', () => particles.setActive(false));
 
@@ -993,7 +1038,16 @@ if (stmt) {
           analyser = audioCtx.createAnalyser();
           analyser.fftSize = 64;
           freqData = new Uint8Array(analyser.frequencyBinCount);
+          barAnalyser = audioCtx.createAnalyser();
+          barAnalyser.fftSize = 512;              // 256 bins, ~86Hz each
+          barAnalyser.smoothingTimeConstant = 0.75;
+          barData = new Uint8Array(barAnalyser.frequencyBinCount);
+
+          // Both analysers tap the source; only one continues to the speakers,
+          // since an analyser passes audio through unchanged and connecting two
+          // paths to the destination would sum the signal and double its level.
           audioSource.connect(analyser);
+          audioSource.connect(barAnalyser);
           analyser.connect(audioCtx.destination);
           audioEl._pfAnalyser = analyser;
         }
