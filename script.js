@@ -941,64 +941,75 @@ if (stmt) {
   }
 }
 
-// ===== Nav: pill expands into a full menu panel =====
-const nav = document.querySelector('.nav');
-const menuBtn = document.querySelector('.nav__menu');
-if (nav && menuBtn) {
-  const buddyImg = nav.querySelector('.nav__buddy-img');
-  const buddyBubble = nav.querySelector('.nav__buddy-bubble');
-  const buddyJokes = [
-    'My code works. I won\'t touch it.',
-    'I debug with good vibes.',
-    'Backend: where the magic hides.',
-    'That bug was a feature audition.',
-    'Anyway, here\'s Wonderwall.'
-  ];
-  const buddy = nav.querySelector('.nav__buddy');
-  const buddyScenes = [
-    { name: 'wave', src: 'waveSrc', lines: ['Hi!', 'Oh, hey!', 'Good to see you.'], min: 3600, max: 5200 },
-    { name: 'concert', src: 'guitarSrc', lines: ['Tiny concert!', 'One more song?', 'Practising my riffs.'], min: 5200, max: 7200 },
-    { name: 'reading', src: 'idleSrc', lines: ['Just one more chapter…', 'Reading the docs.', 'Plot twist: no bugs.'], min: 5000, max: 7500 },
-    { name: 'dog', src: 'idleSrc', lines: ['Who\'s a good dog?', 'Walkies?', 'My pair programmer!'], min: 5000, max: 7200 },
-    { name: 'resting', src: 'idleSrc', lines: ['Power nap…', 'Compiling dreams.', 'brb, recharging.'], min: 3800, max: 5600 },
-    { name: 'joke', src: 'waveSrc', lines: buddyJokes, min: 4200, max: 6200 }
-  ];
-  let lastBuddyMode = -1;
-  let buddyTimer = 0;
-  const playBuddyMoment = () => {
-    if (!buddy || !buddyImg || !buddyBubble || !nav.classList.contains('open')) return;
-    let mode = Math.floor(Math.random() * buddyScenes.length);
-    if (mode === lastBuddyMode) mode = (mode + 1) % buddyScenes.length;
-    lastBuddyMode = mode;
-    const scene = buddyScenes[mode];
-    buddy.className = `nav__buddy is-${scene.name}`;
-    const baseSrc = buddyImg.dataset[scene.src];
-    const nextSrc = new URL(baseSrc, window.location.href).href;
-    if (buddyImg.src !== nextSrc) buddyImg.src = baseSrc;
-    buddyBubble.textContent = scene.lines[Math.floor(Math.random() * scene.lines.length)];
-    clearTimeout(buddyTimer);
-    buddyTimer = window.setTimeout(playBuddyMoment, scene.min + Math.random() * (scene.max - scene.min));
-  };
-  const toggle = (open) => {
-    nav.classList.toggle('open', open);
-    menuBtn.setAttribute('aria-expanded', String(open));
-    menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    if (open) playBuddyMoment();
-    else {
-      clearTimeout(buddyTimer);
-      if (buddy) buddy.className = 'nav__buddy';
-    }
-  };
-  menuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggle(!nav.classList.contains('open')); });
-  buddyImg?.addEventListener('click', (e) => { e.stopPropagation(); playBuddyMoment(); });
-  nav.querySelectorAll('.nav__panel a').forEach((a) => a.addEventListener('click', () => toggle(false)));
-  document.addEventListener('click', (e) => { if (!e.target.closest('.nav')) toggle(false); });
-  // nav visibility is driven by the hero ScrollTrigger below (setNavHidden)
+// ===== Playground nav: particle field + ambient-sound toggle =====
+(function playgroundNav() {
+  const navEl = document.querySelector('[data-playground-nav]');
+  const link = document.querySelector('[data-playground]');
+  const canvas = document.querySelector('[data-sound-particles]');
+  if (!navEl) return;
+
+  // nav visibility is driven by the hero ScrollTrigger below (setNavHidden) —
+  // same mechanism the old nav used, just retargeted at this element.
   window.__setNavHidden = (hidden) => {
-    nav.classList.toggle('nav--hidden', hidden);
-    if (hidden) toggle(false);
+    navEl.classList.toggle('playground-nav--hidden', hidden);
   };
-}
+
+  if (!canvas || typeof window.SoundParticles === 'undefined') return;
+
+  // ---- audio: gesture-gated, feeds the particle field a live amplitude ----
+  const audioEl = document.querySelector('[data-ambient-audio]');
+  const soundBtn = document.querySelector('[data-sound-toggle]');
+  let analyser = null;
+  let freqData = null;
+  let audioSource = null;
+  let audioCtx = null;
+
+  const getAudioLevel = () => {
+    if (!analyser || !audioEl || audioEl.paused) return 0;
+    analyser.getByteFrequencyData(freqData);
+    let sum = 0;
+    for (let i = 0; i < freqData.length; i++) sum += freqData[i];
+    return Math.min(1, (sum / freqData.length) / 255 * 1.6); // headroom: rarely hits 1
+  };
+
+  const particles = new window.SoundParticles(canvas, { getAudioLevel, seed: 42 });
+
+  if (link) {
+    link.addEventListener('pointerenter', () => particles.setActive(true));
+    link.addEventListener('pointerleave', () => particles.setActive(false));
+  }
+
+  if (soundBtn && audioEl) {
+    soundBtn.addEventListener('click', async () => {
+      const playing = soundBtn.getAttribute('aria-pressed') === 'true';
+      if (playing) {
+        audioEl.pause();
+        soundBtn.setAttribute('aria-pressed', 'false');
+        soundBtn.setAttribute('aria-label', 'Play ambient sound');
+        return;
+      }
+      try {
+        if (!audioCtx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new Ctx();
+          audioSource = audioCtx.createMediaElementSource(audioEl);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 64;
+          freqData = new Uint8Array(analyser.frequencyBinCount);
+          audioSource.connect(analyser);
+          analyser.connect(audioCtx.destination);
+        }
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        await audioEl.play();
+        soundBtn.setAttribute('aria-pressed', 'true');
+        soundBtn.setAttribute('aria-label', 'Pause ambient sound');
+      } catch {
+        // Autoplay/decoding can fail silently on some browsers — leave the
+        // toggle in its off state rather than claim sound is playing.
+      }
+    });
+  }
+})();
 
 // ===== Card pointer tilt (fine pointers only; rAF-throttled) =====
 if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {

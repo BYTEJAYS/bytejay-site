@@ -87,31 +87,31 @@
   <!-- grain overlay -->
   <div class="grain" aria-hidden="true"></div>
 
-  <!-- sticky pill nav -->
-  <nav class="nav" aria-label="Primary">
-    <div class="nav__bar">
-      <a href="#top" class="nav__brand">ByteJay</a>
-      <button class="nav__menu" aria-label="Open menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
+  <!-- Playground nav: replaces the old pill nav. "PLAYGROUND" + a tiny live
+       particle field are purely decorative (aria-hidden) — the only real
+       control here is the ambient-sound toggle. Particle engine lives in
+       assets/js/sound-particles.js; wiring is in script.js. -->
+  <div class="playground-nav" data-playground-nav>
+    <div class="playground-link" data-playground aria-hidden="true">
+      <span class="playground-link__label">Playground</span>
+      <canvas class="sound-particles" data-sound-particles></canvas>
     </div>
-    <div class="nav__panel">
-      <div class="nav__panel-inner">
-        <div class="nav__links">
-          <a href="/drive/">Journey</a>
-          <a href="/hackathons/">Hackathons</a>
-        </div>
-        <div class="nav__buddy" aria-hidden="true">
-          <span class="nav__buddy-bubble">Hi!</span>
-          <img class="nav__buddy-img" src="assets/models/boy-wave.gif" data-wave-src="assets/models/boy-wave.gif" data-guitar-src="assets/models/boy-guitar.gif" data-idle-src="assets/models/boy-idle.png" alt="" width="360" height="440" loading="lazy" />
-          <span class="nav__buddy-book"><i></i></span>
-          <span class="nav__buddy-dog"><i class="dog-saddle"></i><i class="dog-ear"></i><i class="dog-eye"></i><i class="dog-legs"></i><i class="dog-tail"></i></span>
-          <span class="nav__buddy-zzz">z<br>z</span>
-          <span class="nav__buddy-heart">♥</span>
-        </div>
-      </div>
-    </div>
-  </nav>
+    <button
+      class="playground-sound"
+      type="button"
+      data-sound-toggle
+      aria-pressed="false"
+      aria-label="Play ambient sound"
+    >
+      <svg class="playground-sound__play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+      <svg class="playground-sound__wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4" />
+      </svg>
+    </button>
+  </div>
+  <audio data-ambient-audio src="assets/audio/playground-ambient.mp3" loop preload="none"></audio>
 
   <!-- floating side actions -->
   <div class="floaters" aria-hidden="false">
@@ -456,6 +456,7 @@
   <script src="assets/vendor/gsap.min.js"></script>
   <script src="assets/vendor/ScrollTrigger.min.js"></script>
   <script src="assets/vendor/lenis.min.js"></script>
-  <script src="script.js?v=66"></script>
+  <script src="assets/js/sound-particles.js"></script>
+  <script src="script.js?v=67"></script>
 </body>
 </html>
