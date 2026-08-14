@@ -81,37 +81,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Karla:wght@400;500;600;700;800&family=Londrina+Solid:wght@300;400;900&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-mono.jpeg" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-red.jpeg" type="image/jpeg" />
-  <link rel="stylesheet" href="styles.css?v=86" />
+  <link rel="stylesheet" href="styles.css?v=87" />
 </head>
 <body>
   <!-- grain overlay -->
   <div class="grain" aria-hidden="true"></div>
 
-  <!-- Playground nav: replaces the old pill nav. "PLAYGROUND" + a tiny live
-       particle field are purely decorative (aria-hidden) — the only real
-       control here is the ambient-sound toggle. Particle engine lives in
-       assets/js/sound-particles.js; wiring is in script.js. -->
-  <div class="playground-nav" data-playground-nav>
-    <div class="playground-link" data-playground aria-hidden="true">
-      <span class="playground-link__label">Playground</span>
-      <canvas class="sound-particles" data-sound-particles></canvas>
-    </div>
-    <button
-      class="playground-sound"
-      type="button"
-      data-sound-toggle
-      aria-pressed="false"
-      aria-label="Play ambient sound"
-    >
-      <svg class="playground-sound__play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M8 5v14l11-7z" />
-      </svg>
-      <svg class="playground-sound__wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-        <path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4" />
-      </svg>
-    </button>
+  <!-- Nav replacement: just the live particle field, no pill/label/button.
+       Particle engine lives in assets/js/sound-particles.js; wiring is in
+       script.js. -->
+  <div class="playground-nav" data-playground-nav aria-hidden="true">
+    <canvas class="sound-particles" data-sound-particles></canvas>
   </div>
-  <audio data-ambient-audio src="assets/audio/playground-ambient.mp3" loop preload="none"></audio>
 
   <!-- floating side actions -->
   <div class="floaters" aria-hidden="false">
@@ -457,6 +438,6 @@
   <script src="assets/vendor/ScrollTrigger.min.js"></script>
   <script src="assets/vendor/lenis.min.js"></script>
   <script src="assets/js/sound-particles.js"></script>
-  <script src="script.js?v=67"></script>
+  <script src="script.js?v=68"></script>
 </body>
 </html>

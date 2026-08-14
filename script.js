@@ -941,10 +941,9 @@ if (stmt) {
   }
 }
 
-// ===== Playground nav: particle field + ambient-sound toggle =====
+// ===== Playground nav: just the live particle field =====
 (function playgroundNav() {
   const navEl = document.querySelector('[data-playground-nav]');
-  const link = document.querySelector('[data-playground]');
   const canvas = document.querySelector('[data-sound-particles]');
   if (!navEl) return;
 
@@ -956,59 +955,9 @@ if (stmt) {
 
   if (!canvas || typeof window.SoundParticles === 'undefined') return;
 
-  // ---- audio: gesture-gated, feeds the particle field a live amplitude ----
-  const audioEl = document.querySelector('[data-ambient-audio]');
-  const soundBtn = document.querySelector('[data-sound-toggle]');
-  let analyser = null;
-  let freqData = null;
-  let audioSource = null;
-  let audioCtx = null;
-
-  const getAudioLevel = () => {
-    if (!analyser || !audioEl || audioEl.paused) return 0;
-    analyser.getByteFrequencyData(freqData);
-    let sum = 0;
-    for (let i = 0; i < freqData.length; i++) sum += freqData[i];
-    return Math.min(1, (sum / freqData.length) / 255 * 1.6); // headroom: rarely hits 1
-  };
-
-  const particles = new window.SoundParticles(canvas, { getAudioLevel, seed: 42 });
-
-  if (link) {
-    link.addEventListener('pointerenter', () => particles.setActive(true));
-    link.addEventListener('pointerleave', () => particles.setActive(false));
-  }
-
-  if (soundBtn && audioEl) {
-    soundBtn.addEventListener('click', async () => {
-      const playing = soundBtn.getAttribute('aria-pressed') === 'true';
-      if (playing) {
-        audioEl.pause();
-        soundBtn.setAttribute('aria-pressed', 'false');
-        soundBtn.setAttribute('aria-label', 'Play ambient sound');
-        return;
-      }
-      try {
-        if (!audioCtx) {
-          const Ctx = window.AudioContext || window.webkitAudioContext;
-          audioCtx = new Ctx();
-          audioSource = audioCtx.createMediaElementSource(audioEl);
-          analyser = audioCtx.createAnalyser();
-          analyser.fftSize = 64;
-          freqData = new Uint8Array(analyser.frequencyBinCount);
-          audioSource.connect(analyser);
-          analyser.connect(audioCtx.destination);
-        }
-        if (audioCtx.state === 'suspended') await audioCtx.resume();
-        await audioEl.play();
-        soundBtn.setAttribute('aria-pressed', 'true');
-        soundBtn.setAttribute('aria-label', 'Pause ambient sound');
-      } catch {
-        // Autoplay/decoding can fail silently on some browsers — leave the
-        // toggle in its off state rather than claim sound is playing.
-      }
-    });
-  }
+  const particles = new window.SoundParticles(canvas, { seed: 42 });
+  navEl.addEventListener('pointerenter', () => particles.setActive(true));
+  navEl.addEventListener('pointerleave', () => particles.setActive(false));
 })();
 
 // ===== Card pointer tilt (fine pointers only; rAF-throttled) =====

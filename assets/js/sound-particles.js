@@ -1,16 +1,14 @@
 /**
- * SoundParticles — the tiny particle field beside "PLAYGROUND".
+ * SoundParticles — the tiny particle field that replaces the site nav.
  *
- * A compact, center-weighted cloud of ~80-180 near-invisible dots that never
- * sits still: a slow noise-driven flow field, a spring pulling each particle
- * back toward its own resting spot, a very weak pull toward the cloud's
- * center, gentle pointer disturbance, and (once audio is playing) a small
- * amount of energy from the track's live amplitude. Nothing here is meant to
- * read as "a particle animation" — it should read as "something small is
- * quietly alive there."
+ * A compact, center-weighted cloud of ~80-180 dots that never sits still: a
+ * slow noise-driven flow field, a spring pulling each particle back toward
+ * its own resting spot, a very weak pull toward the cloud's center, and
+ * gentle pointer disturbance. Nothing here is meant to read as "a particle
+ * animation" — it should read as "something small is quietly alive there."
  *
  * Usage:
- *   const sp = new SoundParticles(canvasEl, { getAudioLevel: () => 0..1 });
+ *   const sp = new SoundParticles(canvasEl);
  *   sp.setActive(true);   // hover — the field gets slightly more energetic
  *   sp.destroy();
  *
@@ -77,7 +75,6 @@
     /**
      * @param {HTMLCanvasElement} canvas
      * @param {Object} [opts]
-     * @param {() => number} [opts.getAudioLevel] returns 0..1, live
      * @param {number} [opts.seed]
      */
     constructor(canvas, opts) {
@@ -96,7 +93,6 @@
       this.raf = 0;
       this.startTime = performance.now();
       this.destroyed = false;
-      this._displayAudio = 0;   // eased copy of getAudioLevel()
 
       this._onResize = this._resize.bind(this);
       this._onPointerMove = this._handlePointerMove.bind(this);
@@ -107,7 +103,7 @@
       window.addEventListener('resize', this._onResize, { passive: true });
       document.addEventListener('visibilitychange', this._onVisibility);
 
-      const host = canvas.closest('[data-playground]') || canvas;
+      const host = canvas.closest('[data-playground-nav]') || canvas;
       host.addEventListener('pointermove', this._onPointerMove);
       host.addEventListener('pointerleave', this._onPointerLeave);
 
@@ -126,7 +122,7 @@
       cancelAnimationFrame(this.raf);
       window.removeEventListener('resize', this._onResize);
       document.removeEventListener('visibilitychange', this._onVisibility);
-      const host = this.canvas.closest('[data-playground]') || this.canvas;
+      const host = this.canvas.closest('[data-playground-nav]') || this.canvas;
       host.removeEventListener('pointermove', this._onPointerMove);
       host.removeEventListener('pointerleave', this._onPointerLeave);
     }
@@ -176,8 +172,8 @@
           baseX: bx, baseY: by,
           x: bx, y: by,
           vx: 0, vy: 0,
-          radius: rand(0.6, 1.4),
-          baseOpacity: rand(0.15, 0.75),
+          radius: rand(1.1, 2.2),
+          baseOpacity: rand(0.35, 0.85),
           phase: rand(0, TAU),
           noiseOffset: rand(0, 1000),
           noiseSpeed: rand(0.00012, 0.00028),
@@ -220,17 +216,11 @@
     }
 
     _step(now) {
-      const audioRaw = this.opts.getAudioLevel ? this.opts.getAudioLevel() : 0;
-      // Ease the audio reading so it nudges the field rather than flickering
-      // it — this is meant to feel alive, not like a level meter.
-      this._displayAudio += (audioRaw - this._displayAudio) * 0.06;
-
-      const hoverBoost = this.active ? 1.18 : 1;
-      const audioBoost = 1 + this._displayAudio * 0.35; // stays subtle even loud
-      const flowForce = 0.0026 * hoverBoost * audioBoost;
+      const hoverBoost = this.active ? 1.3 : 1;
+      const flowForce = 0.0052 * hoverBoost;
       const springStrength = 0.010;
       const centerAttract = 0.00035;
-      const damping = 0.965 - (this.active ? 0.01 : 0); // a touch livelier on hover
+      const damping = 0.97 - (this.active ? 0.015 : 0); // a touch livelier on hover
       const noiseScale = 0.045;
       const cx = this.width / 2;
       const cy = this.height / 2;
@@ -285,7 +275,6 @@
       const ctx = this.ctx;
       ctx.clearRect(0, 0, this.width, this.height);
       const particles = this.particles;
-      const audioOpacity = 1 + this._displayAudio * 0.25;
 
       ctx.fillStyle = 'currentColor';
       for (let i = 0; i < particles.length; i++) {
@@ -311,7 +300,7 @@
         const x = drawX + wobble;
         const y = drawY + Math.cos(now * 0.0013 + p.phase) * p.amplitude * 0.25;
 
-        const opacity = Math.min(0.85, p.baseOpacity * audioOpacity * ex);
+        const opacity = Math.min(0.85, p.baseOpacity * ex);
         if (opacity <= 0.01) continue;
         ctx.globalAlpha = opacity;
         ctx.beginPath();
