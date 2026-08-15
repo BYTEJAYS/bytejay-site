@@ -44,7 +44,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
    entrance rhythm. Each hero layer resolves on its own beat. */
 html.site-intro-active,html.site-intro-active body{overflow:hidden}
 html.site-entering .playground-nav,
-html.site-entering .floaters,
 html.site-entering .hero__title,
 html.site-entering .hero__year,
 html.site-entering .hero__since,
@@ -65,9 +64,6 @@ html.site-entered .hero-card-stage{
 }
 html.site-entered .playground-nav{
   animation:site-enter-nav .9s cubic-bezier(.22,1,.36,1) .42s backwards;
-}
-html.site-entered .floaters{
-  animation:site-enter-floaters .8s cubic-bezier(.22,1,.36,1) .95s backwards;
 }
 html.site-entered .grain{
   animation:site-enter-grain 1.4s ease .2s backwards;
@@ -92,10 +88,6 @@ html.site-entered .grain{
 @keyframes site-enter-from-right{
   0%{opacity:0;filter:blur(6px);transform:translate3d(16px,8px,0)}
   100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0)}
-}
-@keyframes site-enter-floaters{
-  0%{opacity:0;filter:blur(4px);transform:translate3d(10px,10px,0) scale(.98)}
-  100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) scale(1)}
 }
 @keyframes site-enter-grain{0%{opacity:0}100%{opacity:.5}}
 
@@ -252,30 +244,6 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
 
 
 /* ===== Floating side actions ===== */
-.floaters{
-  position:fixed;right:20px;bottom:20px;z-index:40;
-  width:180px;height:118px;pointer-events:none;
-  transition:transform .46s cubic-bezier(.4,0,1,1),opacity .34s ease-out;
-}
-body.contact-in-view .floaters{opacity:0;transform:translate3d(calc(100% + 30px),0,0);pointer-events:none}
-.floater{
-  position:absolute;right:0;bottom:0;visibility:hidden;opacity:0;pointer-events:none;
-  font-size:15px;font-weight:500;padding:14px 22px;border-radius:12px;white-space:nowrap;
-  filter:blur(8px);transform:translate3d(38px,18px,0) scale(.9);will-change:transform,opacity,filter;
-  transition:opacity .42s ease-out,filter .48s ease-out,transform .62s cubic-bezier(.16,1,.3,1),visibility 0s linear .62s,background .3s,box-shadow .3s;
-}
-body.floater-instagram-visible .floater--instagram,
-body.floater-github-visible .floater--github{
-  visibility:visible;opacity:1;pointer-events:auto;filter:blur(0);
-  transform:translate3d(0,0,0) scale(1);transition-delay:0s;
-}
-body.floater-github-visible .floater--instagram{transform:translate3d(0,-62px,0) scale(1)}
-body.floater-github-visible .floater--github{transition-delay:.14s}
-.floater--dark{background:var(--ink);color:#fff}
-.floater--dark:hover{transform:translateY(-2px)}
-.floater--chip{background:#fff;color:var(--ink);display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(0,0,0,.1)}
-.floater--chip .dot{width:9px;height:9px;border-radius:50%;background:#25b86a;box-shadow:0 0 0 3px rgba(37,184,106,.16)}
-.floater--chip .dot--instagram{background:linear-gradient(135deg,#833ab4,#fd1d1d 55%,#fcb045);box-shadow:0 0 0 3px rgba(225,48,108,.14)}
 
 /* ===== Hero → About scroll journey ===== */
 .hero-journey{
@@ -1233,7 +1201,6 @@ html:not(.js) .portrait-destination img{visibility:visible}
   .project-card__info h3{max-width:none;font-size:22px}
   .sound-btn{width:46px;height:46px;border-radius:12px}
   .sound-btn__bar{height:17px;width:2.5px}
-  .floaters{display:none}
   .contact{gap:44px}
   .contact__lede{margin-top:26px}
   .contact__meta div{grid-template-columns:76px 1fr;gap:12px}
@@ -1270,7 +1237,6 @@ body{font-family:var(--studio-body)}
   transition:opacity .68s var(--ease),transform .68s var(--ease);
 }
 .footer [data-reveal].in{opacity:1;transform:none}
-.floater{font-family:var(--studio-body);font-weight:800}
 .hero__title,.section-title,.intro__col--lead h2,.service h3,
 .statement p,.contact__title{
   font-family:var(--studio-display);
