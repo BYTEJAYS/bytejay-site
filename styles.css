@@ -810,6 +810,34 @@ html:not(.js) .portrait-destination img{visibility:visible}
   font-size:12px;font-weight:700;letter-spacing:.12em;
 }
 .contact__title{line-height:.82;letter-spacing:-.06em}
+/* The mailbox has to live *outside* the <h2>: that heading carries a clip-path
+   for its scroll reveal, and clip-path clips every descendant — at rest it is
+   inset(0), which crops to the heading's box and sliced ~21px off the mailbox's
+   right edge.
+   Wrapping both in a max-content box keeps the anchor honest though: the
+   wrapper shrinks to the widest line of the title, so left:100% still tracks
+   the right edge of "talk_" at any font size, with no per-breakpoint offset. */
+.contact__title-wrap{position:relative;width:max-content;max-width:100%}
+.contact__mailbox{
+  position:absolute;
+  left:calc(100% + clamp(10px,1.4vw,24px));
+  top:50%;
+  width:clamp(84px,9.5vw,132px);
+  height:auto;
+  transform:translateY(-50%) rotate(-4deg);
+  transform-origin:center;
+  pointer-events:none;
+  user-select:none;
+  filter:drop-shadow(0 12px 20px rgba(90,40,30,.16));
+  animation:mailbox-float 5.5s ease-in-out infinite alternate;
+}
+@keyframes mailbox-float{
+  0%  {transform:translateY(-50%) rotate(-4deg)}
+  100%{transform:translateY(calc(-50% - 9px)) rotate(-1deg)}
+}
+@media (prefers-reduced-motion:reduce){
+  .contact__mailbox{animation:none}
+}
 .contact__cursor{color:#777;font-weight:400;animation:terminal-cursor 1s steps(1,end) infinite}
 .contact__lede{max-width:440px;margin-top:34px;color:var(--gray);font-size:clamp(17px,1.45vw,20px);line-height:1.55}
 .contact__meta{display:grid;gap:0;margin-top:34px;border-top:1px solid rgba(17,17,17,.12)}
