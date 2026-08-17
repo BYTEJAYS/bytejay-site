@@ -2,8 +2,6 @@
  * Interactive Site Decorations — Journey / Folio Baseline Edition
  *
  * 1. Jukebox floating music notes when ambient track plays.
- * 2. Interactive whisper flame motes around the About pull-cord lamp.
- * 3. Sparkle dust near decorative vignettes.
  */
 (function () {
   'use strict';
@@ -55,14 +53,5 @@
     audioEl.addEventListener('play', startNotes);
     audioEl.addEventListener('pause', stopNotes);
     audioEl.addEventListener('ended', stopNotes);
-  }
-
-  // ===== 2. Wind Chime Sway & Ripple in Statement Section =====
-  const chime = document.querySelector('.sakura-chime');
-  if (chime) {
-    chime.addEventListener('pointerenter', () => {
-      chime.classList.add('is-chiming');
-      setTimeout(() => chime.classList.remove('is-chiming'), 1400);
-    });
   }
 })();
