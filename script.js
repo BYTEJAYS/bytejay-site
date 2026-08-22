@@ -955,15 +955,13 @@ if (contactSection) {
 // ===== Hero portrait: measured, sticky hero-to-about bridge (GSAP + ScrollTrigger + Lenis) =====
 (function heroScene() {
   const scene = document.getElementById('heroScene');
-  const card = document.getElementById('heroCard');
-  const underlay = document.querySelector('.hero-card-underlay');
-  const shadow = document.querySelector('.hero-card__shadow');
-  const slot = document.querySelector('.hero-card-slot');
-  const destination = document.querySelector('.portrait-destination');
   const heroYear = document.querySelector('.hero__year');
   const heroSince = document.querySelector('.hero__since');
   const heroNavBoundary = heroYear || heroSince;
-  if (!scene || !card || typeof gsap === 'undefined') return;
+  // NOTE: this function is not just the portrait animation — it also owns
+  // Lenis, the nav hide-on-scroll and anchor scrolling, so it must keep
+  // running now that the card is gone. Only the card guard was dropped.
+  if (!scene || typeof gsap === 'undefined') return;
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const LenisCtor = window.Lenis && (window.Lenis.default || window.Lenis);
@@ -1048,73 +1046,6 @@ if (contactSection) {
     document.addEventListener('click', anchorClick);
   }
 
-  const mm = gsap.matchMedia();
-  mm.add({ desktop: '(min-width: 901px)', compact: '(max-width: 900px)' }, (context) => {
-    const travel = () => Math.min(context.conditions.compact ? window.innerHeight * 0.08 : 114, 114);
-    const landingX = () => {
-      if (!slot || !destination) return 0;
-      return destination.getBoundingClientRect().left - slot.getBoundingClientRect().left;
-    };
-
-    gsap.set(card, {
-      x: 0,
-      y: travel,
-      scale: 0.5,
-      rotationX: 0,
-      rotationY: 0,
-      rotationZ: 0,
-      z: 0,
-      transformOrigin: '50% 50%',
-      force3D: true
-    });
-    gsap.set(underlay, {
-      x: 0,
-      y: travel,
-      scale: 0.5,
-      rotationY: 0,
-      opacity: 0.12,
-      z: -14,
-      transformOrigin: '50% 50%',
-      force3D: true
-    });
-    gsap.set(shadow, { x: 0, y: travel, opacity: 0.08, scale: 0.42, force3D: true });
-
-    // One primary trigger: 0–100% maps to exactly one viewport of scroll,
-    // matching the measured transition on the live reference.
-    const tl = gsap.timeline({
-      defaults: { ease: 'none' },
-      scrollTrigger: {
-        id: 'hero-portrait-bridge',
-        trigger: scene,
-        start: 'top top',
-        end: () => `+=${window.innerHeight}`,
-        // A very short scrub softens frame-to-frame wheel deltas without
-        // making the portrait feel detached from the page.
-        scrub: 0.12,
-        invalidateOnRefresh: true,
-        onLeave: () => scene.classList.add('hero-settled'),
-        onEnterBack: () => scene.classList.remove('hero-settled')
-      }
-    });
-
-    tl.to(card, {
-      duration: 1,
-      x: landingX,
-      y: 0,
-      scale: 1,
-      rotationY: 180,
-      z: 0
-    }, 0)
-      .to(underlay, { duration: 1, x: landingX, y: 0, scale: 1, rotationY: 180 }, 0)
-      .to(underlay, { duration: 0.5, opacity: 0.42, z: -22 }, 0)
-      .to(underlay, { duration: 0.5, opacity: 0, z: -8 }, 0.5)
-      .to(shadow, { duration: 1, x: landingX, y: 0 }, 0)
-      .to(shadow, { duration: 0.5, opacity: 0.28, scale: 0.82 }, 0)
-      .to(shadow, { duration: 0.5, opacity: 0.06, scale: 0.72 }, 0.5);
-
-    return () => tl.kill();
-  });
-
   // Recalculate once fonts and the eager portrait settle.
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
   window.addEventListener('load', () => ScrollTrigger.refresh());
@@ -1123,10 +1054,8 @@ if (contactSection) {
   // back-forward cache. Keep the scene alive so Back can resume it intact.
   window.addEventListener('pagehide', (event) => {
     if (event.persisted) return;
-    scene.classList.remove('hero-settled');
     window.removeEventListener('scroll', restoreNavAtTop);
     if (navDismissTrigger) navDismissTrigger.kill();
-    mm.revert();
     if (anchorClick) document.removeEventListener('click', anchorClick);
     if (resumeAfterIntro) window.removeEventListener('siteintrocomplete', resumeAfterIntro);
     if (syncLenisSize) ScrollTrigger.removeEventListener('refreshInit', syncLenisSize);

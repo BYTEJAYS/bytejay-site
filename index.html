@@ -81,7 +81,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Karla:wght@400;500;600;700;800&family=Londrina+Solid:wght@300;400;900&family=Newsreader:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-mono.jpeg" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/images/hero-portrait-red.jpeg" type="image/jpeg" />
-  <link rel="stylesheet" href="styles.css?v=98" />
+  <link rel="stylesheet" href="styles.css?v=111" />
 </head>
 <body>
   <!-- Atmospheric cherry blossom petals drift (from Journey / Folio baseline) -->
@@ -137,22 +137,6 @@
         </span>
       </section>
 
-      <div class="hero-card-stage" aria-hidden="true">
-        <div class="hero-card-slot">
-          <div class="hero-card-underlay"></div>
-          <div class="hero-card" id="heroCard">
-            <div class="hero-card__face hero-card__front">
-              <img src="assets/images/hero-portrait-mono.jpeg" alt="" width="1086" height="1448" fetchpriority="high" />
-            </div>
-            <div class="hero-card__face hero-card__back">
-              <img src="assets/images/hero-portrait-red.jpeg" alt="" width="1023" height="1537" />
-            </div>
-          </div>
-          <div class="hero-card__shadow"></div>
-        </div>
-      </div>
-
-      <!-- The animated card settles into the centre column of this section. -->
       <section class="intro" id="about" aria-labelledby="aboutTitle">
         <!-- Pull-cord lamp — physics-driven; drops in when About is entered and scrolls
              WITH the section (absolute), so it never floats over the rest of the page.
@@ -171,9 +155,13 @@
           <p data-reveal>I&rsquo;m Jay, a backend developer &amp; AI engineer based in India, building intelligent backend systems and graph analytics.</p>
         </div>
         <div class="intro__col intro__col--media">
-          <div class="portrait-destination">
-            <img src="assets/images/hero-portrait-red.jpeg" alt="Portrait of Jay in red studio light" width="1023" height="1537" loading="eager" />
-          </div>
+          <!-- Was the landing zone for the hero card animation; now that the
+               animation is gone this is simply the portrait, shown large. -->
+          <figure class="about-portrait">
+            <img src="assets/images/hero-portrait-red.jpeg"
+                 alt="Portrait of Jay in red studio light"
+                 width="1023" height="1537" loading="eager" decoding="async" />
+          </figure>
         </div>
         <div class="intro__col intro__col--body">
           <p data-write>Lately, I&rsquo;m building fraud-detection graph engines and local AI systems, alongside FastAPI platforms and Next.js consoles.</p>
@@ -432,6 +420,6 @@
   <script src="assets/vendor/lenis.min.js"></script>
   <script src="assets/js/sakura-drift.js"></script>
   <script src="assets/js/decorations.js"></script>
-  <script src="script.js?v=72"></script>
+  <script src="script.js?v=73"></script>
 </body>
 </html>
