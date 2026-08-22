@@ -290,12 +290,21 @@ section{position:relative;z-index:2;padding:0 var(--pad)}
      every existing responsive rule for this corner */
   display:inline-flex;align-items:center;gap:0;white-space:nowrap;
 }
-/* Rendered from pink_lily.glb by tools/lily/render_lily.py. Decorative. */
-.hero__lily{
-  width:clamp(34px,3.8vw,62px);height:auto;flex:none;display:block;
-  /* the outer petal fades out well before the crop edge, so a small negative
-     margin is what actually closes the visual gap to the number */
-  margin-left:clamp(-2px,-.12vw,-.6px);
+/* Pixel-art bouquet, rebuilt from the reference at its true 19px block grid
+   (see tools/pixel-flower/). Decorative.
+
+   Two things matter here. It is portrait where the old lily was landscape, so
+   it is sized by HEIGHT against the tag's type instead of by width — sizing by
+   width would have made it tower over the number. And image-rendering:pixelated
+   is load-bearing: without it the browser smooths the art while scaling and the
+   hard square edges that make it pixel art in the first place turn to mush. */
+.hero__flower{
+  height:clamp(38px,4.4vw,66px);width:auto;flex:none;display:block;
+  /* Order matters: the last supported declaration wins, so crisp-edges is the
+     older fallback and pixelated is what modern browsers actually apply. */
+  image-rendering:crisp-edges;
+  image-rendering:pixelated;
+  margin-left:clamp(3px,.5vw,9px);
   pointer-events:none;user-select:none;
 }
 
